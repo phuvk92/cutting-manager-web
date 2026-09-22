@@ -31,6 +31,19 @@ const processQueue = (error: unknown, token: string | null = null) => {
   failedQueue = []
 }
 
+export const forceLogoutAndRedirect = () => {
+  localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN)
+  localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN)
+  localStorage.removeItem(STORAGE_KEYS.USER)
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('auth:logout'))
+    if (!window.location.pathname.startsWith('/login')) {
+      window.location.href = '/login'
+    }
+  }
+}
+
 // Request Interceptor: Attach JWT Access Token
 axiosClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
@@ -47,37 +60,57 @@ axiosClient.interceptors.request.use(
 axiosClient.interceptors.response.use(
   response => response,
   async (error: AxiosError) => {
-    const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean }
+    const originalRequest = error.config as (InternalAxiosRequestConfig & { _retry?: boolean }) | undefined
 
-    if (!originalRequest) {
-      return Promise.reject(error)
-    }
+    if (error.response?.status === 401) {
+      const url = originalRequest?.url || ''
+      const isLoginEndpoint = url.includes(API_ENDPOINTS.LOGIN)
 
-    const isAuthEndpoint =
-      originalRequest.url?.includes(API_ENDPOINTS.LOGIN) ||
-      originalRequest.url?.includes(API_ENDPOINTS.REFRESH) ||
-      originalRequest.url?.includes(API_ENDPOINTS.REGISTER)
+      // Nếu lỗi 401 do sai mật khẩu lúc đăng nhập thì để LoginForm tự hiển thị thông báo lỗi
+      if (isLoginEndpoint) {
+        return Promise.reject(error)
+      }
 
-    if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
+      // Nếu chính endpoint refresh token trả về 401 -> Refresh token hết hạn / không hợp lệ
+      const isRefreshEndpoint = url.includes(API_ENDPOINTS.REFRESH)
+      if (isRefreshEndpoint) {
+        forceLogoutAndRedirect()
+        return Promise.reject(error)
+      }
+
+      // Đã retry refresh 1 lần rồi mà vẫn 401 -> Logout ngay
+      if (originalRequest?._retry) {
+        forceLogoutAndRedirect()
+        return Promise.reject(error)
+      }
+
+      // Thử refresh token
       const refreshToken = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN)
-
       if (!refreshToken) {
-        handleLogout()
+        forceLogoutAndRedirect()
         return Promise.reject(error)
       }
 
       if (isRefreshing) {
-        return new Promise((resolve, reject) => {
+        return new Promise<string>((resolve, reject) => {
           failedQueue.push({ resolve, reject })
         })
           .then(token => {
-            originalRequest.headers.Authorization = `Bearer ${token}`
-            return axiosClient(originalRequest)
+            if (originalRequest && originalRequest.headers) {
+              originalRequest.headers.Authorization = `Bearer ${token}`
+              return axiosClient(originalRequest)
+            }
+            return Promise.reject(error)
           })
-          .catch(err => Promise.reject(err))
+          .catch(err => {
+            forceLogoutAndRedirect()
+            return Promise.reject(err)
+          })
       }
 
-      originalRequest._retry = true
+      if (originalRequest) {
+        originalRequest._retry = true
+      }
       isRefreshing = true
 
       try {
@@ -100,11 +133,13 @@ axiosClient.interceptors.response.use(
         axiosClient.defaults.headers.common.Authorization = `Bearer ${accessToken}`
         processQueue(null, accessToken)
 
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`
-        return axiosClient(originalRequest)
+        if (originalRequest && originalRequest.headers) {
+          originalRequest.headers.Authorization = `Bearer ${accessToken}`
+          return axiosClient(originalRequest)
+        }
       } catch (refreshError) {
         processQueue(refreshError, null)
-        handleLogout()
+        forceLogoutAndRedirect()
         return Promise.reject(refreshError)
       } finally {
         isRefreshing = false
@@ -114,13 +149,5 @@ axiosClient.interceptors.response.use(
     return Promise.reject(error)
   }
 )
-
-const handleLogout = () => {
-  localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN)
-  localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN)
-  localStorage.removeItem(STORAGE_KEYS.USER)
-  // Dispatch a custom event so Zustand auth store can react without circular dependencies
-  window.dispatchEvent(new CustomEvent('auth:logout'))
-}
 
 export default axiosClient

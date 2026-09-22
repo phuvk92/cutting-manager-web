@@ -1,9 +1,9 @@
 export const API_ENDPOINTS = {
   // Auth
   LOGIN: '/auth/login',
-  REGISTER: '/auth/register',
   REFRESH: '/auth/refresh',
   ME: '/auth/me',
+  CHANGE_PASSWORD: '/auth/change-password',
 
   // SVG Files
   SVG_LIST: '/svg',

@@ -20,12 +20,16 @@ export interface LoginRequest {
   password: string
 }
 
-export interface RegisterRequest {
-  username: string
-  email: string
-  password: string
-}
-
 export interface RefreshTokenRequest {
   refreshToken: string
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string
+  newPassword: string
+  confirmPassword?: string
+}
+
+export interface MessageResponse {
+  message: string
 }

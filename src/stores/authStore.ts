@@ -1,7 +1,8 @@
 import { create } from 'zustand'
-import { UserSummary, LoginRequest, RegisterRequest } from '@/types/auth'
+import { UserSummary, LoginRequest } from '@/types/auth'
 import { STORAGE_KEYS } from '@/constants/auth'
 import { authService } from '@/services/auth/authService'
+import { forceLogoutAndRedirect } from '@/services/api/axiosClient'
 
 interface AuthState {
   user: UserSummary | null
@@ -11,7 +12,6 @@ interface AuthState {
   isLoading: boolean
   isInitialized: boolean
   login: (payload: LoginRequest) => Promise<void>
-  register: (payload: RegisterRequest) => Promise<void>
   logout: () => void
   fetchCurrentUser: () => Promise<void>
   initAuth: () => Promise<void>
@@ -71,21 +71,8 @@ export const useAuthStore = create<AuthState>((set, get) => {
       }
     },
 
-    register: async (payload: RegisterRequest) => {
-      set({ isLoading: true })
-      try {
-        await authService.register(payload)
-        set({ isLoading: false })
-      } catch (error) {
-        set({ isLoading: false })
-        throw error
-      }
-    },
-
     logout: () => {
-      localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN)
-      localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN)
-      localStorage.removeItem(STORAGE_KEYS.USER)
+      forceLogoutAndRedirect()
       set({
         user: null,
         accessToken: null,
