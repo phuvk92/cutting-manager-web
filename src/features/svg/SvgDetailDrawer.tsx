@@ -1,6 +1,6 @@
 import React from 'react'
-import { Drawer, Descriptions, Button, Space, Typography, Popconfirm } from 'antd'
-import { DownloadOutlined, DeleteOutlined } from '@ant-design/icons'
+import { Drawer, Descriptions, Button, Space, Typography, Popconfirm, Tag } from 'antd'
+import { DownloadOutlined, DeleteOutlined, FolderOutlined } from '@ant-design/icons'
 import { SvgFile } from '@/types/svg'
 import { SafeSvgViewer } from '@/components/svg/SafeSvgViewer'
 import { RoleTag } from '@/components/common/RoleTag'
@@ -80,6 +80,22 @@ export const SvgDetailDrawer: React.FC<SvgDetailDrawerProps> = ({
         <Descriptions.Item label="File ID">{svg.id}</Descriptions.Item>
         <Descriptions.Item label="Original Filename">
           <Text strong>{svg.originalFilename}</Text>
+        </Descriptions.Item>
+        <Descriptions.Item label="Category">
+          {svg.category ? (
+            <div>
+              <Space>
+                <FolderOutlined style={{ color: '#1890ff' }} />
+                <Text strong>{svg.category.name}</Text>
+                <Tag color="blue">{svg.category.level}</Tag>
+              </Space>
+              <div style={{ marginTop: 4, color: '#8c8c8c', fontSize: 12 }}>
+                Full Path: {svg.category.fullPath}
+              </div>
+            </div>
+          ) : (
+            '-'
+          )}
         </Descriptions.Item>
         <Descriptions.Item label="File Size">
           {formatBytes(svg.fileSize)} ({svg.fileSize.toLocaleString()} bytes)

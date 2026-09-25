@@ -10,6 +10,8 @@ import {
   Card,
   Row,
   Col,
+  Tag,
+  Cascader,
 } from 'antd'
 import {
   SearchOutlined,
@@ -20,10 +22,13 @@ import {
   DeleteOutlined,
   InfoCircleOutlined,
   FileImageOutlined,
+  FolderOutlined,
 } from '@ant-design/icons'
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table'
 import { SvgFile, SvgFilterParams } from '@/types/svg'
+import { Category } from '@/types/category'
 import { svgService } from '@/services/svg/svgService'
+import { categoryService } from '@/services/category/categoryService'
 import { formatBytes, formatDateTime, truncateString } from '@/utils/formatters'
 import { RoleTag } from '@/components/common/RoleTag'
 import { SvgUploadModal } from './SvgUploadModal'
@@ -32,15 +37,30 @@ import { SvgDetailDrawer } from './SvgDetailDrawer'
 import { useAuthStore } from '@/stores/authStore'
 import { extractErrorMessage } from '@/utils/error'
 
+interface CascaderOption {
+  value: number
+  label: string
+  children?: CascaderOption[]
+}
+
+const mapCategoryToCascader = (cat: Category): CascaderOption => ({
+  value: cat.id,
+  label: `${cat.label} (${cat.level})`,
+  children: cat.children && cat.children.length > 0 ? cat.children.map(mapCategoryToCascader) : undefined,
+})
+
 export const SvgList: React.FC = () => {
   const { user } = useAuthStore()
-  const isAgentOrAdmin = user?.role === 'ADMIN' || user?.role === 'AGENT'
   const isAdmin = user?.role === 'ADMIN'
 
   // Data state
   const [data, setData] = useState<SvgFile[]>([])
   const [totalElements, setTotalElements] = useState(0)
   const [loading, setLoading] = useState(false)
+
+  // Categories for filter
+  const [categoryOptions, setCategoryOptions] = useState<CascaderOption[]>([])
+  const [selectedFilterCategory, setSelectedFilterCategory] = useState<number | undefined>(undefined)
 
   // Filter & Pagination state
   const [page, setPage] = useState(0)
@@ -56,6 +76,14 @@ export const SvgList: React.FC = () => {
   const [detailDrawerOpen, setDetailDrawerOpen] = useState(false)
   const [selectedSvg, setSelectedSvg] = useState<SvgFile | null>(null)
 
+  useEffect(() => {
+    categoryService.getCategories().then(cats => {
+      setCategoryOptions(cats.map(mapCategoryToCascader))
+    }).catch(() => {
+      // Ignore category load error on list filter
+    })
+  }, [])
+
   const fetchSvgFiles = useCallback(async () => {
     setLoading(true)
     try {
@@ -68,6 +96,9 @@ export const SvgList: React.FC = () => {
       if (keyword.trim()) {
         params.keyword = keyword.trim()
       }
+      if (selectedFilterCategory) {
+        params.categoryId = selectedFilterCategory
+      }
 
       const res = await svgService.getSvgFiles(params)
       setData(res.content || [])
@@ -77,7 +108,7 @@ export const SvgList: React.FC = () => {
     } finally {
       setLoading(false)
     }
-  }, [page, pageSize, keyword, sortBy, sortDirection])
+  }, [page, pageSize, keyword, selectedFilterCategory, sortBy, sortDirection])
 
   useEffect(() => {
     fetchSvgFiles()
@@ -91,6 +122,7 @@ export const SvgList: React.FC = () => {
   const handleResetSearch = () => {
     setSearchInput('')
     setKeyword('')
+    setSelectedFilterCategory(undefined)
     setPage(0)
   }
 
@@ -152,7 +184,7 @@ export const SvgList: React.FC = () => {
       key: 'originalFilename',
       sorter: true,
       render: (text: string, record: SvgFile) => (
-        <Space orientation="horizontal" size="small">
+        <Space size="small">
           <FileImageOutlined style={{ color: '#1890ff', fontSize: 16 }} />
           <Button
             type="link"
@@ -165,10 +197,28 @@ export const SvgList: React.FC = () => {
       ),
     },
     {
+      title: 'Category',
+      dataIndex: 'category',
+      key: 'category',
+      width: 200,
+      render: (cat: SvgFile['category']) =>
+        cat ? (
+          <Tooltip title={cat.fullPath}>
+            <Space size="small">
+              <FolderOutlined style={{ color: '#1890ff' }} />
+              <span>{cat.name}</span>
+              <Tag color="geekblue">{cat.level}</Tag>
+            </Space>
+          </Tooltip>
+        ) : (
+          '-'
+        ),
+    },
+    {
       title: 'Size',
       dataIndex: 'fileSize',
       key: 'fileSize',
-      width: 110,
+      width: 100,
       sorter: true,
       render: (bytes: number) => formatBytes(bytes),
     },
@@ -176,7 +226,7 @@ export const SvgList: React.FC = () => {
       title: 'Uploaded By',
       dataIndex: 'uploadedBy',
       key: 'uploadedBy',
-      width: 180,
+      width: 170,
       render: (uploader: SvgFile['uploadedBy']) =>
         uploader ? (
           <Space size="small">
@@ -191,14 +241,14 @@ export const SvgList: React.FC = () => {
       title: 'Uploaded At',
       dataIndex: 'createdAt',
       key: 'createdAt',
-      width: 170,
+      width: 160,
       sorter: true,
       render: (dateStr: string) => formatDateTime(dateStr),
     },
     {
       title: 'Actions',
       key: 'actions',
-      width: 180,
+      width: 160,
       align: 'center',
       render: (_: unknown, record: SvgFile) => (
         <Space size="small">
@@ -246,8 +296,8 @@ export const SvgList: React.FC = () => {
     <div>
       <Card style={{ marginBottom: 16 }} bodyStyle={{ padding: 16 }}>
         <Row gutter={[16, 16]} justify="space-between" align="middle">
-          <Col xs={24} md={12}>
-            <Space style={{ width: '100%' }}>
+          <Col xs={24} md={16}>
+            <Space wrap>
               <Input
                 placeholder="Search by filename..."
                 value={searchInput}
@@ -255,20 +305,37 @@ export const SvgList: React.FC = () => {
                 onPressEnter={handleSearch}
                 prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
                 allowClear
-                style={{ width: 260 }}
+                style={{ width: 220 }}
+              />
+              <Cascader
+                options={categoryOptions}
+                placeholder="Filter by Category"
+                changeOnSelect
+                allowClear
+                onChange={value => {
+                  if (value && value.length > 0) {
+                    setSelectedFilterCategory(value[value.length - 1] as number)
+                  } else {
+                    setSelectedFilterCategory(undefined)
+                  }
+                  setPage(0)
+                }}
+                style={{ width: 240 }}
               />
               <Button type="primary" onClick={handleSearch}>
                 Search
               </Button>
-              {keyword && <Button onClick={handleResetSearch}>Reset</Button>}
+              {(keyword || selectedFilterCategory) && (
+                <Button onClick={handleResetSearch}>Reset</Button>
+              )}
             </Space>
           </Col>
-          <Col xs={24} md={12} style={{ textAlign: 'right' }}>
+          <Col xs={24} md={8} style={{ textAlign: 'right' }}>
             <Space>
               <Button icon={<ReloadOutlined />} onClick={fetchSvgFiles} loading={loading}>
                 Refresh
               </Button>
-              {isAgentOrAdmin && (
+              {isAdmin && (
                 <Button
                   type="primary"
                   icon={<UploadOutlined />}

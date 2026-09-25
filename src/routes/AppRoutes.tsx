@@ -8,6 +8,7 @@ import { useAuthStore } from '@/stores/authStore'
 
 const LoginPage = lazy(() => import('@/pages/LoginPage').then(m => ({ default: m.LoginPage })))
 const DashboardPage = lazy(() => import('@/pages/DashboardPage').then(m => ({ default: m.DashboardPage })))
+const CategoriesPage = lazy(() => import('@/pages/CategoriesPage').then(m => ({ default: m.CategoriesPage })))
 const SvgPage = lazy(() => import('@/pages/SvgPage').then(m => ({ default: m.SvgPage })))
 const UsersPage = lazy(() => import('@/pages/UsersPage').then(m => ({ default: m.UsersPage })))
 const AuditPage = lazy(() => import('@/pages/AuditPage').then(m => ({ default: m.AuditPage })))
@@ -33,11 +34,16 @@ export const AppRoutes: React.FC = () => {
           <Route element={<MainLayout />}>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/svg" element={<SvgPage />} />
 
-            {/* Admin-only routes */}
-            <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
+            {/* Users route accessible to ADMIN and AGENT */}
+            <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'AGENT']} />}>
               <Route path="/users" element={<UsersPage />} />
+            </Route>
+
+            {/* Categories, SVG and Audit routes strictly ADMIN only */}
+            <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
+              <Route path="/categories" element={<CategoriesPage />} />
+              <Route path="/svg" element={<SvgPage />} />
               <Route path="/audit" element={<AuditPage />} />
             </Route>
 

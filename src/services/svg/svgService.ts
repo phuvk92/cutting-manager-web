@@ -19,10 +19,12 @@ export const svgService = {
 
   uploadSvg: async (
     file: File,
+    categoryId: number,
     onProgress?: (percent: number) => void
   ): Promise<SvgFile> => {
     const formData = new FormData()
     formData.append('file', file)
+    formData.append('categoryId', categoryId.toString())
 
     const response = await axiosClient.post<SvgFile>(API_ENDPOINTS.SVG_UPLOAD, formData, {
       headers: {

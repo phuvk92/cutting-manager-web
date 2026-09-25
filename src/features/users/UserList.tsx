@@ -35,6 +35,7 @@ import { extractErrorMessage } from '@/utils/error'
 
 export const UserList: React.FC = () => {
   const { user: currentUser } = useAuthStore()
+  const isAdmin = currentUser?.role === 'ADMIN'
 
   // Data state
   const [data, setData] = useState<User[]>([])
@@ -156,7 +157,7 @@ export const UserList: React.FC = () => {
       title: 'ID',
       dataIndex: 'id',
       key: 'id',
-      width: 70,
+      width: 65,
       sorter: true,
     },
     {
@@ -165,44 +166,69 @@ export const UserList: React.FC = () => {
       key: 'username',
       sorter: true,
       render: (text: string, record: User) => (
-        <Space>
-          <span style={{ fontWeight: 600 }}>{text}</span>
-          {record.id === currentUser?.id && <Tag color="gold">You</Tag>}
+        <Space direction="vertical" size={0}>
+          <Space>
+            <span style={{ fontWeight: 600 }}>{text}</span>
+            {record.id === currentUser?.id && <Tag color="gold">You</Tag>}
+          </Space>
+          {record.fullName && <span style={{ fontSize: 12, color: '#8c8c8c' }}>{record.fullName}</span>}
         </Space>
       ),
     },
     {
-      title: 'Email',
-      dataIndex: 'email',
-      key: 'email',
-      sorter: true,
+      title: 'Email / Phone',
+      key: 'contact',
+      render: (_: unknown, record: User) => (
+        <Space direction="vertical" size={0}>
+          <span>{record.email}</span>
+          {record.phone && <span style={{ fontSize: 12, color: '#8c8c8c' }}>{record.phone}</span>}
+        </Space>
+      ),
     },
     {
       title: 'Role',
       dataIndex: 'role',
       key: 'role',
-      width: 130,
+      width: 110,
       render: (role: Role) => <RoleTag role={role} />,
     },
+    ...(isAdmin
+      ? [
+          {
+            title: 'Agent',
+            key: 'agent',
+            width: 140,
+            render: (_: unknown, record: User) => {
+              if (record.role === 'ADMIN') return <Tag color="purple">System</Tag>
+              if (record.role === 'AGENT') return <Tag color="blue">Agent Self</Tag>
+              return record.agentUsername ? (
+                <Tag color="cyan">Agent: {record.agentUsername}</Tag>
+              ) : (
+                <Tag>Direct</Tag>
+              )
+            },
+          },
+        ]
+      : []),
     {
       title: 'Status',
       dataIndex: 'enabled',
       key: 'enabled',
-      width: 120,
+      width: 110,
       render: (enabled: boolean) => <StatusTag enabled={enabled} />,
     },
     {
       title: 'Created At',
       dataIndex: 'createdAt',
       key: 'createdAt',
-      width: 170,
+      width: 160,
       sorter: true,
       render: (dateStr: string) => formatDateTime(dateStr),
     },
     {
       title: 'Actions',
       key: 'actions',
-      width: 180,
+      width: 160,
       align: 'center',
       render: (_: unknown, record: User) => {
         const isSelf = record.id === currentUser?.id
@@ -236,7 +262,7 @@ export const UserList: React.FC = () => {
               <Tooltip title="Delete User">
                 <Popconfirm
                   title="Delete User"
-                  description={`Are you sure you want to delete "${record.username}"? This cannot be undone.`}
+                  description={`Are you sure you want to delete "${record.username}"?`}
                   onConfirm={() => handleDelete(record)}
                   okText="Delete"
                   cancelText="Cancel"
@@ -276,19 +302,21 @@ export const UserList: React.FC = () => {
               allowClear
             />
           </Col>
-          <Col xs={12} sm={6} md={4}>
-            <Select
-              placeholder="Role"
-              value={selectedRole}
-              onChange={val => setSelectedRole(val)}
-              allowClear
-              style={{ width: '100%' }}
-            >
-              <Select.Option value="ADMIN">ADMIN</Select.Option>
-              <Select.Option value="AGENT">AGENT</Select.Option>
-              <Select.Option value="USER">USER</Select.Option>
-            </Select>
-          </Col>
+          {isAdmin && (
+            <Col xs={12} sm={6} md={4}>
+              <Select
+                placeholder="Role"
+                value={selectedRole}
+                onChange={val => setSelectedRole(val)}
+                allowClear
+                style={{ width: '100%' }}
+              >
+                <Select.Option value="ADMIN">ADMIN</Select.Option>
+                <Select.Option value="AGENT">AGENT</Select.Option>
+                <Select.Option value="USER">USER</Select.Option>
+              </Select>
+            </Col>
+          )}
           <Col xs={12} sm={6} md={4}>
             <Select
               placeholder="Status"
@@ -301,7 +329,7 @@ export const UserList: React.FC = () => {
               <Select.Option value={false}>Disabled</Select.Option>
             </Select>
           </Col>
-          <Col xs={24} md={4} style={{ textAlign: 'right' }}>
+          <Col xs={24} md={isAdmin ? 4 : 8} style={{ textAlign: 'right' }}>
             <Space>
               <Button type="primary" onClick={handleSearch}>
                 Filter

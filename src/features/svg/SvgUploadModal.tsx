@@ -1,11 +1,14 @@
-import React, { useState } from 'react'
-import { Modal, Upload, Progress, Alert, Button, message } from 'antd'
+import React, { useState, useEffect } from 'react'
+import { Modal, Upload, Progress, Alert, Button, Cascader, Form, message } from 'antd'
 import { InboxOutlined } from '@ant-design/icons'
 import type { UploadProps } from 'antd'
 import { svgService } from '@/services/svg/svgService'
+import { categoryService } from '@/services/category/categoryService'
+import { Category } from '@/types/category'
 import { extractErrorMessage } from '@/utils/error'
 
 const { Dragger } = Upload
+
 
 interface SvgUploadModalProps {
   open: boolean
@@ -13,19 +16,58 @@ interface SvgUploadModalProps {
   onSuccess: () => void
 }
 
+interface CascaderOption {
+  value: number
+  label: string
+  children?: CascaderOption[]
+}
+
+const mapCategoryToCascader = (cat: Category): CascaderOption => ({
+  value: cat.id,
+  label: `${cat.label} (${cat.level})`,
+  children: cat.children && cat.children.length > 0 ? cat.children.map(mapCategoryToCascader) : undefined,
+})
+
 export const SvgUploadModal: React.FC<SvgUploadModalProps> = ({
   open,
   onClose,
   onSuccess,
 }) => {
   const [fileList, setFileList] = useState<File[]>([])
+  const [categories, setCategories] = useState<CascaderOption[]>([])
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null)
+  const [loadingCategories, setLoadingCategories] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [progress, setProgress] = useState(0)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
+  useEffect(() => {
+    if (open) {
+      loadCategories()
+    }
+  }, [open])
+
+  const loadCategories = async () => {
+    setLoadingCategories(true)
+    try {
+      const data = await categoryService.getCategories()
+      const options = data.map(mapCategoryToCascader)
+      setCategories(options)
+    } catch (err) {
+      message.error('Failed to load categories catalog')
+    } finally {
+      setLoadingCategories(false)
+    }
+  }
+
   const handleUpload = async () => {
     if (fileList.length === 0) {
       message.warning('Please select an SVG file to upload.')
+      return
+    }
+
+    if (!selectedCategoryId) {
+      message.warning('Please select a category for this SVG file.')
       return
     }
 
@@ -35,11 +77,12 @@ export const SvgUploadModal: React.FC<SvgUploadModalProps> = ({
     setErrorMessage(null)
 
     try {
-      await svgService.uploadSvg(file, percent => {
+      await svgService.uploadSvg(file, selectedCategoryId, percent => {
         setProgress(percent)
       })
       message.success(`File "${file.name}" uploaded successfully!`)
       setFileList([])
+      setSelectedCategoryId(null)
       setProgress(0)
       onSuccess()
       onClose()
@@ -56,14 +99,12 @@ export const SvgUploadModal: React.FC<SvgUploadModalProps> = ({
     maxCount: 1,
     accept: '.svg,image/svg+xml',
     beforeUpload: file => {
-      // Validate file extension and MIME
       const isSvg = file.name.toLowerCase().endsWith('.svg') || file.type === 'image/svg+xml'
       if (!isSvg) {
         message.error('Only SVG files (.svg) are allowed!')
         return Upload.LIST_IGNORE
       }
 
-      // 10MB limit
       const isLt10M = file.size / 1024 / 1024 < 10
       if (!isLt10M) {
         message.error('SVG file must be smaller than 10MB!')
@@ -72,7 +113,7 @@ export const SvgUploadModal: React.FC<SvgUploadModalProps> = ({
 
       setFileList([file])
       setErrorMessage(null)
-      return false // Prevent automatic upload
+      return false
     },
     onRemove: () => {
       setFileList([])
@@ -89,6 +130,7 @@ export const SvgUploadModal: React.FC<SvgUploadModalProps> = ({
   const handleModalClose = () => {
     if (!uploading) {
       setFileList([])
+      setSelectedCategoryId(null)
       setProgress(0)
       setErrorMessage(null)
       onClose()
@@ -109,7 +151,7 @@ export const SvgUploadModal: React.FC<SvgUploadModalProps> = ({
           type="primary"
           onClick={handleUpload}
           loading={uploading}
-          disabled={fileList.length === 0}
+          disabled={fileList.length === 0 || !selectedCategoryId}
         >
           {uploading ? 'Uploading...' : 'Start Upload'}
         </Button>,
@@ -128,6 +170,29 @@ export const SvgUploadModal: React.FC<SvgUploadModalProps> = ({
             onClose={() => setErrorMessage(null)}
           />
         )}
+
+        <Form layout="vertical">
+          <Form.Item
+            label="Category Catalog (Mandatory)"
+            required
+            help="Select vehicle hierarchy (Category / Brand / Model / Variant / Year / Submodel)"
+          >
+            <Cascader
+              options={categories}
+              loading={loadingCategories}
+              placeholder="Select Category Hierarchy"
+              changeOnSelect
+              onChange={(value) => {
+                if (value && value.length > 0) {
+                  setSelectedCategoryId(value[value.length - 1] as number)
+                } else {
+                  setSelectedCategoryId(null)
+                }
+              }}
+              style={{ width: '100%' }}
+            />
+          </Form.Item>
+        </Form>
 
         <Dragger {...uploadProps} disabled={uploading}>
           <p className="ant-upload-drag-icon">

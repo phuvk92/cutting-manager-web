@@ -5,6 +5,7 @@ import {
   FileImageOutlined,
   TeamOutlined,
   AuditOutlined,
+  AppstoreOutlined,
 } from '@ant-design/icons'
 import type { MenuProps } from 'antd'
 import { useLocation, useNavigate } from 'react-router-dom'
@@ -23,25 +24,39 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ collapsed, onCollapse })
   const { user } = useAuthStore()
 
   const isAdmin = user?.role === 'ADMIN'
+  const isAgent = user?.role === 'AGENT'
+  const isAgentOrAdmin = isAdmin || isAgent
 
   // Build menu items based on actual backend roles
+  // ADMIN: Dashboard, Users, Categories, SVG Files, Audit Logs
+  // AGENT: Dashboard, Users (MUST NOT see Categories, SVG Files or Audit Logs)
+  // USER: Dashboard only
   const menuItems: MenuProps['items'] = [
     {
       key: '/dashboard',
       icon: <DashboardOutlined />,
       label: 'Dashboard',
     },
-    {
-      key: '/svg',
-      icon: <FileImageOutlined />,
-      label: 'SVG Files',
-    },
-    ...(isAdmin
+    ...(isAgentOrAdmin
       ? [
           {
             key: '/users',
             icon: <TeamOutlined />,
             label: 'User Management',
+          },
+        ]
+      : []),
+    ...(isAdmin
+      ? [
+          {
+            key: '/categories',
+            icon: <AppstoreOutlined />,
+            label: 'Categories',
+          },
+          {
+            key: '/svg',
+            icon: <FileImageOutlined />,
+            label: 'SVG Files',
           },
           {
             key: '/audit',
@@ -53,7 +68,9 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ collapsed, onCollapse })
   ]
 
   // Determine active key
-  const selectedKey = location.pathname.startsWith('/svg')
+  const selectedKey = location.pathname.startsWith('/categories')
+    ? '/categories'
+    : location.pathname.startsWith('/svg')
     ? '/svg'
     : location.pathname.startsWith('/users')
     ? '/users'

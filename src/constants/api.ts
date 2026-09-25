@@ -5,6 +5,14 @@ export const API_ENDPOINTS = {
   ME: '/auth/me',
   CHANGE_PASSWORD: '/auth/change-password',
 
+  // Categories
+  CATEGORIES: '/categories',
+  CATEGORY_DETAIL: (id: number | string) => `/categories/${id}`,
+  CATEGORY_CREATE: '/categories',
+  CATEGORY_UPDATE: (id: number | string) => `/categories/${id}`,
+  CATEGORY_DELETE: (id: number | string) => `/categories/${id}`,
+  CATALOG_LEVEL: (level: string) => `/v1/catalog/${level}`,
+
   // SVG Files
   SVG_LIST: '/svg',
   SVG_UPLOAD: '/svg/upload',
@@ -13,7 +21,7 @@ export const API_ENDPOINTS = {
   SVG_DOWNLOAD: (id: number | string) => `/svg/${id}/download`,
   SVG_DELETE: (id: number | string) => `/svg/${id}`,
 
-  // Users (ADMIN only)
+  // Users (ADMIN and AGENT)
   USERS_LIST: '/users',
   USER_DETAIL: (id: number | string) => `/users/${id}`,
   USER_CREATE: '/users',
