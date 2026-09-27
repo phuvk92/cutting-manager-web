@@ -57,19 +57,18 @@ export const LoginForm: React.FC = () => {
 
   return (
     <div
+      className="login-page"
       style={{
-        width: "100%",
         height: "100vh",
-        minHeight: 720,
+        minHeight: "720px",
         display: "flex",
         background: "#17161A",
         fontFamily: "'IBM Plex Sans', system-ui, sans-serif",
         color: "#F4F3F0",
         overflow: "hidden",
-        boxSizing: "border-box",
       }}
     >
-      {/* ══ MẢNG HÌNH (HERO BANNER) ══ */}
+      {/* ══ MẢNG HÌNH ══ */}
       <div
         className="login-hero-container"
         style={{
@@ -161,7 +160,6 @@ export const LoginForm: React.FC = () => {
               font: "600 11px 'IBM Plex Sans', sans-serif",
               letterSpacing: "0.14em",
               color: "#B79CF5",
-              textTransform: "uppercase",
             }}
           >
             PCUT
@@ -170,8 +168,7 @@ export const LoginForm: React.FC = () => {
             style={{
               marginTop: 14,
               font: "600 34px/1.25 'IBM Plex Sans', sans-serif",
-              color: "#FFFFFF",
-              letterSpacing: "-0.02em",
+              color: "#FFF",
             }}
           >
             Phần mềm cắt phim chuyên dụng cho xưởng dán xe
@@ -188,7 +185,7 @@ export const LoginForm: React.FC = () => {
         </div>
       </div>
 
-      {/* ══ THẺ ĐĂNG NHẬP (LOGIN CARD) ══ */}
+      {/* ══ THẺ ĐĂNG NHẬP ══ */}
       <div
         className="login-card-container"
         style={{
@@ -200,7 +197,6 @@ export const LoginForm: React.FC = () => {
           padding: "0 56px",
           background: "#1B1A1F",
           borderLeft: "1px solid #2C2B32",
-          boxSizing: "border-box",
           zIndex: 3,
         }}
       >
@@ -240,7 +236,6 @@ export const LoginForm: React.FC = () => {
             marginTop: 34,
             font: "600 22px 'IBM Plex Sans', sans-serif",
             color: "#F4F3F0",
-            letterSpacing: "-0.01em",
           }}
         >
           Đăng nhập
@@ -297,7 +292,6 @@ export const LoginForm: React.FC = () => {
               style={{
                 display: "flex",
                 alignItems: "center",
-                height: 42,
                 gap: 9,
                 padding: "0 12px",
                 background: "#232228",
@@ -307,14 +301,7 @@ export const LoginForm: React.FC = () => {
                   ? "1px solid #7C3AED"
                   : "1px solid #34333B",
                 borderRadius: 6,
-                boxShadow:
-                  focusedField === "username"
-                    ? "0 0 0 1px #7C3AED"
-                    : errors.username
-                    ? "0 0 0 1px #EF4444"
-                    : "none",
-                transition: "all 0.18s ease-in-out",
-                boxSizing: "border-box",
+                transition: "border-color 0.15s ease",
               }}
             >
               <svg
@@ -347,14 +334,12 @@ export const LoginForm: React.FC = () => {
                     style={{
                       flex: 1,
                       minWidth: 0,
-                      height: "100%",
-                      padding: 0,
+                      padding: "11px 0",
                       border: 0,
                       outline: "none",
                       background: "transparent",
                       font: "400 13.5px 'IBM Plex Sans', sans-serif",
                       color: "#F4F3F0",
-                      lineHeight: "42px",
                     }}
                   />
                 )}
@@ -381,7 +366,6 @@ export const LoginForm: React.FC = () => {
               style={{
                 display: "flex",
                 alignItems: "center",
-                height: 42,
                 gap: 9,
                 padding: "0 12px",
                 background: "#232228",
@@ -391,14 +375,7 @@ export const LoginForm: React.FC = () => {
                   ? "1px solid #7C3AED"
                   : "1px solid #34333B",
                 borderRadius: 6,
-                boxShadow:
-                  focusedField === "password"
-                    ? "0 0 0 1px #7C3AED"
-                    : errors.password
-                    ? "0 0 0 1px #EF4444"
-                    : "none",
-                transition: "all 0.18s ease-in-out",
-                boxSizing: "border-box",
+                transition: "border-color 0.15s ease",
               }}
             >
               <svg
@@ -432,14 +409,12 @@ export const LoginForm: React.FC = () => {
                     style={{
                       flex: 1,
                       minWidth: 0,
-                      height: "100%",
-                      padding: 0,
+                      padding: "11px 0",
                       border: 0,
                       outline: "none",
                       background: "transparent",
                       font: "400 13.5px 'IBM Plex Sans', sans-serif",
                       color: "#F4F3F0",
-                      lineHeight: "42px",
                     }}
                   />
                 )}
@@ -448,7 +423,7 @@ export const LoginForm: React.FC = () => {
                 type="button"
                 onClick={() => setShowPassword((prev) => !prev)}
                 style={{
-                  padding: "4px 6px",
+                  padding: "2px 4px",
                   border: 0,
                   background: "transparent",
                   cursor: "pointer",
@@ -501,8 +476,6 @@ export const LoginForm: React.FC = () => {
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
                 style={{
-                  width: 14,
-                  height: 14,
                   accentColor: "#7C3AED",
                   margin: 0,
                   cursor: "pointer",
@@ -529,13 +502,13 @@ export const LoginForm: React.FC = () => {
             disabled={isLoading}
             style={{
               marginTop: 6,
-              height: 42,
+              padding: "12px",
               border: 0,
               borderRadius: 6,
               background: isLoading ? "#5B21B6" : "#7C3AED",
               cursor: isLoading ? "not-allowed" : "pointer",
               font: "500 13.5px 'IBM Plex Sans', sans-serif",
-              color: "#FFFFFF",
+              color: "#FFF",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",

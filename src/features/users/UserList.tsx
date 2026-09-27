@@ -21,6 +21,7 @@ import {
   DeleteOutlined,
   LockOutlined,
   UnlockOutlined,
+  ShopOutlined,
 } from '@ant-design/icons'
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table'
 import { User, UserFilterParams } from '@/types/user'
@@ -74,7 +75,7 @@ export const UserList: React.FC = () => {
       setData(res.content || [])
       setTotalElements(res.totalElements || 0)
     } catch (err) {
-      message.error(extractErrorMessage(err, 'Failed to fetch users'))
+      message.error(extractErrorMessage(err, 'Không thể tải danh sách người dùng'))
     } finally {
       setLoading(false)
     }
@@ -130,145 +131,187 @@ export const UserList: React.FC = () => {
   const handleToggleStatus = async (record: User) => {
     try {
       await userService.updateUserStatus(record.id, { enabled: !record.enabled })
-      message.success(`User "${record.username}" status updated`)
+      message.success(`Đã cập nhật trạng thái người dùng "${record.username}"`)
       fetchUsers()
     } catch (err) {
-      message.error(extractErrorMessage(err, 'Failed to update user status'))
+      message.error(extractErrorMessage(err, 'Không thể cập nhật trạng thái người dùng'))
     }
   }
 
   const handleDelete = async (record: User) => {
     if (record.id === currentUser?.id) {
-      message.error('You cannot delete your own account.')
+      message.error('Bạn không thể tự xóa tài khoản của chính mình.')
       return
     }
 
     try {
       await userService.deleteUser(record.id)
-      message.success(`User "${record.username}" deleted successfully`)
+      message.success(`Đã xóa người dùng "${record.username}" thành công`)
       fetchUsers()
     } catch (err) {
-      message.error(extractErrorMessage(err, 'Failed to delete user'))
+      message.error(extractErrorMessage(err, 'Không thể xóa người dùng'))
     }
+  }
+
+  const getInitials = (name?: string, username?: string) => {
+    const target = name || username || 'U'
+    const parts = target.trim().split(' ')
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+    }
+    return target.slice(0, 2).toUpperCase()
   }
 
   const columns: ColumnsType<User> = [
     {
-      title: 'ID',
-      dataIndex: 'id',
-      key: 'id',
-      width: 65,
+      title: 'Họ tên & Tài khoản',
+      key: 'userInfo',
       sorter: true,
-    },
-    {
-      title: 'Username',
-      dataIndex: 'username',
-      key: 'username',
-      sorter: true,
-      render: (text: string, record: User) => (
-        <Space direction="vertical" size={0}>
-          <Space>
-            <span style={{ fontWeight: 600 }}>{text}</span>
-            {record.id === currentUser?.id && <Tag color="gold">You</Tag>}
-          </Space>
-          {record.fullName && <span style={{ fontSize: 12, color: '#8c8c8c' }}>{record.fullName}</span>}
-        </Space>
-      ),
-    },
-    {
-      title: 'Email / Phone',
-      key: 'contact',
       render: (_: unknown, record: User) => (
-        <Space direction="vertical" size={0}>
-          <span>{record.email}</span>
-          {record.phone && <span style={{ fontSize: 12, color: '#8c8c8c' }}>{record.phone}</span>}
-        </Space>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div
+            style={{
+              width: 32,
+              height: 32,
+              flex: 'none',
+              borderRadius: '50%',
+              background: '#EDEBE6',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              font: "500 11px 'IBM Plex Sans', sans-serif",
+              color: '#6E6D68',
+            }}
+          >
+            {getInitials(record.fullName, record.username)}
+          </div>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontWeight: 600, color: '#1B1B19' }}>
+                {record.fullName || record.username}
+              </span>
+              {record.id === currentUser?.id && <Tag color="gold">Bạn</Tag>}
+            </div>
+            <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11.5, color: '#6E6D68' }}>
+              @{record.username}
+            </div>
+          </div>
+        </div>
       ),
     },
     {
-      title: 'Role',
+      title: 'Đại lý & Chi nhánh',
+      key: 'dealer',
+      width: 220,
+      render: (_: unknown, record: User) => {
+        if (record.dealerName) {
+          return (
+            <div>
+              <div style={{ fontWeight: 500, color: '#35342F', display: 'flex', alignItems: 'center', gap: 4 }}>
+                <ShopOutlined style={{ color: '#6C3BD6' }} />
+                <span>{record.dealerName}</span>
+              </div>
+              {record.dealerCode && (
+                <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, color: '#6E6D68' }}>
+                  {record.dealerCode}
+                </div>
+              )}
+            </div>
+          )
+        }
+        if (record.agentUsername) {
+          return <Tag color="cyan">Agent: {record.agentUsername}</Tag>
+        }
+        return <span style={{ color: '#8A8983', fontSize: 12 }}>Độc lập / Trực tiếp</span>
+      },
+    },
+    {
+      title: 'Liên hệ',
+      key: 'contact',
+      width: 210,
+      render: (_: unknown, record: User) => (
+        <div>
+          <div style={{ color: '#35342F', fontSize: 12 }}>{record.email}</div>
+          {record.phone && (
+            <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11.5, color: '#6E6D68' }}>
+              {record.phone}
+            </div>
+          )}
+        </div>
+      ),
+    },
+    {
+      title: 'Vai trò',
       dataIndex: 'role',
       key: 'role',
-      width: 110,
+      width: 140,
       render: (role: Role) => <RoleTag role={role} />,
     },
-    ...(isAdmin
-      ? [
-          {
-            title: 'Agent',
-            key: 'agent',
-            width: 140,
-            render: (_: unknown, record: User) => {
-              if (record.role === 'ADMIN') return <Tag color="purple">System</Tag>
-              if (record.role === 'AGENT') return <Tag color="blue">Agent Self</Tag>
-              return record.agentUsername ? (
-                <Tag color="cyan">Agent: {record.agentUsername}</Tag>
-              ) : (
-                <Tag>Direct</Tag>
-              )
-            },
-          },
-        ]
-      : []),
     {
-      title: 'Status',
+      title: 'Trạng thái',
       dataIndex: 'enabled',
       key: 'enabled',
-      width: 110,
+      width: 120,
       render: (enabled: boolean) => <StatusTag enabled={enabled} />,
     },
     {
-      title: 'Created At',
+      title: 'Ngày tạo',
       dataIndex: 'createdAt',
       key: 'createdAt',
-      width: 160,
+      width: 150,
       sorter: true,
-      render: (dateStr: string) => formatDateTime(dateStr),
+      render: (dateStr: string) => (
+        <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 12, color: '#6E6D68' }}>
+          {formatDateTime(dateStr)}
+        </span>
+      ),
     },
     {
-      title: 'Actions',
+      title: 'Thao tác',
       key: 'actions',
-      width: 160,
+      width: 120,
       align: 'center',
       render: (_: unknown, record: User) => {
         const isSelf = record.id === currentUser?.id
 
         return (
           <Space size="small">
-            <Tooltip title="Edit User">
+            <Tooltip title="Chỉnh sửa thông tin">
               <Button
                 type="text"
-                icon={<EditOutlined />}
+                size="small"
+                icon={<EditOutlined style={{ color: '#6C3BD6' }} />}
                 onClick={() => handleEdit(record)}
               />
             </Tooltip>
             {!isSelf && (
-              <Tooltip title={record.enabled ? 'Disable Account' : 'Enable Account'}>
+              <Tooltip title={record.enabled ? 'Khóa tài khoản' : 'Mở khóa tài khoản'}>
                 <Popconfirm
-                  title={record.enabled ? 'Disable User' : 'Enable User'}
-                  description={`Are you sure you want to ${record.enabled ? 'disable' : 'enable'} "${record.username}"?`}
+                  title={record.enabled ? 'Khóa người dùng' : 'Mở khóa người dùng'}
+                  description={`Bạn có chắc muốn ${record.enabled ? 'khóa' : 'mở khóa'} tài khoản "${record.username}"?`}
                   onConfirm={() => handleToggleStatus(record)}
-                  okText="Yes"
-                  cancelText="No"
+                  okText="Đồng ý"
+                  cancelText="Hủy"
                 >
                   <Button
                     type="text"
-                    icon={record.enabled ? <LockOutlined /> : <UnlockOutlined />}
+                    size="small"
+                    icon={record.enabled ? <LockOutlined style={{ color: '#D97706' }} /> : <UnlockOutlined style={{ color: '#16A34A' }} />}
                   />
                 </Popconfirm>
               </Tooltip>
             )}
             {!isSelf && (
-              <Tooltip title="Delete User">
+              <Tooltip title="Xóa tài khoản">
                 <Popconfirm
-                  title="Delete User"
-                  description={`Are you sure you want to delete "${record.username}"?`}
+                  title="Xóa người dùng"
+                  description={`Bạn có chắc muốn xóa vĩnh viễn người dùng "${record.username}"?`}
                   onConfirm={() => handleDelete(record)}
-                  okText="Delete"
-                  cancelText="Cancel"
+                  okText="Xóa"
+                  cancelText="Hủy"
                   okButtonProps={{ danger: true }}
                 >
-                  <Button type="text" danger icon={<DeleteOutlined />} />
+                  <Button type="text" danger size="small" icon={<DeleteOutlined />} />
                 </Popconfirm>
               </Tooltip>
             )}
@@ -280,77 +323,78 @@ export const UserList: React.FC = () => {
 
   return (
     <div>
-      <Card style={{ marginBottom: 16 }} bodyStyle={{ padding: 16 }}>
+      <Card style={{ marginBottom: 14, borderRadius: 6, borderColor: '#E4E3DE' }} bodyStyle={{ padding: 14 }}>
         <Row gutter={[12, 12]} align="middle">
           <Col xs={24} sm={12} md={6}>
             <Input
-              placeholder="Filter by username..."
+              placeholder="Tìm theo tên đăng nhập..."
               value={usernameInput}
               onChange={e => setUsernameInput(e.target.value)}
               onPressEnter={handleSearch}
-              prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
+              prefix={<SearchOutlined style={{ color: '#8A8983' }} />}
               allowClear
             />
           </Col>
           <Col xs={24} sm={12} md={6}>
             <Input
-              placeholder="Filter by email..."
+              placeholder="Tìm theo email..."
               value={emailInput}
               onChange={e => setEmailInput(e.target.value)}
               onPressEnter={handleSearch}
-              prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
+              prefix={<SearchOutlined style={{ color: '#8A8983' }} />}
               allowClear
             />
           </Col>
           {isAdmin && (
             <Col xs={12} sm={6} md={4}>
               <Select
-                placeholder="Role"
+                placeholder="Tất cả vai trò"
                 value={selectedRole}
                 onChange={val => setSelectedRole(val)}
                 allowClear
                 style={{ width: '100%' }}
               >
-                <Select.Option value="ADMIN">ADMIN</Select.Option>
-                <Select.Option value="AGENT">AGENT</Select.Option>
-                <Select.Option value="USER">USER</Select.Option>
+                <Select.Option value="ADMIN">Quản trị viên (ADMIN)</Select.Option>
+                <Select.Option value="AGENT">Quản lý đại lý (AGENT)</Select.Option>
+                <Select.Option value="USER">Thợ cắt (USER)</Select.Option>
               </Select>
             </Col>
           )}
           <Col xs={12} sm={6} md={4}>
             <Select
-              placeholder="Status"
+              placeholder="Tất cả trạng thái"
               value={selectedEnabled}
               onChange={val => setSelectedEnabled(val)}
               allowClear
               style={{ width: '100%' }}
             >
-              <Select.Option value={true}>Active</Select.Option>
-              <Select.Option value={false}>Disabled</Select.Option>
+              <Select.Option value={true}>Hoạt động</Select.Option>
+              <Select.Option value={false}>Đang khóa</Select.Option>
             </Select>
           </Col>
           <Col xs={24} md={isAdmin ? 4 : 8} style={{ textAlign: 'right' }}>
             <Space>
-              <Button type="primary" onClick={handleSearch}>
-                Filter
+              <Button type="primary" onClick={handleSearch} style={{ background: '#6C3BD6', borderColor: '#6C3BD6' }}>
+                Lọc
               </Button>
-              <Button onClick={handleResetFilters}>Reset</Button>
+              <Button onClick={handleResetFilters}>Đặt lại</Button>
             </Space>
           </Col>
         </Row>
       </Card>
 
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 14 }}>
         <Space>
           <Button icon={<ReloadOutlined />} onClick={fetchUsers} loading={loading}>
-            Refresh
+            Làm mới
           </Button>
           <Button
             type="primary"
             icon={<UserAddOutlined />}
             onClick={handleCreate}
+            style={{ background: '#6C3BD6', borderColor: '#6C3BD6' }}
           >
-            Create User
+            Thêm người dùng
           </Button>
         </Space>
       </div>
@@ -365,7 +409,7 @@ export const UserList: React.FC = () => {
           pageSize,
           total: totalElements,
           showSizeChanger: true,
-          showTotal: total => `Total ${total} users`,
+          showTotal: total => `Tổng số: ${total} người dùng`,
         }}
         onChange={handleTableChange}
         bordered

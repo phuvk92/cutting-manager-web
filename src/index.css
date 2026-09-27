@@ -1,9 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
 *, *::before, *::after {
   box-sizing: border-box;
-  margin: 0;
-  padding: 0;
 }
 
 html, body {
@@ -11,7 +9,7 @@ html, body {
   height: 100%;
   margin: 0;
   padding: 0;
-  font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background-color: #17161A;
   color: #F4F3F0;
   -webkit-font-smoothing: antialiased;
@@ -25,33 +23,35 @@ html, body {
   padding: 0;
   display: flex;
   flex-direction: column;
-  background-color: #17161A;
 }
 
-a {
-  color: #B79CF5;
+/* ══════════════════════════════════════════════════════════════════
+   LOGIN PAGE SPECIFIC STYLES (EXACTLY MATCHING Login.dc.html)
+   ══════════════════════════════════════════════════════════════════ */
+.login-page a {
+  color: #B79CF5 !important;
   text-decoration: none;
-  transition: color 0.2s;
+  transition: color 0.15s ease;
 }
 
-a:hover {
-  color: #D2C1FA;
+.login-page a:hover {
+  color: #D2C1FA !important;
 }
 
-::selection {
-  background: #4A2E8A;
-  color: #FFFFFF;
+.login-page ::selection {
+  background: #4A2E8A !important;
+  color: #FFFFFF !important;
 }
 
-input::placeholder {
-  color: #7C7A85;
+.login-card-container input::placeholder {
+  color: #7C7A85 !important;
 }
 
-/* Fix browser autofill dark theme on inputs */
-input:-webkit-autofill,
-input:-webkit-autofill:hover,
-input:-webkit-autofill:focus,
-input:-webkit-autofill:active {
+/* Fix browser autofill dark theme on inputs in login */
+.login-card-container input:-webkit-autofill,
+.login-card-container input:-webkit-autofill:hover,
+.login-card-container input:-webkit-autofill:focus,
+.login-card-container input:-webkit-autofill:active {
   -webkit-box-shadow: 0 0 0 30px #232228 inset !important;
   -webkit-text-fill-color: #F4F3F0 !important;
   caret-color: #F4F3F0 !important;
@@ -69,4 +69,61 @@ input:-webkit-autofill:active {
     border-left: none !important;
     padding: 24px !important;
   }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   ADMIN PORTAL SPECIFIC STYLES (EXACTLY MATCHING AdminPoc.html)
+   ══════════════════════════════════════════════════════════════════ */
+.pcut-admin-layout {
+  background-color: #F4F3F0;
+  color: #1B1B19;
+}
+
+.pcut-admin-layout a {
+  color: #6C3BD6;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.pcut-admin-layout a:hover {
+  color: #55299F;
+}
+
+.pcut-admin-layout ::selection {
+  background: #DDD2FA;
+  color: #1B1B19;
+}
+
+.pcut-admin-layout input::placeholder {
+  color: #A3A29C;
+}
+
+/* Custom scrollbars matching AdminPoc */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #F4F3F0;
+}
+::-webkit-scrollbar-thumb {
+  background: #D8D7D2;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #B9B8B2;
+}
+
+/* Admin Menu and Table Hover effects */
+.pcut-menu-item:hover {
+  background: #F1F0EC !important;
+}
+.pcut-menu-item-active {
+  background: #F1EDFC !important;
+  border-left: 3px solid #7C3AED !important;
+  color: #5B2BB0 !important;
+}
+
+.pcut-table-row:hover {
+  background-color: #F6F4FD !important;
 }

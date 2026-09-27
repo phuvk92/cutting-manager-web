@@ -1,14 +1,39 @@
 import React, { useState, useEffect } from 'react'
-import { Modal, Upload, Progress, Alert, Button, Cascader, Form, message } from 'antd'
-import { InboxOutlined } from '@ant-design/icons'
+import {
+  Modal,
+  Upload,
+  Progress,
+  Alert,
+  Button,
+  Form,
+  message,
+  Select,
+  Typography,
+  Divider,
+  Switch,
+  Table,
+  Badge,
+  Space,
+  Tag,
+} from 'antd'
+import {
+  InboxOutlined,
+  DeleteOutlined,
+  CarOutlined,
+  TeamOutlined,
+  InfoCircleOutlined,
+} from '@ant-design/icons'
 import type { UploadProps } from 'antd'
 import { svgService } from '@/services/svg/svgService'
-import { categoryService } from '@/services/category/categoryService'
-import { Category } from '@/types/category'
+import { vehicleConfigurationService } from '@/services/vehicle/vehicleConfigurationService'
+import { dealerService } from '@/services/dealers/dealerService'
+import { VehicleConfiguration } from '@/types/vehicleConfiguration'
+import { Dealer } from '@/types/dealer'
 import { extractErrorMessage } from '@/utils/error'
+import { formatBytes } from '@/utils/formatters'
 
 const { Dragger } = Upload
-
+const { Text } = Typography
 
 interface SvgUploadModalProps {
   open: boolean
@@ -16,17 +41,13 @@ interface SvgUploadModalProps {
   onSuccess: () => void
 }
 
-interface CascaderOption {
-  value: number
-  label: string
-  children?: CascaderOption[]
+interface DealerPermissionItem {
+  dealerId: number
+  dealerCode: string
+  dealerName: string
+  canView: boolean
+  canDownload: boolean
 }
-
-const mapCategoryToCascader = (cat: Category): CascaderOption => ({
-  value: cat.id,
-  label: `${cat.label} (${cat.level})`,
-  children: cat.children && cat.children.length > 0 ? cat.children.map(mapCategoryToCascader) : undefined,
-})
 
 export const SvgUploadModal: React.FC<SvgUploadModalProps> = ({
   open,
@@ -34,136 +55,218 @@ export const SvgUploadModal: React.FC<SvgUploadModalProps> = ({
   onSuccess,
 }) => {
   const [fileList, setFileList] = useState<File[]>([])
-  const [categories, setCategories] = useState<CascaderOption[]>([])
-  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null)
-  const [loadingCategories, setLoadingCategories] = useState(false)
+  const [vehicleConfigs, setVehicleConfigs] = useState<VehicleConfiguration[]>([])
+  const [selectedConfigIds, setSelectedConfigIds] = useState<number[]>([])
+  const [activeDealers, setActiveDealers] = useState<Dealer[]>([])
+  const [dealerPermissions, setDealerPermissions] = useState<DealerPermissionItem[]>([])
+  const [loadingInitialData, setLoadingInitialData] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [progress, setProgress] = useState(0)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   useEffect(() => {
     if (open) {
-      loadCategories()
+      loadInitialData()
     }
   }, [open])
 
-  const loadCategories = async () => {
-    setLoadingCategories(true)
+  const loadInitialData = async () => {
+    setLoadingInitialData(true)
     try {
-      const data = await categoryService.getCategories()
-      const options = data.map(mapCategoryToCascader)
-      setCategories(options)
-    } catch (err) {
-      message.error('Failed to load categories catalog')
+      const [configsRes, dealersRes] = await Promise.all([
+        vehicleConfigurationService.getConfigurations({ size: 100 }),
+        dealerService.getAllDealers(),
+      ])
+      setVehicleConfigs(configsRes.content || [])
+      const active = (dealersRes || []).filter(d => d.status === 'ACTIVE')
+      setActiveDealers(active)
+    } catch {
+      message.error('Không thể tải danh sách cấu hình xe hoặc đại lý')
     } finally {
-      setLoadingCategories(false)
+      setLoadingInitialData(false)
     }
+  }
+
+  const handleDealerSelectionChange = (dealerIds: number[]) => {
+    const updated: DealerPermissionItem[] = dealerIds.map(id => {
+      const existing = dealerPermissions.find(p => p.dealerId === id)
+      if (existing) return existing
+      const dealer = activeDealers.find(d => d.id === id)
+      return {
+        dealerId: id,
+        dealerCode: dealer?.code || '',
+        dealerName: dealer?.name || '',
+        canView: true,
+        canDownload: false,
+      }
+    })
+    setDealerPermissions(updated)
+  }
+
+  const handleToggleView = (dealerId: number, checked: boolean) => {
+    setDealerPermissions(prev =>
+      prev.map(p => {
+        if (p.dealerId === dealerId) {
+          return {
+            ...p,
+            canView: checked,
+            // If view is turned off, download must also be turned off
+            canDownload: checked ? p.canDownload : false,
+          }
+        }
+        return p
+      })
+    )
+  }
+
+  const handleToggleDownload = (dealerId: number, checked: boolean) => {
+    setDealerPermissions(prev =>
+      prev.map(p => {
+        if (p.dealerId === dealerId) {
+          return {
+            ...p,
+            canDownload: checked,
+            // If download is turned on, view must also be turned on
+            canView: checked ? true : p.canView,
+          }
+        }
+        return p
+      })
+    )
   }
 
   const handleUpload = async () => {
     if (fileList.length === 0) {
-      message.warning('Please select an SVG file to upload.')
+      message.warning('Vui lòng chọn ít nhất 1 file SVG để tải lên.')
       return
     }
 
-    if (!selectedCategoryId) {
-      message.warning('Please select a category for this SVG file.')
+    if (fileList.length > 10) {
+      message.error('Chỉ được upload tối đa 10 file SVG trong một lần.')
       return
     }
 
-    const file = fileList[0]
     setUploading(true)
     setProgress(0)
     setErrorMessage(null)
 
     try {
-      await svgService.uploadSvg(file, selectedCategoryId, percent => {
-        setProgress(percent)
-      })
-      message.success(`File "${file.name}" uploaded successfully!`)
-      setFileList([])
-      setSelectedCategoryId(null)
-      setProgress(0)
+      const permissionsPayload = dealerPermissions.map(p => ({
+        dealerId: p.dealerId,
+        canView: p.canView,
+        canDownload: p.canDownload,
+      }))
+
+      await svgService.batchUploadSvg(
+        fileList,
+        selectedConfigIds,
+        permissionsPayload,
+        percent => setProgress(percent)
+      )
+
+      message.success(`Đã tải lên thành công ${fileList.length} file SVG!`)
+      resetState()
       onSuccess()
       onClose()
     } catch (err) {
-      setErrorMessage(extractErrorMessage(err, 'Failed to upload SVG file.'))
+      setErrorMessage(extractErrorMessage(err, 'Tải lên file SVG thất bại.'))
     } finally {
       setUploading(false)
     }
   }
 
+  const resetState = () => {
+    setFileList([])
+    setSelectedConfigIds([])
+    setDealerPermissions([])
+    setProgress(0)
+    setErrorMessage(null)
+  }
+
+  const handleModalClose = () => {
+    if (!uploading) {
+      resetState()
+      onClose()
+    }
+  }
+
   const uploadProps: UploadProps = {
-    name: 'file',
-    multiple: false,
-    maxCount: 1,
+    multiple: true,
     accept: '.svg,image/svg+xml',
-    beforeUpload: file => {
+    showUploadList: false,
+    beforeUpload: (file, newFileList) => {
+      const totalCount = fileList.length + newFileList.length
+      if (totalCount > 10) {
+        message.error('Tối đa 10 file trong một lần upload. Vui lòng chọn lại.')
+        return Upload.LIST_IGNORE
+      }
+
       const isSvg = file.name.toLowerCase().endsWith('.svg') || file.type === 'image/svg+xml'
       if (!isSvg) {
-        message.error('Only SVG files (.svg) are allowed!')
+        message.error(`File "${file.name}" không phải định dạng SVG!`)
         return Upload.LIST_IGNORE
       }
 
       const isLt10M = file.size / 1024 / 1024 < 10
       if (!isLt10M) {
-        message.error('SVG file must be smaller than 10MB!')
+        message.error(`File "${file.name}" vượt quá giới hạn 10MB!`)
         return Upload.LIST_IGNORE
       }
 
-      setFileList([file])
+      setFileList(prev => {
+        // Prevent duplicate files by name
+        if (prev.some(f => f.name === file.name)) {
+          return prev
+        }
+        return [...prev, file].slice(0, 10)
+      })
       setErrorMessage(null)
       return false
     },
-    onRemove: () => {
-      setFileList([])
-      setProgress(0)
-    },
-    fileList: fileList.map(f => ({
-      uid: f.name,
-      name: f.name,
-      size: f.size,
-      type: f.type,
-    })),
   }
 
-  const handleModalClose = () => {
-    if (!uploading) {
-      setFileList([])
-      setSelectedCategoryId(null)
-      setProgress(0)
-      setErrorMessage(null)
-      onClose()
-    }
+  const handleRemoveFile = (index: number) => {
+    setFileList(prev => prev.filter((_, i) => i !== index))
   }
 
   return (
     <Modal
-      title="Upload SVG File"
+      title={
+        <Space>
+          <span>Tải lên File SVG (Tối đa 10 file)</span>
+          <Badge
+            count={`${fileList.length}/10 file`}
+            style={{
+              backgroundColor: fileList.length > 10 ? '#ff4d4f' : '#1890ff',
+            }}
+          />
+        </Space>
+      }
       open={open}
+      width={780}
       onCancel={handleModalClose}
       footer={[
         <Button key="cancel" onClick={handleModalClose} disabled={uploading}>
-          Cancel
+          Hủy bỏ
         </Button>,
         <Button
           key="upload"
           type="primary"
           onClick={handleUpload}
           loading={uploading}
-          disabled={fileList.length === 0 || !selectedCategoryId}
+          disabled={fileList.length === 0 || fileList.length > 10}
         >
-          {uploading ? 'Uploading...' : 'Start Upload'}
+          {uploading ? `Đang tải lên (${progress}%)...` : `Bắt đầu tải lên (${fileList.length} file)`}
         </Button>,
       ]}
       destroyOnClose
     >
-      <div style={{ padding: '16px 0' }}>
+      <div style={{ maxHeight: '72vh', overflowY: 'auto', paddingRight: 4 }}>
         {errorMessage && (
           <Alert
             type="error"
             showIcon
-            message="Upload Failed"
+            message="Lỗi tải lên"
             description={errorMessage}
             style={{ marginBottom: 16 }}
             closable
@@ -171,42 +274,182 @@ export const SvgUploadModal: React.FC<SvgUploadModalProps> = ({
           />
         )}
 
-        <Form layout="vertical">
-          <Form.Item
-            label="Category Catalog (Mandatory)"
-            required
-            help="Select vehicle hierarchy (Category / Brand / Model / Variant / Year / Submodel)"
-          >
-            <Cascader
-              options={categories}
-              loading={loadingCategories}
-              placeholder="Select Category Hierarchy"
-              changeOnSelect
-              onChange={(value) => {
-                if (value && value.length > 0) {
-                  setSelectedCategoryId(value[value.length - 1] as number)
-                } else {
-                  setSelectedCategoryId(null)
-                }
-              }}
-              style={{ width: '100%' }}
-            />
-          </Form.Item>
-        </Form>
-
-        <Dragger {...uploadProps} disabled={uploading}>
+        {/* 1. Chọn Files */}
+        <Typography.Title level={5} style={{ marginTop: 0 }}>
+          1. Danh sách file SVG ({fileList.length}/10)
+        </Typography.Title>
+        <Dragger {...uploadProps} disabled={uploading || fileList.length >= 10}>
           <p className="ant-upload-drag-icon">
-            <InboxOutlined style={{ fontSize: 48, color: '#1890ff' }} />
+            <InboxOutlined style={{ fontSize: 38, color: '#1890ff' }} />
           </p>
-          <p className="ant-upload-text">Click or drag SVG file to this area to upload</p>
+          <p className="ant-upload-text">Kéo thả hoặc nhấn để chọn các file SVG</p>
           <p className="ant-upload-hint">
-            Supports valid SVG format only. Max file size: 10MB. Files are sanitized by the backend.
+            Hỗ trợ định dạng .svg, tối đa 10MB/file. Tối đa 10 file mỗi lần nạp.
           </p>
         </Dragger>
+
+        {fileList.length > 0 && (
+          <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {fileList.map((file, idx) => (
+              <div
+                key={file.name + idx}
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  background: '#fafafa',
+                  padding: '6px 12px',
+                  borderRadius: 6,
+                  border: '1px solid #f0f0f0',
+                }}
+              >
+                <Space>
+                  <Tag color="blue">{idx + 1}</Tag>
+                  <Text strong>{file.name}</Text>
+                  <Text type="secondary">({formatBytes(file.size)})</Text>
+                </Space>
+                <Button
+                  type="text"
+                  danger
+                  icon={<DeleteOutlined />}
+                  size="small"
+                  onClick={() => handleRemoveFile(idx)}
+                  disabled={uploading}
+                />
+              </div>
+            ))}
+          </div>
+        )}
 
         {uploading && (
           <div style={{ marginTop: 16 }}>
             <Progress percent={progress} status="active" />
+          </div>
+        )}
+
+        <Divider style={{ margin: '18px 0' }} />
+
+        {/* 2. Gán Cấu hình xe */}
+        <Typography.Title level={5}>
+          <CarOutlined style={{ marginRight: 6 }} />
+          2. Gán Cấu hình xe (Tùy chọn)
+        </Typography.Title>
+        <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
+          Nếu không chọn cấu hình nào, các file này sẽ được coi là <b>file dùng chung</b>.
+        </Text>
+        <Select
+          mode="multiple"
+          placeholder="Tìm & chọn cấu hình xe..."
+          loading={loadingInitialData}
+          value={selectedConfigIds}
+          onChange={setSelectedConfigIds}
+          style={{ width: '100%' }}
+          allowClear
+          optionFilterProp="label"
+          options={vehicleConfigs.map(c => {
+            const groupName =
+              c.productGroup === 'PPF_EXTERIOR'
+                ? 'Ngoại thất'
+                : c.productGroup === 'PPF_INTERIOR'
+                ? 'Nội thất'
+                : 'Window Film'
+            const gen = c.generationCode ? ` (${c.generationCode})` : ''
+            const label = `[${groupName}] ${c.brand?.name || ""} ${c.model?.name || ""} ${c.yearFrom}-${c.yearTo}${gen}`
+            return {
+              value: c.id,
+              label,
+            }
+          })}
+        />
+
+        <Divider style={{ margin: '18px 0' }} />
+
+        {/* 3. Phân quyền Đại lý */}
+        <Typography.Title level={5}>
+          <TeamOutlined style={{ marginRight: 6 }} />
+          3. Phân quyền Đại lý (Tùy chọn)
+        </Typography.Title>
+        <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
+          User thuộc Đại lý sẽ tự động kế thừa quyền này. Nếu không gán, chỉ ADMIN mới xem được.
+        </Text>
+
+        <Form.Item label="Chọn đại lý được cấp quyền" style={{ marginBottom: 12 }}>
+          <Select
+            mode="multiple"
+            placeholder="Chọn đại lý áp dụng quyền..."
+            loading={loadingInitialData}
+            value={dealerPermissions.map(p => p.dealerId)}
+            onChange={handleDealerSelectionChange}
+            style={{ width: '100%' }}
+            allowClear
+            optionFilterProp="label"
+            options={activeDealers.map(d => ({
+              value: d.id,
+              label: `${d.code} - ${d.name}`,
+            }))}
+          />
+        </Form.Item>
+
+        {dealerPermissions.length > 0 ? (
+          <Table
+            dataSource={dealerPermissions}
+            rowKey="dealerId"
+            pagination={false}
+            size="small"
+            bordered
+            columns={[
+              {
+                title: 'Mã Đại lý',
+                dataIndex: 'dealerCode',
+                key: 'dealerCode',
+                width: 120,
+              },
+              {
+                title: 'Tên Đại lý',
+                dataIndex: 'dealerName',
+                key: 'dealerName',
+              },
+              {
+                title: 'Quyền xem',
+                key: 'canView',
+                width: 110,
+                align: 'center',
+                render: (_, record) => (
+                  <Switch
+                    checked={record.canView}
+                    onChange={checked => handleToggleView(record.dealerId, checked)}
+                    size="small"
+                  />
+                ),
+              },
+              {
+                title: 'Quyền tải',
+                key: 'canDownload',
+                width: 110,
+                align: 'center',
+                render: (_, record) => (
+                  <Switch
+                    checked={record.canDownload}
+                    onChange={checked => handleToggleDownload(record.dealerId, checked)}
+                    size="small"
+                  />
+                ),
+              },
+            ]}
+          />
+        ) : (
+          <div
+            style={{
+              padding: '10px 14px',
+              background: '#f6ffed',
+              border: '1px solid #b7eb8f',
+              borderRadius: 6,
+              color: '#389e0d',
+              fontSize: 13,
+            }}
+          >
+            <InfoCircleOutlined style={{ marginRight: 6 }} />
+            Chưa gán đại lý nào. File chỉ hiển thị cho tài khoản ADMIN cho đến khi được phân quyền.
           </div>
         )}
       </div>

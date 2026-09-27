@@ -10,6 +10,9 @@ export interface User {
   role: Role
   agentId?: number
   agentUsername?: string
+  dealerId?: number
+  dealerName?: string
+  dealerCode?: string
   enabled: boolean
   createdAt: string
   updatedAt: string
@@ -23,6 +26,7 @@ export interface CreateUserRequest {
   password: string
   role: Role
   agentId?: number
+  dealerId?: number
   enabled?: boolean
 }
 
@@ -32,6 +36,7 @@ export interface UpdateUserRequest {
   phone?: string
   role: Role
   agentId?: number
+  dealerId?: number
   enabled: boolean
   password?: string
 }

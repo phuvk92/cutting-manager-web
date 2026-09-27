@@ -5,42 +5,55 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { User, CreateUserRequest, UpdateUserRequest } from '@/types/user'
 import { Role } from '@/types/auth'
+import { Dealer } from '@/types/dealer'
 import { userService } from '@/services/users/userService'
+import { dealerService } from '@/services/dealers/dealerService'
 import { useAuthStore } from '@/stores/authStore'
 import { extractErrorMessage } from '@/utils/error'
 
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#^()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/
 
 const createSchema = z.object({
-  username: z.string().min(3, 'Username must be at least 3 characters').max(100),
-  email: z.string().email('Please enter a valid email address').max(255),
-  fullName: z.string().max(255).optional().or(z.literal('')),
-  phone: z.string().max(50).optional().or(z.literal('')),
+  username: z
+    .string()
+    .min(3, 'Tên đăng nhập phải có ít nhất 3 ký tự')
+    .max(100, 'Tối đa 100 ký tự'),
+  email: z
+    .string()
+    .email('Vui lòng nhập địa chỉ email hợp lệ')
+    .max(255, 'Tối đa 255 ký tự'),
+  fullName: z.string().max(255, 'Tối đa 255 ký tự').optional().or(z.literal('')),
+  phone: z.string().max(50, 'Tối đa 50 ký tự').optional().or(z.literal('')),
   password: z
     .string()
-    .min(8, 'Password must be at least 8 characters')
+    .min(8, 'Mật khẩu phải có ít nhất 8 ký tự')
     .regex(
       passwordRegex,
-      'Password must contain uppercase, lowercase, number and special character'
+      'Mật khẩu phải chứa chữ hoa, chữ thường, số và ký tự đặc biệt'
     ),
   role: z.enum(['ADMIN', 'AGENT', 'USER'] as const),
   agentId: z.number().optional(),
+  dealerId: z.number().optional(),
   enabled: z.boolean(),
 })
 
 const editSchema = z.object({
-  email: z.string().email('Please enter a valid email address').max(255),
-  fullName: z.string().max(255).optional().or(z.literal('')),
-  phone: z.string().max(50).optional().or(z.literal('')),
+  email: z
+    .string()
+    .email('Vui lòng nhập địa chỉ email hợp lệ')
+    .max(255, 'Tối đa 255 ký tự'),
+  fullName: z.string().max(255, 'Tối đa 255 ký tự').optional().or(z.literal('')),
+  phone: z.string().max(50, 'Tối đa 50 ký tự').optional().or(z.literal('')),
   role: z.enum(['ADMIN', 'AGENT', 'USER'] as const),
   agentId: z.number().optional(),
+  dealerId: z.number().optional(),
   enabled: z.boolean(),
   password: z
     .string()
     .optional()
     .refine(
       val => !val || passwordRegex.test(val),
-      'If provided, password must be at least 8 chars with uppercase, lowercase, number and special char'
+      'Mật khẩu mới nếu nhập phải có ít nhất 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt'
     ),
 })
 
@@ -49,7 +62,7 @@ type EditFormData = z.infer<typeof editSchema>
 
 interface UserModalProps {
   open: boolean
-  user: User | null // If null -> Create mode, If not null -> Edit mode
+  user: User | null
   onClose: () => void
   onSuccess: () => void
 }
@@ -67,6 +80,8 @@ export const UserModal: React.FC<UserModalProps> = ({
   const [submitting, setSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [agents, setAgents] = useState<{ id: number; username: string; fullName?: string }[]>([])
+  const [activeDealers, setActiveDealers] = useState<Dealer[]>([])
+  const [loadingDealers, setLoadingDealers] = useState(false)
 
   const {
     control,
@@ -84,21 +99,41 @@ export const UserModal: React.FC<UserModalProps> = ({
       password: '',
       role: 'USER',
       agentId: undefined,
+      dealerId: undefined,
       enabled: true,
     },
   })
 
   const watchedRole = watch('role')
 
-  // Load agents list for Admin assigning Agent to User
+  // Load danh sách đại lý đang ACTIVE để chọn khi tạo hoặc gán người dùng
+  useEffect(() => {
+    if (open) {
+      setLoadingDealers(true)
+      dealerService
+        .getDealers({ status: 'ACTIVE', size: 200 })
+        .then(res => {
+          setActiveDealers(res.content || [])
+        })
+        .catch(err => {
+          console.error('Không thể tải danh sách đại lý đang hoạt động', err)
+        })
+        .finally(() => {
+          setLoadingDealers(false)
+        })
+    }
+  }, [open])
+
+  // Load danh sách Agent cho Admin nếu cần gán cấp quản lý
   useEffect(() => {
     if (open && isAdmin) {
-      userService.getUsers({ role: 'AGENT', size: 100 })
+      userService
+        .getUsers({ role: 'AGENT', size: 100 })
         .then(res => {
           setAgents(res.content.map(u => ({ id: u.id, username: u.username, fullName: u.fullName })))
         })
         .catch(err => {
-          console.error('Failed to load agents list', err)
+          console.error('Không thể tải danh sách đại lý quản lý', err)
         })
     }
   }, [open, isAdmin])
@@ -113,6 +148,7 @@ export const UserModal: React.FC<UserModalProps> = ({
           phone: user.phone || '',
           role: user.role,
           agentId: user.agentId,
+          dealerId: user.dealerId,
           enabled: user.enabled,
           password: '',
         })
@@ -125,6 +161,7 @@ export const UserModal: React.FC<UserModalProps> = ({
           password: '',
           role: 'USER',
           agentId: undefined,
+          dealerId: undefined,
           enabled: true,
         })
       }
@@ -138,35 +175,37 @@ export const UserModal: React.FC<UserModalProps> = ({
     try {
       if (isEdit && user) {
         const updatePayload: UpdateUserRequest = {
-          email: data.email,
-          fullName: data.fullName || undefined,
-          phone: data.phone || undefined,
+          email: data.email.trim(),
+          fullName: data.fullName?.trim() || undefined,
+          phone: data.phone?.trim() || undefined,
           role: data.role as Role,
           agentId: data.role === 'USER' ? data.agentId : undefined,
+          dealerId: data.dealerId ? data.dealerId : (data.dealerId === null ? 0 : undefined),
           enabled: data.enabled ?? true,
           ...(data.password ? { password: data.password } : {}),
         }
         await userService.updateUser(user.id, updatePayload)
-        message.success(`User "${user.username}" updated successfully`)
+        message.success(`Cập nhật người dùng "${user.username}" thành công`)
       } else {
         const createData = data as CreateFormData
         const createPayload: CreateUserRequest = {
-          username: createData.username,
-          email: createData.email,
-          fullName: createData.fullName || undefined,
-          phone: createData.phone || undefined,
+          username: createData.username.trim(),
+          email: createData.email.trim(),
+          fullName: createData.fullName?.trim() || undefined,
+          phone: createData.phone?.trim() || undefined,
           password: createData.password,
           role: createData.role as Role,
           agentId: createData.role === 'USER' ? createData.agentId : undefined,
+          dealerId: createData.dealerId,
           enabled: createData.enabled ?? true,
         }
         await userService.createUser(createPayload)
-        message.success(`User "${createPayload.username}" created successfully`)
+        message.success(`Tạo người dùng "${createPayload.username}" thành công`)
       }
       onSuccess()
       onClose()
     } catch (err) {
-      setErrorMessage(extractErrorMessage(err, isEdit ? 'Failed to update user' : 'Failed to create user'))
+      setErrorMessage(extractErrorMessage(err, isEdit ? 'Không thể cập nhật người dùng' : 'Không thể tạo người dùng'))
     } finally {
       setSubmitting(false)
     }
@@ -174,30 +213,32 @@ export const UserModal: React.FC<UserModalProps> = ({
 
   return (
     <Modal
-      title={isEdit ? `Edit User: ${user?.username}` : 'Create New User'}
+      title={isEdit ? `Chỉnh sửa người dùng: ${user?.username}` : 'Thêm mới tài khoản người dùng'}
       open={open}
       onCancel={onClose}
       footer={[
         <Button key="cancel" onClick={onClose} disabled={submitting}>
-          Cancel
+          Hủy
         </Button>,
         <Button
           key="submit"
           type="primary"
           onClick={handleSubmit(onSubmit)}
           loading={submitting}
+          style={{ background: '#6C3BD6', borderColor: '#6C3BD6' }}
         >
-          {isEdit ? 'Save Changes' : 'Create User'}
+          {isEdit ? 'Lưu thay đổi' : 'Tạo người dùng'}
         </Button>,
       ]}
       destroyOnClose
+      width={580}
     >
-      <div style={{ padding: '12px 0' }}>
+      <div style={{ padding: '8px 0' }}>
         {errorMessage && (
           <Alert
             type="error"
             showIcon
-            message={isEdit ? 'Update Failed' : 'Creation Failed'}
+            message={isEdit ? 'Cập nhật thất bại' : 'Tạo mới thất bại'}
             description={errorMessage}
             style={{ marginBottom: 16 }}
             closable
@@ -208,7 +249,7 @@ export const UserModal: React.FC<UserModalProps> = ({
         <Form layout="vertical">
           {!isEdit && (
             <Form.Item
-              label="Username"
+              label="Tên đăng nhập"
               validateStatus={'username' in errors && errors.username ? 'error' : ''}
               help={'username' in errors ? errors.username?.message : undefined}
               required
@@ -217,14 +258,14 @@ export const UserModal: React.FC<UserModalProps> = ({
                 name="username"
                 control={control}
                 render={({ field }) => (
-                  <Input {...field} placeholder="Enter unique username" />
+                  <Input {...field} placeholder="VD: thocattphcm01" />
                 )}
               />
             </Form.Item>
           )}
 
           <Form.Item
-            label="Full Name"
+            label="Họ và tên"
             validateStatus={errors.fullName ? 'error' : ''}
             help={errors.fullName?.message}
           >
@@ -232,27 +273,46 @@ export const UserModal: React.FC<UserModalProps> = ({
               name="fullName"
               control={control}
               render={({ field }) => (
-                <Input {...field} placeholder="e.g. Nguyen Van A" />
+                <Input {...field} placeholder="VD: Nguyễn Văn Thắng" />
               )}
             />
           </Form.Item>
 
           <Form.Item
-            label="Phone"
-            validateStatus={errors.phone ? 'error' : ''}
-            help={errors.phone?.message}
+            label="Đại lý & Chi nhánh trực thuộc"
+            validateStatus={errors.dealerId ? 'error' : ''}
+            help={errors.dealerId?.message}
+            extra={
+              <span style={{ fontSize: 11, color: '#8A8983' }}>
+                Danh sách đại lý đang hoạt động (Active). Chọn đại lý để liên kết thợ cắt / nhân viên.
+              </span>
+            }
           >
             <Controller
-              name="phone"
+              name="dealerId"
               control={control}
               render={({ field }) => (
-                <Input {...field} placeholder="e.g. +84901234567" />
+                <Select
+                  {...field}
+                  loading={loadingDealers}
+                  placeholder="Chọn đại lý trực thuộc (hoặc để trống nếu độc lập)"
+                  allowClear
+                  showSearch
+                  optionFilterProp="children"
+                  filterOption={(input, option) =>
+                    String(option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                  }
+                  options={activeDealers.map(d => ({
+                    value: d.id,
+                    label: `${d.code} — ${d.name} (${d.region || 'Toàn quốc'})`,
+                  }))}
+                />
               )}
             />
           </Form.Item>
 
           <Form.Item
-            label="Email Address"
+            label="Địa chỉ email"
             validateStatus={errors.email ? 'error' : ''}
             help={errors.email?.message}
             required
@@ -261,13 +321,27 @@ export const UserModal: React.FC<UserModalProps> = ({
               name="email"
               control={control}
               render={({ field }) => (
-                <Input {...field} placeholder="user@example.com" />
+                <Input {...field} placeholder="VD: thang.nguyen@decaloto.vn" />
               )}
             />
           </Form.Item>
 
           <Form.Item
-            label={isEdit ? 'New Password (leave empty to keep current)' : 'Password'}
+            label="Số điện thoại"
+            validateStatus={errors.phone ? 'error' : ''}
+            help={errors.phone?.message}
+          >
+            <Controller
+              name="phone"
+              control={control}
+              render={({ field }) => (
+                <Input {...field} placeholder="VD: 0903123456" />
+              )}
+            />
+          </Form.Item>
+
+          <Form.Item
+            label={isEdit ? 'Mật khẩu mới (để trống nếu giữ nguyên)' : 'Mật khẩu khởi tạo'}
             validateStatus={errors.password ? 'error' : ''}
             help={errors.password?.message}
             required={!isEdit}
@@ -280,8 +354,8 @@ export const UserModal: React.FC<UserModalProps> = ({
                   {...field}
                   placeholder={
                     isEdit
-                      ? 'Enter new password if changing'
-                      : 'Min 8 chars, uppercase, digit & special'
+                      ? 'Nhập mật khẩu mới nếu muốn thay đổi'
+                      : 'Tối thiểu 8 ký tự (chữ hoa, chữ thường, số, ký tự đặc biệt)'
                   }
                 />
               )}
@@ -289,7 +363,7 @@ export const UserModal: React.FC<UserModalProps> = ({
           </Form.Item>
 
           <Form.Item
-            label="Role"
+            label="Vai trò tài khoản"
             validateStatus={errors.role ? 'error' : ''}
             help={errors.role?.message}
             required
@@ -298,18 +372,18 @@ export const UserModal: React.FC<UserModalProps> = ({
               name="role"
               control={control}
               render={({ field }) => (
-                <Select {...field} placeholder="Select user role" disabled={!isAdmin}>
-                  {isAdmin && <Select.Option value="ADMIN">ADMIN — Full System Access</Select.Option>}
-                  {isAdmin && <Select.Option value="AGENT">AGENT — Agent Management</Select.Option>}
-                  <Select.Option value="USER">USER — Business User</Select.Option>
+                <Select {...field} placeholder="Chọn vai trò người dùng" disabled={!isAdmin}>
+                  {isAdmin && <Select.Option value="ADMIN">Quản trị viên (ADMIN)</Select.Option>}
+                  {isAdmin && <Select.Option value="AGENT">Quản lý đại lý (AGENT)</Select.Option>}
+                  <Select.Option value="USER">Thợ cắt / Người dùng (USER)</Select.Option>
                 </Select>
               )}
             />
           </Form.Item>
 
-          {isAdmin && watchedRole === 'USER' && (
+          {isAdmin && watchedRole === 'USER' && agents.length > 0 && (
             <Form.Item
-              label="Assigned Agent"
+              label="Đại lý phụ trách (Agent quản lý)"
               validateStatus={errors.agentId ? 'error' : ''}
               help={errors.agentId?.message}
             >
@@ -319,7 +393,7 @@ export const UserModal: React.FC<UserModalProps> = ({
                 render={({ field }) => (
                   <Select
                     {...field}
-                    placeholder="None (Direct / No Agent assigned)"
+                    placeholder="Không gán (Người dùng trực tiếp)"
                     allowClear
                     showSearch
                     optionFilterProp="children"
@@ -335,7 +409,7 @@ export const UserModal: React.FC<UserModalProps> = ({
             </Form.Item>
           )}
 
-          <Form.Item label="Account Status" valuePropName="checked">
+          <Form.Item label="Trạng thái tài khoản" valuePropName="checked">
             <Controller
               name="enabled"
               control={control}
@@ -344,10 +418,12 @@ export const UserModal: React.FC<UserModalProps> = ({
                   <Switch
                     checked={field.value}
                     onChange={field.onChange}
-                    checkedChildren="Active"
-                    unCheckedChildren="Disabled"
+                    checkedChildren="Hoạt động"
+                    unCheckedChildren="Tạm khóa"
                   />
-                  <span>{field.value ? 'User is enabled' : 'User is locked/disabled'}</span>
+                  <span style={{ fontSize: 13, color: field.value ? '#1E7E34' : '#C2452D' }}>
+                    {field.value ? 'Tài khoản đang được kích hoạt hoạt động' : 'Tài khoản đang bị tạm khóa'}
+                  </span>
                 </div>
               )}
             />

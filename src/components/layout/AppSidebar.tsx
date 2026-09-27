@@ -1,24 +1,8 @@
 import React from 'react'
-import { Layout, Menu } from 'antd'
-import {
-  DashboardOutlined,
-  FileImageOutlined,
-  TeamOutlined,
-  AuditOutlined,
-  AppstoreOutlined,
-} from '@ant-design/icons'
-import type { MenuProps } from 'antd'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/stores/authStore'
 
-const { Sider } = Layout
-
-interface AppSidebarProps {
-  collapsed: boolean
-  onCollapse: (collapsed: boolean) => void
-}
-
-export const AppSidebar: React.FC<AppSidebarProps> = ({ collapsed, onCollapse }) => {
+export const AppSidebar: React.FC = () => {
   const navigate = useNavigate()
   const location = useLocation()
   const { user } = useAuthStore()
@@ -27,112 +11,172 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ collapsed, onCollapse })
   const isAgent = user?.role === 'AGENT'
   const isAgentOrAdmin = isAdmin || isAgent
 
-  // Build menu items based on actual backend roles
-  // ADMIN: Dashboard, Users, Categories, SVG Files, Audit Logs
-  // AGENT: Dashboard, Users (MUST NOT see Categories, SVG Files or Audit Logs)
-  // USER: Dashboard only
-  const menuItems: MenuProps['items'] = [
-    {
-      key: '/dashboard',
-      icon: <DashboardOutlined />,
-      label: 'Dashboard',
-    },
-    ...(isAgentOrAdmin
-      ? [
-          {
-            key: '/users',
-            icon: <TeamOutlined />,
-            label: 'User Management',
-          },
-        ]
-      : []),
-    ...(isAdmin
-      ? [
-          {
-            key: '/categories',
-            icon: <AppstoreOutlined />,
-            label: 'Categories',
-          },
-          {
-            key: '/svg',
-            icon: <FileImageOutlined />,
-            label: 'SVG Files',
-          },
-          {
-            key: '/audit',
-            icon: <AuditOutlined />,
-            label: 'Audit & Health',
-          },
-        ]
-      : []),
-  ]
+  const path = location.pathname
 
-  // Determine active key
-  const selectedKey = location.pathname.startsWith('/categories')
-    ? '/categories'
-    : location.pathname.startsWith('/svg')
-    ? '/svg'
-    : location.pathname.startsWith('/users')
-    ? '/users'
-    : location.pathname.startsWith('/audit')
-    ? '/audit'
-    : '/dashboard'
+  const isCurrent = (route: string) => {
+    if (route === '/dashboard') return path === '/dashboard' || path === '/'
+    return path.startsWith(route)
+  }
 
-  return (
-    <Sider
-      collapsible
-      collapsed={collapsed}
-      onCollapse={onCollapse}
-      breakpoint="lg"
-      theme="light"
-      width={240}
-      style={{
-        boxShadow: '1px 0 4px rgba(0,21,41,.05)',
-        minHeight: '100vh',
-      }}
-    >
-      <div
+  const renderNavBtn = (route: string, label: string, icon: React.ReactNode, visible = true) => {
+    if (!visible) return null
+    const active = isCurrent(route)
+
+    return (
+      <button
+        key={route}
+        onClick={() => navigate(route)}
+        className={active ? 'pcut-menu-item-active' : 'pcut-menu-item'}
         style={{
-          height: 64,
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center',
-          padding: '0 16px',
-          borderBottom: '1px solid #f0f0f0',
+          gap: 9,
+          padding: '8px 16px',
+          border: 0,
+          borderLeft: active ? '3px solid #7C3AED' : '3px solid transparent',
+          background: active ? '#F1EDFC' : 'transparent',
+          cursor: 'pointer',
+          font: "500 12.5px 'IBM Plex Sans', sans-serif",
+          color: active ? '#5B2BB0' : '#1B1B19',
+          textAlign: 'left',
+          width: '100%',
+          transition: 'all 0.15s ease-in-out',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: 8,
-              background: 'linear-gradient(135deg, #1890ff, #722ed1)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#ffffff',
-              fontWeight: 800,
-              fontSize: 16,
-            }}
-          >
-            C
+        <span style={{ color: active ? '#7C3AED' : '#4A4945', display: 'flex', alignItems: 'center' }}>
+          {icon}
+        </span>
+        <span>{label}</span>
+      </button>
+    )
+  }
+
+  return (
+    <aside
+      style={{
+        width: 214,
+        flex: 'none',
+        display: 'flex',
+        flexDirection: 'column',
+        background: '#FBFBFA',
+        borderRight: '1px solid #D8D7D2',
+        overflowY: 'auto',
+        minHeight: 'calc(100vh - 54px)',
+      }}
+    >
+      {/* ── TỔNG QUAN ── */}
+      <div style={{ padding: '14px 16px 6px', font: "600 10px 'IBM Plex Sans', sans-serif", letterSpacing: '0.1em', color: '#A3A29C' }}>
+        TỔNG QUAN
+      </div>
+      {renderNavBtn(
+        '/dashboard',
+        'Bảng tổng quan',
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="4" y="4" width="7" height="7" rx="1.5" />
+          <rect x="13" y="4" width="7" height="4.5" rx="1.5" />
+          <rect x="13" y="10.5" width="7" height="9.5" rx="1.5" />
+          <rect x="4" y="13" width="7" height="7" rx="1.5" />
+        </svg>
+      )}
+
+      {/* ── NỀN TẢNG & TÀI KHOẢN ── */}
+      <div style={{ padding: '16px 16px 6px', font: "600 10px 'IBM Plex Sans', sans-serif", letterSpacing: '0.1em', color: '#A3A29C' }}>
+        NỀN TẢNG & TÀI KHOẢN
+      </div>
+      {renderNavBtn(
+        '/dealers',
+        'Đại lý & chi nhánh',
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M4 20V9l8-5 8 5v11" />
+          <path d="M9.5 20v-6h5v6" />
+        </svg>,
+        isAdmin
+      )}
+      {renderNavBtn(
+        '/users',
+        'Người dùng',
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="9.5" cy="8.5" r="3.2" />
+          <path d="M3.5 19.5c0-3.3 2.7-5 6-5s6 1.7 6 5" />
+          <path d="M16 6.2a3 3 0 0 1 0 5.6" />
+          <path d="M17.5 15c2 .6 3 2.1 3 4.5" />
+        </svg>,
+        isAgentOrAdmin
+      )}
+      {renderNavBtn(
+        '/sessions',
+        'Phiên & thiết bị',
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3.5" y="5" width="17" height="11" rx="2" />
+          <path d="M8 19.5h8" />
+          <path d="M12 16v3.5" />
+        </svg>,
+        isAdmin
+      )}
+      {renderNavBtn(
+        '/audit',
+        'Nhật ký quản trị',
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="8.5" />
+          <path d="M12 7.5V12l3 2" />
+        </svg>,
+        isAdmin
+      )}
+
+      {/* ── DATA CENTER ── */}
+      {isAdmin && (
+        <>
+          <div style={{ padding: '16px 16px 6px', font: "600 10px 'IBM Plex Sans', sans-serif", letterSpacing: '0.1em', color: '#A3A29C' }}>
+            DATA CENTER
           </div>
-          {!collapsed && (
-            <span style={{ fontWeight: 700, fontSize: 15, color: '#1f1f1f' }}>
-              Cutting Admin
-            </span>
+          {renderNavBtn(
+            '/vehicle-configurations',
+            'Cấu hình xe',
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2" />
+              <circle cx="7" cy="17" r="2" />
+              <path d="M9 17h6" />
+              <circle cx="17" cy="17" r="2" />
+            </svg>
           )}
+          {renderNavBtn(
+            '/svg',
+            'Kho mẫu & part file',
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <ellipse cx="12" cy="6" rx="7.5" ry="3" />
+              <path d="M4.5 6v6c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3V6" />
+              <path d="M4.5 12v6c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3v-6" />
+            </svg>
+          )}
+          {renderNavBtn(
+            '/bulk-upload',
+            'Nạp mẫu hàng loạt',
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 16V5" />
+              <path d="M7.5 9.5 12 5l4.5 4.5" />
+              <path d="M4.5 19.5h15" />
+            </svg>
+          )}
+          {renderNavBtn(
+            '/approve',
+            'Duyệt mẫu & phân phối',
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 12.5 9.5 17 19 7.5" />
+            </svg>
+          )}
+        </>
+      )}
+
+      {/* ── MÁY CHỦ TRẠNG THÁI (STATUS FOOTER) ── */}
+      <div style={{ marginTop: 'auto', padding: '12px 16px', borderTop: '1px solid #E4E3DE' }}>
+        <div style={{ font: "400 10.5px 'IBM Plex Sans', sans-serif", color: '#8A8983' }}>Máy chủ</div>
+        <div style={{ marginTop: 3, display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#2E7D5B' }} />
+          <span style={{ font: "500 11.5px 'IBM Plex Mono', monospace", color: '#35342F' }}>
+            Hoạt động · 99,8%
+          </span>
         </div>
       </div>
-
-      <Menu
-        mode="inline"
-        selectedKeys={[selectedKey]}
-        items={menuItems}
-        onClick={({ key }) => navigate(key)}
-        style={{ borderRight: 0, marginTop: 12 }}
-      />
-    </Sider>
+    </aside>
   )
 }

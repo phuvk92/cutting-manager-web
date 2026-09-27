@@ -1,37 +1,44 @@
-import React, { useState } from 'react'
-import { Layout } from 'antd'
+import React from 'react'
 import { Outlet } from 'react-router-dom'
 import { AppHeader } from '@/components/layout/AppHeader'
 import { AppSidebar } from '@/components/layout/AppSidebar'
-import { AppFooter } from '@/components/layout/AppFooter'
-
-const { Content } = Layout
 
 export const MainLayout: React.FC = () => {
-  const [collapsed, setCollapsed] = useState(false)
-
   return (
-    <Layout style={{ minHeight: '100vh', background: '#f5f7fa' }}>
-      <AppSidebar collapsed={collapsed} onCollapse={setCollapsed} />
-      <Layout>
-        <AppHeader
-          collapsed={collapsed}
-          onToggleCollapse={() => setCollapsed(prev => !prev)}
-        />
-        <Content
+    <div
+      className="pcut-admin-layout"
+      style={{
+        height: '100vh',
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        background: '#F4F3F0',
+        fontFamily: "'IBM Plex Sans', system-ui, sans-serif",
+        color: '#1B1B19',
+        overflow: 'hidden',
+      }}
+    >
+      {/* ══ THANH TRÊN (AppHeader) ══ */}
+      <AppHeader />
+
+      {/* ══ THÂN GIAO DIỆN (SIDEBAR + MAIN CONTENT) ══ */}
+      <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
+        <AppSidebar />
+
+        {/* ══ NỘI DUNG CHÍNH (CONTENT) ══ */}
+        <main
           style={{
-            margin: '24px 24px 0',
-            padding: 24,
-            background: '#ffffff',
-            borderRadius: 8,
-            minHeight: 380,
-            boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
+            flex: 1,
+            minWidth: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            background: '#F4F3F0',
+            overflowY: 'auto',
           }}
         >
           <Outlet />
-        </Content>
-        <AppFooter />
-      </Layout>
-    </Layout>
+        </main>
+      </div>
+    </div>
   )
 }

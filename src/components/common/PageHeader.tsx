@@ -1,48 +1,46 @@
 import React, { ReactNode } from 'react'
-import { Typography, Space, Breadcrumb } from 'antd'
-import type { BreadcrumbProps } from 'antd'
-
-const { Title, Paragraph } = Typography
 
 interface PageHeaderProps {
   title: string
   subtitle?: string
-  breadcrumbs?: BreadcrumbProps['items']
   extra?: ReactNode
 }
 
 export const PageHeader: React.FC<PageHeaderProps> = ({
   title,
   subtitle,
-  breadcrumbs,
   extra,
 }) => {
   return (
-    <div style={{ marginBottom: 24 }}>
-      {breadcrumbs && breadcrumbs.length > 0 && (
-        <Breadcrumb style={{ marginBottom: 12 }} items={breadcrumbs} />
-      )}
-      <div
+    <div
+      style={{
+        flex: 'none',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        padding: '12px 24px',
+        background: '#FBFBFA',
+        borderBottom: '1px solid #D8D7D2',
+      }}
+    >
+      <span
         style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-start',
-          flexWrap: 'wrap',
-          gap: 16,
+          width: 3,
+          height: 16,
+          background: '#7C3AED',
+          borderRadius: 2,
+          flex: 'none',
         }}
-      >
-        <div>
-          <Title level={3} style={{ margin: 0 }}>
-            {title}
-          </Title>
-          {subtitle && (
-            <Paragraph type="secondary" style={{ margin: '4px 0 0 0' }}>
-              {subtitle}
-            </Paragraph>
-          )}
-        </div>
-        {extra && <Space size="middle">{extra}</Space>}
-      </div>
+      />
+      <span style={{ font: "600 14px 'IBM Plex Sans', sans-serif", color: '#1B1B19' }}>
+        {title}
+      </span>
+      {subtitle && (
+        <span style={{ font: "400 11.5px 'IBM Plex Sans', sans-serif", color: '#8A8983' }}>
+          {subtitle}
+        </span>
+      )}
+      {extra && <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>{extra}</div>}
     </div>
   )
 }

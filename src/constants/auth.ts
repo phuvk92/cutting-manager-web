@@ -11,13 +11,13 @@ export const ROLES = {
 } as const
 
 export const ROLE_LABELS: Record<string, string> = {
-  ADMIN: 'Administrator',
-  AGENT: 'Agent',
-  USER: 'Regular User',
+  ADMIN: 'Quản trị viên',
+  AGENT: 'Quản lý đại lý',
+  USER: 'Thợ cắt',
 }
 
 export const ROLE_COLORS: Record<string, string> = {
-  ADMIN: 'magenta',
+  ADMIN: 'purple',
   AGENT: 'blue',
   USER: 'green',
 }

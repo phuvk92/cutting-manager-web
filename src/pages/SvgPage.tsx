@@ -4,16 +4,14 @@ import { SvgList } from '@/features/svg/SvgList'
 
 export const SvgPage: React.FC = () => {
   return (
-    <div>
+    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: '100%' }}>
       <PageHeader
-        title="SVG File Management"
-        subtitle="Upload, search, preview, download, and manage sanitized SVG assets"
-        breadcrumbs={[
-          { title: 'Dashboard', href: '/dashboard' },
-          { title: 'SVG Files' },
-        ]}
+        title="Kho mẫu & part file"
+        subtitle="Quản lý file mẫu cắt SVG, gán cấu hình xe và phân quyền đại lý"
       />
-      <SvgList />
+      <div style={{ padding: '16px 24px', display: 'flex', flexDirection: 'column', flex: 1 }}>
+        <SvgList />
+      </div>
     </div>
   )
 }

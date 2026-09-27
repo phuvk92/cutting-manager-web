@@ -4,16 +4,14 @@ import { AuditLogView } from '@/features/audit/AuditLogView'
 
 export const AuditPage: React.FC = () => {
   return (
-    <div>
+    <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
       <PageHeader
-        title="Audit Logs & System Health"
-        subtitle="Review security events, user activity trails, and backend actuator health status"
-        breadcrumbs={[
-          { title: 'Dashboard', href: '/dashboard' },
-          { title: 'Audit Logs & Health' },
-        ]}
+        title="Nhật ký quản trị"
+        subtitle="Ai đã làm gì trên cổng quản trị · truy vết bảo mật hệ thống"
       />
-      <AuditLogView />
+      <div style={{ padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <AuditLogView />
+      </div>
     </div>
   )
 }

@@ -9,11 +9,11 @@ interface StatusTagProps {
 export const StatusTag: React.FC<StatusTagProps> = ({ enabled }) => {
   return enabled ? (
     <Tag icon={<CheckCircleOutlined />} color="success">
-      Active
+      Hoạt động
     </Tag>
   ) : (
     <Tag icon={<StopOutlined />} color="error">
-      Disabled
+      Tạm khóa
     </Tag>
   )
 }

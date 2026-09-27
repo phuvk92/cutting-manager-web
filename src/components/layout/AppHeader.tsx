@@ -1,50 +1,47 @@
 import React, { useState } from 'react'
-import { Layout, Dropdown, Avatar, Space, Typography, Button } from 'antd'
+import { Dropdown, Typography } from 'antd'
 import {
-  UserOutlined,
   LogoutOutlined,
   KeyOutlined,
-  MenuUnfoldOutlined,
-  MenuFoldOutlined,
 } from '@ant-design/icons'
 import type { MenuProps } from 'antd'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/stores/authStore'
-import { RoleTag } from '@/components/common/RoleTag'
 import { ChangePasswordModal } from '@/features/auth/ChangePasswordModal'
 
-const { Header } = Layout
 const { Text } = Typography
 
-interface AppHeaderProps {
-  collapsed: boolean
-  onToggleCollapse: () => void
-}
-
-export const AppHeader: React.FC<AppHeaderProps> = ({ collapsed, onToggleCollapse }) => {
+export const AppHeader: React.FC = () => {
   const navigate = useNavigate()
   const { user, logout } = useAuthStore()
   const [changePasswordOpen, setChangePasswordOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
 
   const handleLogout = () => {
     logout()
     navigate('/login')
   }
 
+  const roleNameMap: Record<string, string> = {
+    ADMIN: 'Quản trị viên',
+    AGENT: 'Quản lý đại lý',
+    USER: 'Thợ cắt',
+  }
+
+  const userRoleDisplay = user?.role ? roleNameMap[user.role] || user.role : 'Quản trị viên'
+  const userInitials = (user?.username?.substring(0, 2) || 'QT').toUpperCase()
+
   const userMenuItems: MenuProps['items'] = [
     {
       key: 'user-info',
       label: (
         <div style={{ padding: '4px 0' }}>
-          <Text strong style={{ display: 'block' }}>
+          <Text strong style={{ display: 'block', fontSize: 13 }}>
             {user?.username}
           </Text>
-          <Text type="secondary" style={{ fontSize: 12 }}>
-            {user?.email}
+          <Text type="secondary" style={{ fontSize: 11 }}>
+            {user?.email || 'Nội bộ'} · {userRoleDisplay}
           </Text>
-          <div style={{ marginTop: 6 }}>
-            {user?.role && <RoleTag role={user.role} />}
-          </div>
         </div>
       ),
       disabled: true,
@@ -55,7 +52,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ collapsed, onToggleCollaps
     {
       key: 'change-password',
       icon: <KeyOutlined />,
-      label: 'Change Password',
+      label: 'Đổi mật khẩu',
       onClick: () => setChangePasswordOpen(true),
     },
     {
@@ -65,81 +62,128 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ collapsed, onToggleCollaps
       key: 'logout',
       icon: <LogoutOutlined />,
       danger: true,
-      label: 'Sign Out',
+      label: 'Đăng xuất',
       onClick: handleLogout,
     },
   ]
 
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && searchQuery.trim()) {
+      navigate(`/svg?search=${encodeURIComponent(searchQuery.trim())}`)
+    }
+  }
+
   return (
     <>
-      <Header
+      <header
         style={{
-          padding: '0 24px',
-          background: '#ffffff',
+          flex: 'none',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between',
-          boxShadow: '0 1px 4px rgba(0,21,41,.08)',
+          gap: 14,
+          height: 54,
+          padding: '0 20px',
+          background: '#FBFBFA',
+          borderBottom: '1px solid #D8D7D2',
           zIndex: 10,
-          position: 'sticky',
-          top: 0,
         }}
       >
-        <Space size="middle">
-          <Button
-            type="text"
-            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-            onClick={onToggleCollapse}
-            style={{ fontSize: 16, width: 40, height: 40 }}
-            aria-label="Toggle Navigation Sidebar"
-          />
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span
-              style={{
-                fontSize: 18,
-                fontWeight: 700,
-                background: 'linear-gradient(135deg, #1890ff 0%, #722ed1 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                letterSpacing: '-0.5px',
-              }}
-            >
-              CUTTING MANAGER
-            </span>
-            <span
-              style={{
-                background: '#f0f5ff',
-                color: '#1d39c4',
-                padding: '2px 8px',
-                borderRadius: 12,
-                fontSize: 11,
-                fontWeight: 600,
-              }}
-            >
-              WEB
-            </span>
-          </div>
-        </Space>
+        {/* Brand Logo & Title */}
+        <div
+          onClick={() => navigate('/dashboard')}
+          style={{ display: 'flex', alignItems: 'center', gap: 9, cursor: 'pointer' }}
+        >
+          <svg width="24" height="24" viewBox="0 0 32 32" fill="none">
+            <rect x="1.2" y="1.2" width="29.6" height="29.6" rx="7" stroke="#7C3AED" strokeWidth="2.4" />
+            <path d="M9 21.5 16 9l7 12.5" stroke="#7C3AED" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M12.2 17h7.6" stroke="#7C3AED" strokeWidth="2.4" strokeLinecap="round" strokeDasharray="2.4 3" />
+          </svg>
+          <span style={{ font: "600 15px 'IBM Plex Sans', sans-serif", letterSpacing: '-0.01em', color: '#1B1B19' }}>
+            PCUT
+          </span>
+        </div>
 
-        <Dropdown menu={{ items: userMenuItems }} trigger={['click']} placement="bottomRight">
-          <Space style={{ cursor: 'pointer', padding: '4px 8px', borderRadius: 6 }} className="user-dropdown-btn">
-            <Avatar
-              style={{ backgroundColor: '#1890ff', verticalAlign: 'middle' }}
-              icon={<UserOutlined />}
+        <span
+          style={{
+            padding: '3px 8px',
+            border: '1px solid #D8D7D2',
+            borderRadius: 4,
+            font: "500 10.5px 'IBM Plex Sans', sans-serif",
+            letterSpacing: '0.06em',
+            color: '#6E6D68',
+          }}
+        >
+          QUẢN TRỊ HỆ THỐNG
+        </span>
+
+        {/* Search & User Profile */}
+        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 7,
+              padding: '6px 10px',
+              background: '#FFF',
+              border: '1px solid #D8D7D2',
+              borderRadius: 5,
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8A8983" strokeWidth="1.8" strokeLinecap="round">
+              <circle cx="10.5" cy="10.5" r="6.5" />
+              <path d="M15.5 15.5 21 21" />
+            </svg>
+            <input
+              placeholder="Tìm đại lý, user, mã mẫu"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              onKeyDown={handleSearchKeyDown}
+              style={{
+                width: 220,
+                border: 0,
+                outline: 'none',
+                background: 'transparent',
+                font: "400 11.5px 'IBM Plex Sans', sans-serif",
+                color: '#1B1B19',
+              }}
+            />
+          </div>
+
+          <Dropdown menu={{ items: userMenuItems }} trigger={['click']} placement="bottomRight">
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 9,
+                padding: '5px 10px 5px 5px',
+                background: '#FFF',
+                border: '1px solid #D8D7D2',
+                borderRadius: 20,
+                cursor: 'pointer',
+              }}
             >
-              {user?.username?.[0]?.toUpperCase()}
-            </Avatar>
-            <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
-              <Text strong style={{ fontSize: 13 }}>
-                {user?.username || 'User'}
-              </Text>
-              <Text type="secondary" style={{ fontSize: 11 }}>
-                {user?.role || 'Role'}
-              </Text>
+              <span
+                style={{
+                  width: 24,
+                  height: 24,
+                  borderRadius: '50%',
+                  background: '#7C3AED',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  font: "500 10.5px 'IBM Plex Sans', sans-serif",
+                  color: '#FFF',
+                }}
+              >
+                {userInitials}
+              </span>
+              <span style={{ font: "500 11.5px 'IBM Plex Sans', sans-serif", color: '#1B1B19' }}>
+                {user?.username || userRoleDisplay}
+              </span>
             </div>
-          </Space>
-        </Dropdown>
-      </Header>
+          </Dropdown>
+        </div>
+      </header>
 
       <ChangePasswordModal
         open={changePasswordOpen}

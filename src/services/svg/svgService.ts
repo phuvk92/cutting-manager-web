@@ -1,6 +1,12 @@
 import { axiosClient } from '@/services/api/axiosClient'
 import { API_ENDPOINTS } from '@/constants/api'
-import { SvgFile, SvgFilterParams } from '@/types/svg'
+import {
+  SvgFile,
+  SvgFilterParams,
+  BatchSvgUploadResponse,
+  SvgFileDealerPermission,
+  SvgVehicleConfigurationSummary,
+} from '@/types/svg'
 import { PageResponse } from '@/types/common'
 import type { AxiosProgressEvent } from 'axios'
 
@@ -37,6 +43,76 @@ export const svgService = {
         }
       },
     })
+    return response.data
+  },
+
+  batchUploadSvg: async (
+    files: File[],
+    vehicleConfigurationIds: number[],
+    dealerPermissions: { dealerId: number; canView: boolean; canDownload: boolean }[],
+    onProgress?: (percent: number) => void
+  ): Promise<BatchSvgUploadResponse> => {
+    const formData = new FormData()
+    files.forEach(f => {
+      formData.append('files', f)
+    })
+    vehicleConfigurationIds.forEach(id => {
+      formData.append('vehicleConfigurationIds', id.toString())
+    })
+    if (dealerPermissions.length > 0) {
+      formData.append('dealerPermissions', JSON.stringify(dealerPermissions))
+    }
+
+    const response = await axiosClient.post<BatchSvgUploadResponse>(
+      API_ENDPOINTS.SVG_BATCH_UPLOAD,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        onUploadProgress: (progressEvent: AxiosProgressEvent) => {
+          if (progressEvent.total && onProgress) {
+            const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total)
+            onProgress(percent)
+          }
+        },
+      }
+    )
+    return response.data
+  },
+
+  getSvgDealers: async (id: number): Promise<SvgFileDealerPermission[]> => {
+    const response = await axiosClient.get<SvgFileDealerPermission[]>(API_ENDPOINTS.SVG_DEALERS(id))
+    return response.data
+  },
+
+  updateSvgDealers: async (
+    id: number,
+    dealers: { dealerId: number; canView: boolean; canDownload: boolean }[]
+  ): Promise<SvgFileDealerPermission[]> => {
+    const response = await axiosClient.put<SvgFileDealerPermission[]>(API_ENDPOINTS.SVG_DEALERS(id), {
+      dealers,
+    })
+    return response.data
+  },
+
+  getSvgConfigurations: async (id: number): Promise<SvgVehicleConfigurationSummary[]> => {
+    const response = await axiosClient.get<SvgVehicleConfigurationSummary[]>(
+      API_ENDPOINTS.SVG_CONFIGURATIONS(id)
+    )
+    return response.data
+  },
+
+  updateSvgConfigurations: async (
+    id: number,
+    vehicleConfigurationIds: number[]
+  ): Promise<SvgVehicleConfigurationSummary[]> => {
+    const response = await axiosClient.put<SvgVehicleConfigurationSummary[]>(
+      API_ENDPOINTS.SVG_CONFIGURATIONS(id),
+      {
+        vehicleConfigurationIds,
+      }
+    )
     return response.data
   },
 

@@ -5,6 +5,9 @@ export interface Category {
   level: string
   parentId?: number | null
   displayOrder?: number
+  brand?: string | null
+  model?: string | null
+  year?: string | null
   children?: Category[]
 }
 
@@ -13,6 +16,9 @@ export interface CreateCategoryRequest {
   label?: string
   parentId?: number | null
   displayOrder?: number
+  brand?: string | null
+  model?: string | null
+  year?: string | null
 }
 
 export interface UpdateCategoryRequest {
@@ -20,6 +26,9 @@ export interface UpdateCategoryRequest {
   label?: string
   parentId?: number | null
   displayOrder?: number
+  brand?: string | null
+  model?: string | null
+  year?: string | null
 }
 
 export interface CategorySummary {
@@ -28,6 +37,9 @@ export interface CategorySummary {
   value: string
   level: string
   fullPath: string
+  brand?: string | null
+  model?: string | null
+  year?: string | null
 }
 
 export interface CatalogOption {

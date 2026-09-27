@@ -4,12 +4,14 @@ import { DashboardOverview } from '@/features/dashboard/DashboardOverview'
 
 export const DashboardPage: React.FC = () => {
   return (
-    <div>
+    <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
       <PageHeader
-        title="Dashboard"
-        subtitle="Overview of system metrics, file assets, and recent activities"
+        title="Bảng tổng quan"
+        subtitle="Toàn hệ thống · cập nhật trực tiếp theo thời gian thực"
       />
-      <DashboardOverview />
+      <div style={{ padding: '16px 24px', flex: 1 }}>
+        <DashboardOverview />
+      </div>
     </div>
   )
 }
