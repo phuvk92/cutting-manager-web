@@ -88,6 +88,7 @@ export const UserModal: React.FC<UserModalProps> = ({
     handleSubmit,
     reset,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<CreateFormData | EditFormData>({
     resolver: zodResolver(isEdit ? editSchema : createSchema),
@@ -106,9 +107,9 @@ export const UserModal: React.FC<UserModalProps> = ({
 
   const watchedRole = watch('role')
 
-  // Load danh sách đại lý đang ACTIVE để chọn khi tạo hoặc gán người dùng
+  // Load danh sách đại lý đang ACTIVE để chọn khi tạo hoặc gán người dùng (chỉ dành cho Admin)
   useEffect(() => {
-    if (open) {
+    if (open && isAdmin) {
       setLoadingDealers(true)
       dealerService
         .getDealers({ status: 'ACTIVE', size: 200 })
@@ -122,7 +123,7 @@ export const UserModal: React.FC<UserModalProps> = ({
           setLoadingDealers(false)
         })
     }
-  }, [open])
+  }, [open, isAdmin])
 
   // Load danh sách Agent cho Admin nếu cần gán cấp quản lý
   useEffect(() => {
@@ -161,7 +162,7 @@ export const UserModal: React.FC<UserModalProps> = ({
           password: '',
           role: 'USER',
           agentId: undefined,
-          dealerId: undefined,
+          dealerId: !isAdmin ? currentUser?.dealerId : undefined,
           enabled: true,
         })
       }
@@ -194,9 +195,9 @@ export const UserModal: React.FC<UserModalProps> = ({
           fullName: createData.fullName?.trim() || undefined,
           phone: createData.phone?.trim() || undefined,
           password: createData.password,
-          role: createData.role as Role,
-          agentId: createData.role === 'USER' ? createData.agentId : undefined,
-          dealerId: createData.dealerId,
+          role: !isAdmin ? 'USER' : (createData.role as Role),
+          agentId: !isAdmin ? undefined : (createData.role === 'USER' ? createData.agentId : undefined),
+          dealerId: !isAdmin ? currentUser?.dealerId : createData.dealerId,
           enabled: createData.enabled ?? true,
         }
         await userService.createUser(createPayload)
@@ -278,50 +279,81 @@ export const UserModal: React.FC<UserModalProps> = ({
             />
           </Form.Item>
 
-          <Form.Item
-            label="Đại lý & Chi nhánh trực thuộc"
-            validateStatus={errors.dealerId ? 'error' : ''}
-            help={errors.dealerId?.message}
-            extra={
-              <span style={{ fontSize: 11, color: '#8A8983' }}>
-                Danh sách đại lý đang hoạt động (Active). Chọn đại lý để liên kết thợ cắt / nhân viên.
-              </span>
-            }
-          >
-            <Controller
-              name="dealerId"
-              control={control}
-              render={({ field }) => (
-                <Select
-                  {...field}
-                  loading={loadingDealers}
-                  placeholder="Chọn đại lý trực thuộc (hoặc để trống nếu độc lập)"
-                  allowClear
-                  showSearch
-                  optionFilterProp="children"
-                  filterOption={(input, option) =>
-                    String(option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-                  }
-                  options={activeDealers.map(d => ({
-                    value: d.id,
-                    label: `${d.code} — ${d.name} (${d.region || 'Toàn quốc'})`,
-                  }))}
-                />
-              )}
-            />
-          </Form.Item>
+          {!isAdmin ? (
+            <Form.Item
+              label="Đại lý & Chi nhánh trực thuộc"
+              extra={
+                <span style={{ fontSize: 11, color: '#1677ff' }}>
+                  Người dùng mới sẽ tự động trực thuộc đại lý của bạn, không thể chọn đại lý khác.
+                </span>
+              }
+            >
+              <Input
+                value={
+                  currentUser?.dealerName
+                    ? `${currentUser.dealerCode ? currentUser.dealerCode + ' — ' : ''}${currentUser.dealerName}`
+                    : (currentUser?.username || 'Đại lý của bạn')
+                }
+                disabled
+                style={{ backgroundColor: '#fafafa', color: '#1f1f1f', fontWeight: 500, cursor: 'not-allowed' }}
+              />
+            </Form.Item>
+          ) : (
+            <Form.Item
+              label="Đại lý & Chi nhánh trực thuộc"
+              validateStatus={errors.dealerId ? 'error' : ''}
+              help={errors.dealerId?.message}
+              extra={
+                <span style={{ fontSize: 11, color: '#8A8983' }}>
+                  Danh sách đại lý đang hoạt động (Active). Chọn đại lý để liên kết thợ cắt / nhân viên.
+                </span>
+              }
+            >
+              <Controller
+                name="dealerId"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    {...field}
+                    loading={loadingDealers}
+                    placeholder="Chọn đại lý trực thuộc (hoặc để trống nếu độc lập)"
+                    allowClear
+                    showSearch
+                    optionFilterProp="children"
+                    filterOption={(input, option) =>
+                      String(option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                    }
+                    options={activeDealers.map(d => ({
+                      value: d.id,
+                      label: `${d.code} — ${d.name} (${d.region || 'Toàn quốc'})`,
+                    }))}
+                  />
+                )}
+              />
+            </Form.Item>
+          )}
 
           <Form.Item
-            label="Địa chỉ email"
+            label="Địa chỉ Gmail / Email đăng nhập"
             validateStatus={errors.email ? 'error' : ''}
             help={errors.email?.message}
+            extra={!isEdit && <span style={{ fontSize: 11, color: '#8A8983' }}>Địa chỉ email này cũng sẽ được sử dụng làm tài khoản đăng nhập máy cắt.</span>}
             required
           >
             <Controller
               name="email"
               control={control}
               render={({ field }) => (
-                <Input {...field} placeholder="VD: thang.nguyen@decaloto.vn" />
+                <Input
+                  {...field}
+                  placeholder="VD: thang.nguyen@gmail.com"
+                  onChange={e => {
+                    field.onChange(e)
+                    if (!isEdit) {
+                      setValue('username', e.target.value.trim(), { shouldValidate: true })
+                    }
+                  }}
+                />
               )}
             />
           </Form.Item>

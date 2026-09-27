@@ -5,6 +5,9 @@ export interface UserSummary {
   username: string
   email: string
   role: Role
+  dealerId?: number
+  dealerName?: string
+  dealerCode?: string
 }
 
 export interface AuthResponse {

@@ -124,12 +124,12 @@ export const AppSidebar: React.FC = () => {
       )}
 
       {/* ── DATA CENTER ── */}
-      {isAdmin && (
+      {isAgentOrAdmin && (
         <>
           <div style={{ padding: '16px 16px 6px', font: "600 10px 'IBM Plex Sans', sans-serif", letterSpacing: '0.1em', color: '#A3A29C' }}>
             DATA CENTER
           </div>
-          {renderNavBtn(
+          {isAdmin && renderNavBtn(
             '/vehicle-configurations',
             'Cấu hình xe',
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -148,7 +148,7 @@ export const AppSidebar: React.FC = () => {
               <path d="M4.5 12v6c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3v-6" />
             </svg>
           )}
-          {renderNavBtn(
+          {isAdmin && renderNavBtn(
             '/bulk-upload',
             'Nạp mẫu hàng loạt',
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -157,7 +157,7 @@ export const AppSidebar: React.FC = () => {
               <path d="M4.5 19.5h15" />
             </svg>
           )}
-          {renderNavBtn(
+          {isAdmin && renderNavBtn(
             '/approve',
             'Duyệt mẫu & phân phối',
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
