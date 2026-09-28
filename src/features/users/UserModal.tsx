@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Modal, Form, Input, Select, Switch, Alert, Button, message } from 'antd'
+import { Modal, Form, Input, InputNumber, Select, Switch, Alert, Button, message } from 'antd'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -10,6 +10,7 @@ import { userService } from '@/services/users/userService'
 import { dealerService } from '@/services/dealers/dealerService'
 import { useAuthStore } from '@/stores/authStore'
 import { extractErrorMessage } from '@/utils/error'
+import { UserDevicesPanel } from './UserDevicesPanel'
 
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#^()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/
 
@@ -48,6 +49,8 @@ const editSchema = z.object({
   agentId: z.number().optional(),
   dealerId: z.number().optional(),
   enabled: z.boolean(),
+  // F-57: số máy tối đa — null/không nhập = mặc định hệ thống
+  maxDevices: z.number().int().min(1, 'Tối thiểu 1 máy').max(50, 'Tối đa 50 máy').nullable().optional(),
   password: z
     .string()
     .optional()
@@ -150,6 +153,7 @@ export const UserModal: React.FC<UserModalProps> = ({
           agentId: user.agentId,
           dealerId: user.dealerId,
           enabled: user.enabled,
+          maxDevices: user.maxDevices ?? null,
           password: '',
         })
       } else {
@@ -183,6 +187,8 @@ export const UserModal: React.FC<UserModalProps> = ({
           dealerId: data.dealerId ? data.dealerId : (data.dealerId === null ? 0 : undefined),
           enabled: data.enabled ?? true,
           ...(data.password ? { password: data.password } : {}),
+          // Chỉ ADMIN đổi được; để trống = về mặc định hệ thống (backend nhận 0)
+          ...(isAdmin ? { maxDevices: (data as EditFormData).maxDevices ?? 0 } : {}),
         }
         await userService.updateUser(user.id, updatePayload)
         message.success(`Cập nhật người dùng "${user.username}" thành công`)
@@ -428,7 +434,41 @@ export const UserModal: React.FC<UserModalProps> = ({
               )}
             />
           </Form.Item>
+
+          {isEdit && isAdmin && (
+            <Form.Item
+              label="Số máy tối đa"
+              validateStatus={'maxDevices' in errors && errors.maxDevices ? 'error' : ''}
+              help={'maxDevices' in errors ? errors.maxDevices?.message : undefined}
+              extra={
+                <span style={{ fontSize: 11, color: '#8A8983' }}>
+                  Số máy được đăng nhập phần mềm cắt. Để trống = mặc định hệ thống ({user?.effectiveMaxDevices ?? 1} máy nếu chưa đặt riêng).
+                </span>
+              }
+            >
+              <Controller
+                name="maxDevices"
+                control={control}
+                render={({ field }) => (
+                  <InputNumber
+                    min={1}
+                    max={50}
+                    precision={0}
+                    value={field.value ?? null}
+                    onChange={v => field.onChange(v ?? null)}
+                    placeholder="Mặc định"
+                    style={{ width: 140 }}
+                    suffix="máy"
+                  />
+                )}
+              />
+            </Form.Item>
+          )}
         </Form>
+
+        {isEdit && user && (
+          <UserDevicesPanel userId={user.id} username={user.username} maxDevices={user.effectiveMaxDevices} />
+        )}
       </div>
     </Modal>
   )

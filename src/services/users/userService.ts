@@ -7,6 +7,7 @@ import {
   UpdateUserStatusRequest,
   UpdateUserRoleRequest,
   UserFilterParams,
+  UserDevice,
 } from '@/types/user'
 import { PageResponse } from '@/types/common'
 
@@ -45,5 +46,15 @@ export const userService = {
 
   deleteUser: async (id: number): Promise<void> => {
     await axiosClient.delete(API_ENDPOINTS.USER_DELETE(id))
+  },
+
+  getUserDevices: async (id: number): Promise<UserDevice[]> => {
+    const response = await axiosClient.get<UserDevice[]>(API_ENDPOINTS.USER_DEVICES(id))
+    return response.data
+  },
+
+  revokeUserDevice: async (id: number, deviceId: number): Promise<UserDevice> => {
+    const response = await axiosClient.delete<UserDevice>(API_ENDPOINTS.USER_DEVICE_REVOKE(id, deviceId))
+    return response.data
   },
 }

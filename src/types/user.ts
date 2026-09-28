@@ -14,6 +14,10 @@ export interface User {
   dealerName?: string
   dealerCode?: string
   enabled: boolean
+  /** Số máy tối đa riêng của tài khoản (F-57) — không có = dùng mặc định hệ thống */
+  maxDevices?: number | null
+  /** Số máy tối đa đang áp dụng */
+  effectiveMaxDevices?: number
   createdAt: string
   updatedAt: string
 }
@@ -39,6 +43,8 @@ export interface UpdateUserRequest {
   dealerId?: number
   enabled: boolean
   password?: string
+  /** Chỉ ADMIN. 0 = về mặc định hệ thống, bỏ trống = giữ nguyên */
+  maxDevices?: number
 }
 
 export interface UpdateUserStatusRequest {
@@ -58,4 +64,19 @@ export interface UserFilterParams {
   size?: number
   sortBy?: string
   sortDirection?: 'ASC' | 'DESC'
+}
+
+/** Máy đã đăng ký của một tài khoản (F-57 — 1 tài khoản 1 thiết bị) */
+export interface UserDevice {
+  id: number
+  deviceIdShort: string
+  deviceName?: string | null
+  platform?: string | null
+  status: 'ACTIVE' | 'REVOKED'
+  firstSeenAt: string
+  lastSeenAt: string
+  lastIp?: string | null
+  revokedAt?: string | null
+  revokedBy?: string | null
+  current: boolean
 }

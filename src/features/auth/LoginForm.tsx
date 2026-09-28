@@ -4,7 +4,9 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { useNavigate } from "react-router-dom"
 import { useAuthStore } from "@/stores/authStore"
+import axios from "axios"
 import { extractErrorMessage } from "@/utils/error"
+import { ErrorResponse } from "@/types/common"
 import { message } from "antd"
 
 const loginSchema = z.object({
@@ -41,12 +43,20 @@ export const LoginForm: React.FC = () => {
       message.success("Đăng nhập thành công")
       navigate("/dashboard")
     } catch (err) {
-      setErrorMessage(
-        extractErrorMessage(
-          err,
-          "Đăng nhập không thành công. Vui lòng kiểm tra lại tài khoản và mật khẩu."
+      const code = axios.isAxiosError<ErrorResponse>(err) ? err.response?.data?.code : undefined
+      if (code === "USER_WEB_LOGIN_FORBIDDEN") {
+        // F-57 (Q1): thợ chỉ dùng phần mềm cắt — trang web dành cho quản trị
+        setErrorMessage("Tài khoản thợ chỉ dùng trong phần mềm cắt. Trang này dành cho quản trị đại lý.")
+      } else if (code === "AUTH_SERVICE_UNAVAILABLE") {
+        setErrorMessage("Máy chủ xác thực đang gặp sự cố. Vui lòng thử lại sau ít phút.")
+      } else {
+        setErrorMessage(
+          extractErrorMessage(
+            err,
+            "Đăng nhập không thành công. Vui lòng kiểm tra lại tài khoản và mật khẩu."
+          )
         )
-      )
+      }
     }
   }
 

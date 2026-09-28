@@ -38,6 +38,8 @@ export const API_ENDPOINTS = {
   USER_ROLE: (id: number | string) => `/users/${id}/role`,
   USER_STATUS: (id: number | string) => `/users/${id}/status`,
   USER_DELETE: (id: number | string) => `/users/${id}`,
+  USER_DEVICES: (id: number | string) => `/users/${id}/devices`,
+  USER_DEVICE_REVOKE: (id: number | string, deviceId: number | string) => `/users/${id}/devices/${deviceId}`,
 
   // Actuator
   HEALTH: '/actuator/health',

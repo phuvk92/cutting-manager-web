@@ -14,4 +14,6 @@ export interface ErrorResponse {
   error: string
   message: string
   path: string
+  /** Mã lỗi máy đọc được, vd SESSION_LIMIT, USER_WEB_LOGIN_FORBIDDEN — chỉ có khi cần phân nhánh */
+  code?: string
 }
