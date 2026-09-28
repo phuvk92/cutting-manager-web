@@ -69,8 +69,10 @@ export interface UserFilterParams {
 /** Máy đã đăng ký của một tài khoản (F-57 — 1 tài khoản 1 thiết bị) */
 export interface UserDevice {
   id: number
-  deviceIdShort: string
-  deviceName?: string | null
+  /** Định danh máy đầy đủ (mã băm) — giao diện chỉ hiện 12 ký tự đầu */
+  deviceId: string
+  /** Tên máy app gửi lên */
+  name?: string | null
   platform?: string | null
   status: 'ACTIVE' | 'REVOKED'
   firstSeenAt: string
@@ -78,5 +80,5 @@ export interface UserDevice {
   lastIp?: string | null
   revokedAt?: string | null
   revokedBy?: string | null
-  current: boolean
+  isCurrent: boolean
 }

@@ -43,7 +43,7 @@ export const UserDevicesPanel: React.FC<UserDevicesPanelProps> = ({ userId, user
     setRevokingId(device.id)
     try {
       await userService.revokeUserDevice(userId, device.id)
-      message.success(`Đã gỡ máy "${device.deviceName || device.deviceIdShort}" khỏi tài khoản ${username}`)
+      message.success(`Đã gỡ máy "${device.name || shortId(device.deviceId)}" khỏi tài khoản ${username}`)
       await load()
     } catch (err) {
       message.error(extractErrorMessage(err, 'Không gỡ được máy'))
@@ -53,6 +53,7 @@ export const UserDevicesPanel: React.FC<UserDevicesPanelProps> = ({ userId, user
   }
 
   const activeCount = devices.filter(d => d.status === 'ACTIVE').length
+  const shortId = (id: string) => (id.length > 12 ? id.slice(0, 12) : id)
 
   return (
     <div style={{ border: '1px solid #E4E3DE', borderRadius: 6, background: '#FBFBFA' }}>
@@ -105,13 +106,15 @@ export const UserDevicesPanel: React.FC<UserDevicesPanelProps> = ({ userId, user
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 500 }}>
                   <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {d.deviceName || 'Máy không tên'}
+                    {d.name || 'Máy không tên'}
                   </span>
                   {d.platform && <span style={{ color: '#8A8983', fontWeight: 400 }}>· {d.platform}</span>}
                   {d.status === 'ACTIVE' ? <Tag color="green">Đang dùng</Tag> : <Tag>Đã gỡ</Tag>}
                 </div>
                 <div style={{ fontSize: 11.5, color: '#6E6D68', marginTop: 2 }}>
-                  <span style={{ fontFamily: "'IBM Plex Mono', monospace" }}>{d.deviceIdShort}</span>
+                  <span style={{ fontFamily: "'IBM Plex Mono', monospace" }} title={d.deviceId}>
+                    {shortId(d.deviceId)}
+                  </span>
                   {' · '}lần cuối {formatDateTime(d.lastSeenAt)}
                   {d.lastIp && (
                     <>
