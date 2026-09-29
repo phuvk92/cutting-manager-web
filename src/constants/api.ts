@@ -9,15 +9,10 @@ export const API_ENDPOINTS = {
   AUTH_REFRESH: '/auth/refresh',
   AUTH_LOGOUT: '/auth/logout',
 
-  // Categories (Catalog)
-  CATEGORIES: '/categories',
-  CATEGORIES_TREE: '/categories',
-  CATEGORIES_LIST: '/categories',
-  CATEGORY_DETAIL: (id: number | string) => `/categories/${id}`,
-  CATEGORY_CREATE: '/categories',
-  CATEGORY_UPDATE: (id: number | string) => `/categories/${id}`,
-  CATEGORY_DELETE: (id: number | string) => `/categories/${id}`,
-  CATALOG_LEVEL: (level: string) => `/v1/catalog/${level}`,
+  // Cây danh mục xe 4 cấp BRAND › SERIES › MODEL › SUBTYPE (Data Center v2)
+  VEHICLE_NODES: '/vehicle-nodes',
+  VEHICLE_NODE_DETAIL: (id: number | string) => `/vehicle-nodes/${id}`,
+  VEHICLE_NODE_IMPACT: (id: number | string) => `/vehicle-nodes/${id}/impact`,
 
   // SVG Files
   SVG_LIST: '/svg',
