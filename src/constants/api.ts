@@ -63,6 +63,6 @@ export const API_ENDPOINTS = {
   // Vehicle Configurations
   VEHICLE_CONFIGURATIONS: '/vehicle-configurations',
   VEHICLE_CONFIGURATION_DETAIL: (id: number | string) => `/vehicle-configurations/${id}`,
-  CAR_BRANDS: '/vehicle-configurations/brands',
-  CAR_MODELS: '/vehicle-configurations/models',
+  CAR_BRANDS: '/car-brands',
+  CAR_MODELS: '/car-models',
 } as const
