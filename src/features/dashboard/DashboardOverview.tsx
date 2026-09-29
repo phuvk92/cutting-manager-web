@@ -12,7 +12,7 @@ import { userService } from '@/services/users/userService'
 import { auditService } from '@/services/audit/auditService'
 import { SvgFile } from '@/types/svg'
 import { formatBytes, formatDateTime } from '@/utils/formatters'
-import { SvgUploadModal } from '@/features/svg/SvgUploadModal'
+import { PartFileFormModal } from '@/features/svg/PartFileFormModal'
 import { SvgPreviewModal } from '@/features/svg/SvgPreviewModal'
 
 export const DashboardOverview: React.FC = () => {
@@ -394,14 +394,16 @@ export const DashboardOverview: React.FC = () => {
         )}
       </div>
 
-      <SvgUploadModal
+      <PartFileFormModal
         open={uploadModalOpen}
+        editing={null}
         onClose={() => setUploadModalOpen(false)}
-        onSuccess={loadData}
+        onSaved={loadData}
       />
 
       <SvgPreviewModal
-        svg={selectedSvg}
+        fileId={selectedSvg?.id ?? null}
+        title={selectedSvg?.originalFilename}
         open={previewModalOpen}
         onClose={() => setPreviewModalOpen(false)}
       />
