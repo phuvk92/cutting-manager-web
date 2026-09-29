@@ -15,7 +15,6 @@ const AuditPage = lazy(() => import('@/pages/AuditPage').then(m => ({ default: m
 const DealersPage = lazy(() => import('@/pages/DealersPage').then(m => ({ default: m.DealersPage })))
 const SessionsPage = lazy(() => import('@/pages/SessionsPage').then(m => ({ default: m.SessionsPage })))
 const BulkUploadPage = lazy(() => import('@/pages/BulkUploadPage').then(m => ({ default: m.BulkUploadPage })))
-const ApprovePage = lazy(() => import('@/pages/ApprovePage').then(m => ({ default: m.ApprovePage })))
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage').then(m => ({ default: m.NotFoundPage })))
 const ForbiddenPage = lazy(() => import('@/pages/ForbiddenPage').then(m => ({ default: m.ForbiddenPage })))
 
@@ -52,7 +51,6 @@ export const AppRoutes: React.FC = () => {
               <Route path="/categories" element={<Navigate to="/vehicle-configurations" replace />} />
               <Route path="/vehicle-configurations" element={<VehicleConfigurationsPage />} />
               <Route path="/bulk-upload" element={<BulkUploadPage />} />
-              <Route path="/approve" element={<ApprovePage />} />
               <Route path="/audit" element={<AuditPage />} />
             </Route>
 

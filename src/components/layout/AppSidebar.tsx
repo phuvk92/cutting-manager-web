@@ -157,13 +157,6 @@ export const AppSidebar: React.FC = () => {
               <path d="M4.5 19.5h15" />
             </svg>
           )}
-          {isAdmin && renderNavBtn(
-            '/approve',
-            'Duyệt mẫu & phân phối',
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M5 12.5 9.5 17 19 7.5" />
-            </svg>
-          )}
         </>
       )}
 
