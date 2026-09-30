@@ -9,3 +9,9 @@ export interface CategorySummary {
   model?: string | null
   year?: string | null
 }
+
+/** Một lựa chọn của ô chọn nối tầng / danh mục file — khuôn `{value,label}` của API (SA-DanhMucXe-v2 §3.3). */
+export interface CatalogOption {
+  value: string
+  label: string
+}

@@ -1,29 +1,9 @@
 import { UserSummary } from './auth'
-import { CategorySummary } from './category'
 
-export interface SvgVehicleConfigurationSummary {
-  id: number
-  productGroup: string
-  productGroupName: string
-  brandName: string
-  modelName: string
-  yearFrom: number
-  yearTo: number
-  generationCode?: string
-  fullName: string
-}
-
-export interface SvgFileDealerPermission {
-  id?: number
-  dealerId: number
-  dealerCode?: string
-  dealerName?: string
-  canView: boolean
-  canDownload: boolean
-  createdAt?: string
-  updatedAt?: string
-}
-
+/**
+ * File SVG trả về từ `/api/svg` (dashboard, xem trước, tải xuống).
+ * Màn Kho mẫu & part file dùng `AdminFile` (types/adminFile.ts) với `/api/admin/files`.
+ */
 export interface SvgFile {
   id: number
   originalFilename: string
@@ -32,10 +12,9 @@ export interface SvgFile {
   contentType: string
   checksum: string
   status?: string
-  category?: CategorySummary
-  vehicleConfigurations: SvgVehicleConfigurationSummary[]
-  dealerPermissionCount: number
-  dealerPermissions?: SvgFileDealerPermission[]
+  fileCategory?: string | null
+  modelYear?: number | null
+  source?: string
   canDownload: boolean
   canView: boolean
   uploadedBy: UserSummary
@@ -46,19 +25,10 @@ export interface SvgFile {
 export interface SvgFilterParams {
   keyword?: string
   productGroup?: string
-  brandId?: number
-  modelId?: number
   year?: number
-  generationCode?: string
-  dealerId?: number
   status?: string
   page?: number
   size?: number
   sortBy?: string
   sortDirection?: 'ASC' | 'DESC'
-}
-
-export interface BatchSvgUploadResponse {
-  files: SvgFile[]
-  totalUploaded: number
 }
