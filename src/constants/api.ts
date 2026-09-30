@@ -9,15 +9,10 @@ export const API_ENDPOINTS = {
   AUTH_REFRESH: '/auth/refresh',
   AUTH_LOGOUT: '/auth/logout',
 
-  // Categories (Catalog)
-  CATEGORIES: '/categories',
-  CATEGORIES_TREE: '/categories',
-  CATEGORIES_LIST: '/categories',
-  CATEGORY_DETAIL: (id: number | string) => `/categories/${id}`,
-  CATEGORY_CREATE: '/categories',
-  CATEGORY_UPDATE: (id: number | string) => `/categories/${id}`,
-  CATEGORY_DELETE: (id: number | string) => `/categories/${id}`,
-  CATALOG_LEVEL: (level: string) => `/v1/catalog/${level}`,
+  // Cây danh mục xe 4 cấp BRAND › SERIES › MODEL › SUBTYPE (Data Center v2)
+  VEHICLE_NODES: '/vehicle-nodes',
+  VEHICLE_NODE_DETAIL: (id: number | string) => `/vehicle-nodes/${id}`,
+  VEHICLE_NODE_IMPACT: (id: number | string) => `/vehicle-nodes/${id}/impact`,
 
   // SVG Files
   SVG_LIST: '/svg',
@@ -27,8 +22,13 @@ export const API_ENDPOINTS = {
   SVG_PREVIEW: (id: number | string) => `/svg/${id}/preview`,
   SVG_DOWNLOAD: (id: number | string) => `/svg/${id}/download`,
   SVG_DELETE: (id: number | string) => `/svg/${id}`,
-  SVG_DEALERS: (id: number | string) => `/svg/${id}/dealers`,
-  SVG_CONFIGURATIONS: (id: number | string) => `/svg/${id}/vehicle-configurations`,
+  SVG_THUMBNAIL: (id: number | string) => `/svg/${id}/thumbnail`,
+
+  // Data Center v2 — kho part file (SA-DanhMucXe-v2 §3.2); cây xe khai ở trên
+  ADMIN_FILES: '/admin/files',
+  ADMIN_FILE_STATS: '/admin/files/stats',
+  ADMIN_FILE_DETAIL: (id: number | string) => `/admin/files/${id}`,
+  FILE_CATEGORIES: '/v1/file-categories',
 
   // Users (ADMIN and AGENT)
   USERS_LIST: '/users',
@@ -59,10 +59,4 @@ export const API_ENDPOINTS = {
   DEALER_UPDATE: (id: number | string) => `/dealers/${id}`,
   DEALER_STATUS: (id: number | string) => `/dealers/${id}/status`,
   DEALER_DELETE: (id: number | string) => `/dealers/${id}`,
-
-  // Vehicle Configurations
-  VEHICLE_CONFIGURATIONS: '/vehicle-configurations',
-  VEHICLE_CONFIGURATION_DETAIL: (id: number | string) => `/vehicle-configurations/${id}`,
-  CAR_BRANDS: '/car-brands',
-  CAR_MODELS: '/car-models',
 } as const

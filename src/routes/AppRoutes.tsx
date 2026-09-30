@@ -8,7 +8,7 @@ import { useAuthStore } from '@/stores/authStore'
 
 const LoginPage = lazy(() => import('@/pages/LoginPage').then(m => ({ default: m.LoginPage })))
 const DashboardPage = lazy(() => import('@/pages/DashboardPage').then(m => ({ default: m.DashboardPage })))
-const VehicleConfigurationsPage = lazy(() => import('@/pages/VehicleConfigurationsPage').then(m => ({ default: m.VehicleConfigurationsPage })))
+const CategoriesPage = lazy(() => import('@/pages/CategoriesPage').then(m => ({ default: m.CategoriesPage })))
 const SvgPage = lazy(() => import('@/pages/SvgPage').then(m => ({ default: m.SvgPage })))
 const UsersPage = lazy(() => import('@/pages/UsersPage').then(m => ({ default: m.UsersPage })))
 const AuditPage = lazy(() => import('@/pages/AuditPage').then(m => ({ default: m.AuditPage })))
@@ -41,15 +41,14 @@ export const AppRoutes: React.FC = () => {
             {/* Admin and Agent routes */}
             <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'AGENT']} />}>
               <Route path="/users" element={<UsersPage />} />
-              <Route path="/svg" element={<SvgPage />} />
             </Route>
 
             {/* Admin only routes */}
             <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
               <Route path="/dealers" element={<DealersPage />} />
               <Route path="/sessions" element={<SessionsPage />} />
-              <Route path="/categories" element={<Navigate to="/vehicle-configurations" replace />} />
-              <Route path="/vehicle-configurations" element={<VehicleConfigurationsPage />} />
+              <Route path="/categories" element={<CategoriesPage />} />
+              <Route path="/svg" element={<SvgPage />} />
               <Route path="/bulk-upload" element={<BulkUploadPage />} />
               <Route path="/audit" element={<AuditPage />} />
             </Route>
