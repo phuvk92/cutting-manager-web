@@ -137,7 +137,7 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
       const cat = categories.find(c => c.label === editing.category)
       setCategoryId(cat ? Number(cat.value) : undefined)
       setYear(editing.year ?? undefined)
-      const prefill: VehicleRow[] = (editing.vehicles || [])
+      const prefill: VehicleRow[] = (editing.vehicles || []).slice(0, 1)
         .map(v => {
           const chain = findChain(nodeMap, v.nodeId)
           if (!chain.length) return null
@@ -206,7 +206,7 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
   const missing: string[] = []
   if (!name.trim()) missing.push('tên file')
   if (categoryId === undefined) missing.push('danh mục')
-  if (!rows.some(r => r.modelId !== undefined)) missing.push('mẫu xe (ít nhất tới Model)')
+  if (!rows.some(r => r.modelId !== undefined)) missing.push('mẫu xe (chọn tới Model)')
   if (!isEdit && !file) missing.push('file')
   const ready = missing.length === 0
 
@@ -370,12 +370,12 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
             </div>
           </div>
 
-          {/* ── mẫu xe: danh sách dòng nối tầng (Q5) ── */}
+          {/* ── mẫu xe: một dòng nối tầng — board 30/09 bỏ Q5, mỗi file một mẫu xe ── */}
           <div style={{ padding: '12px 14px', background: '#FBFBFA', border: '1px solid #E4E3DE', borderRadius: 6 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
               <span style={{ font: `600 11.5px ${FONT}`, color: '#1B1B19' }}>Mẫu xe</span>
               <span style={{ font: `400 11px ${FONT}`, color: '#8A8983' }}>
-                lấy từ Danh mục xe, chọn lần lượt từ trên xuống — một file gắn được nhiều mẫu
+                lấy từ Danh mục xe, chọn lần lượt từ trên xuống — mỗi file một mẫu xe
               </span>
             </div>
 
@@ -384,7 +384,7 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
                 <div
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(4, minmax(0, 1fr)) auto',
+                    gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
                     gap: 8,
                     alignItems: 'center',
                   }}
@@ -393,26 +393,6 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
                   {levelSelect(row, 1, row.seriesId, row.brandId)}
                   {levelSelect(row, 2, row.modelId, row.seriesId)}
                   {levelSelect(row, 3, row.subtypeId, row.modelId)}
-                  <button
-                    onClick={() => setRows(prev => (prev.length > 1 ? prev.filter(r => r.key !== row.key) : prev))}
-                    disabled={rows.length <= 1}
-                    title="Xoá dòng"
-                    style={{
-                      width: 26,
-                      height: 26,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      border: '1px solid #E9C9C9',
-                      borderRadius: 4,
-                      background: '#FFF',
-                      cursor: rows.length > 1 ? 'pointer' : 'not-allowed',
-                      color: '#A93823',
-                      fontSize: 13,
-                    }}
-                  >
-                    ×
-                  </button>
                 </div>
                 <div style={{ marginTop: 4, font: `400 11px ${FONT}`, color: '#6E6D68' }}>
                   Đường dẫn:{' '}
@@ -423,21 +403,6 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
               </div>
             ))}
 
-            <button
-              onClick={() => setRows(prev => [...prev, emptyRow()])}
-              style={{
-                marginTop: 10,
-                padding: '6px 11px',
-                border: '1px dashed #C9B6F5',
-                borderRadius: 4,
-                background: '#FFF',
-                cursor: 'pointer',
-                font: `500 11.5px ${FONT}`,
-                color: '#6C3BD6',
-              }}
-            >
-              + Thêm mẫu xe
-            </button>
           </div>
         </div>
 

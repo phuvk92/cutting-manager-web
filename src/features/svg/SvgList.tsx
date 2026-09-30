@@ -397,7 +397,6 @@ export const SvgList: React.FC = () => {
                   ) : (
                     <Tooltip title={vehicles.map(v => v.path).join('\n')}>
                       {vehicles[0].path}
-                      {vehicles.length > 1 && <span style={{ color: '#6C3BD6', fontWeight: 500 }}> +{vehicles.length - 1}</span>}
                     </Tooltip>
                   )}
                 </span>
