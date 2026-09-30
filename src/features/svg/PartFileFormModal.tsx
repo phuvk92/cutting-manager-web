@@ -1,5 +1,5 @@
 import React, { Fragment, useEffect, useMemo, useRef, useState } from 'react'
-import { Modal, message } from 'antd'
+import { Modal, Select, message } from 'antd'
 import { AdminFile, VehicleNode } from '@/types/adminFile'
 import { CatalogOption } from '@/types/category'
 import { adminFileService } from '@/services/admin/adminFileService'
@@ -16,6 +16,10 @@ const LEVEL_META = [
   { code: 'MODEL', vi: 'model', label: 'Model', bg: '#FBF0DF', color: '#8A5A12', required: true },
   { code: 'SUBTYPE', vi: 'phiên bản', label: 'Phiên bản', bg: '#FAE7E3', color: '#A93823', required: false },
 ]
+
+/** Bỏ dấu + chữ thường để tìm tiếng Việt không cần gõ dấu (đ → d). */
+const foldVi = (text: string): string =>
+  text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/gi, 'd').toLowerCase()
 
 interface VehicleRow {
   key: number
@@ -267,35 +271,26 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
     const parentMissing = level > 0 && parentId === undefined
     const options = parentMissing ? [] : childrenOf(parentId)
     const disabled = parentMissing || options.length === 0
+    const placeholder = parentMissing
+      ? `Chọn ${LEVEL_META[level - 1].vi} trước`
+      : options.length
+        ? `— Chọn ${meta.vi} —`
+        : 'Không có'
     return (
-      <select
+      <Select
         key={`${row.key}-${level}`}
-        value={value ?? ''}
+        value={value}
         disabled={disabled}
-        onChange={e => setRow(row.key, level, e.target.value ? Number(e.target.value) : undefined)}
-        style={{
-          minWidth: 0,
-          padding: '7px 9px',
-          border: '1px solid #D8D7D2',
-          borderRadius: 4,
-          background: disabled ? '#F1F0EC' : '#FFF',
-          font: `400 12.5px ${FONT}`,
-          color: disabled ? '#A5A49E' : '#1B1B19',
-        }}
-      >
-        <option value="">
-          {parentMissing
-            ? `Chọn ${LEVEL_META[level - 1].vi} trước`
-            : options.length
-              ? `— Chọn ${meta.vi} —`
-              : 'Không có'}
-        </option>
-        {options.map(o => (
-          <option key={o.id} value={o.id}>
-            {o.name}
-          </option>
-        ))}
-      </select>
+        placeholder={placeholder}
+        allowClear={!meta.required}
+        showSearch
+        // Gõ không dấu vẫn khớp: "vinfast", "dong" ra "VinFast", "Dòng…"
+        filterOption={(input, option) => foldVi(String(option?.label ?? '')).includes(foldVi(input))}
+        notFoundContent="Không có mục khớp"
+        onChange={(v?: number) => setRow(row.key, level, v)}
+        options={options.map(o => ({ value: o.id, label: o.name }))}
+        style={{ width: '100%', minWidth: 0 }}
+      />
     )
   }
 
