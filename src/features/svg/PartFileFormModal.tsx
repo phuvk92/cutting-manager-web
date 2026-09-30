@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { Modal, message } from 'antd'
 import { AdminFile, VehicleNode } from '@/types/adminFile'
 import { CatalogOption } from '@/types/category'
@@ -375,33 +375,64 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
               <span style={{ font: `600 11.5px ${FONT}`, color: '#1B1B19' }}>Mẫu xe</span>
               <span style={{ font: `400 11px ${FONT}`, color: '#8A8983' }}>
-                lấy từ Danh mục xe, chọn lần lượt từ trên xuống — mỗi file một mẫu xe
+                lấy từ Danh mục xe, chọn lần lượt từ trên xuống
               </span>
             </div>
 
-            {rows.map((row, idx) => (
-              <div key={row.key} style={{ marginBottom: idx === rows.length - 1 ? 0 : 12 }}>
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
-                    gap: 8,
-                    alignItems: 'center',
-                  }}
-                >
-                  {levelSelect(row, 0, row.brandId, undefined)}
-                  {levelSelect(row, 1, row.seriesId, row.brandId)}
-                  {levelSelect(row, 2, row.modelId, row.seriesId)}
-                  {levelSelect(row, 3, row.subtypeId, row.modelId)}
+            {rows.slice(0, 1).map(row => {
+              // Đúng design Admin Portal (AP:524–539): lưới 96px | ô chọn, mỗi cấp một hàng —
+              // nhãn = badge mã cấp + "bắt buộc"/"nếu có"; đường dẫn ở dưới, có kẻ ngăn.
+              const values = [row.brandId, row.seriesId, row.modelId, row.subtypeId]
+              const parents = [undefined, row.brandId, row.seriesId, row.modelId]
+              return (
+                <div key={row.key}>
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: '96px minmax(0, 1fr)',
+                      gap: '9px 12px',
+                      alignItems: 'center',
+                    }}
+                  >
+                    {LEVEL_META.map((meta, level) => (
+                      <Fragment key={meta.code}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span
+                            style={{
+                              padding: '1px 5px',
+                              borderRadius: 3,
+                              background: meta.bg,
+                              font: "500 9.5px 'IBM Plex Mono', monospace",
+                              color: meta.color,
+                            }}
+                          >
+                            {meta.code}
+                          </span>
+                          <span style={{ font: `400 11px ${FONT}`, color: '#6E6D68' }}>
+                            {meta.required ? 'bắt buộc' : 'nếu có'}
+                          </span>
+                        </span>
+                        {levelSelect(row, level, values[level], parents[level])}
+                      </Fragment>
+                    ))}
+                  </div>
+                  <div
+                    style={{
+                      marginTop: 10,
+                      paddingTop: 9,
+                      borderTop: '1px solid #EFEEEA',
+                      font: `400 11.5px ${FONT}`,
+                      color: '#6E6D68',
+                    }}
+                  >
+                    Đường dẫn:{' '}
+                    <span style={{ fontWeight: 500, color: row.modelId ? '#1B1B19' : '#A5A49E' }}>
+                      {pathLabel(row)}
+                    </span>
+                  </div>
                 </div>
-                <div style={{ marginTop: 4, font: `400 11px ${FONT}`, color: '#6E6D68' }}>
-                  Đường dẫn:{' '}
-                  <span style={{ fontWeight: 500, color: row.modelId ? '#1B1B19' : '#A5A49E' }}>
-                    {pathLabel(row)}
-                  </span>
-                </div>
-              </div>
-            ))}
+              )
+            })}
 
           </div>
         </div>
