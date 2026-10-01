@@ -2,6 +2,9 @@ import { axiosClient } from '@/services/api/axiosClient'
 import { API_ENDPOINTS } from '@/constants/api'
 import { SvgFile, SvgFilterParams } from '@/types/svg'
 import { PageResponse } from '@/types/common'
+import { normalizeSvgFilename } from '@/utils/formatters'
+
+export { normalizeSvgFilename }
 
 export const svgService = {
   getSvgFiles: async (params?: SvgFilterParams): Promise<PageResponse<SvgFile>> => {
@@ -25,7 +28,8 @@ export const svgService = {
     return URL.createObjectURL(response.data)
   },
 
-  downloadSvg: async (id: number, filename = 'download.svg'): Promise<void> => {
+  downloadSvg: async (id: number, filename?: string): Promise<void> => {
+    const safeFilename = normalizeSvgFilename(filename, id)
     const response = await axiosClient.get<Blob>(API_ENDPOINTS.SVG_DOWNLOAD(id), {
       responseType: 'blob',
     })
@@ -34,7 +38,7 @@ export const svgService = {
     const url = window.URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.setAttribute('download', filename)
+    link.setAttribute('download', safeFilename)
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)

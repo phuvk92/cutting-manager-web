@@ -60,6 +60,9 @@ The frontend will run on `http://localhost:5173`. API requests (`/api/*`) are pr
 # Type check without emitting files
 npm run typecheck
 
+# Run unit tests
+npm test
+
 # Lint source code
 npm run lint
 

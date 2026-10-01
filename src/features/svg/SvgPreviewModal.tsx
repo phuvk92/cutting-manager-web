@@ -2,7 +2,7 @@ import React from 'react'
 import { Modal, Button, Space } from 'antd'
 import { DownloadOutlined } from '@ant-design/icons'
 import { SafeSvgViewer } from '@/components/svg/SafeSvgViewer'
-import { svgService } from '@/services/svg/svgService'
+import { svgService, normalizeSvgFilename } from '@/services/svg/svgService'
 
 interface SvgPreviewModalProps {
   fileId: number | null
@@ -30,7 +30,7 @@ export const SvgPreviewModal: React.FC<SvgPreviewModalProps> = ({
           <Button
             type="primary"
             icon={<DownloadOutlined />}
-            onClick={() => svgService.downloadSvg(fileId, title || `file-${fileId}.svg`)}
+            onClick={() => svgService.downloadSvg(fileId, normalizeSvgFilename(title, fileId))}
           >
             Tải xuống file
           </Button>
