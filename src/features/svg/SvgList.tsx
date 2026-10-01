@@ -389,6 +389,20 @@ export const SvgList: React.FC = () => {
                   <div style={{ marginTop: 2, font: `400 10.5px ${MONO}`, color: '#A3A29C', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {f.originalFilename}
                   </div>
+                  {(f.hasNested || f.hasRaw) && (
+                    <div style={{ display: 'flex', gap: 4, marginTop: 3 }}>
+                      {f.hasNested && (
+                        <span style={{ padding: '1px 6px', borderRadius: 3, background: '#E9F5EE', font: `500 9.5px ${FONT}`, color: '#2E7D5B' }}>
+                          Đã xếp
+                        </span>
+                      )}
+                      {f.hasRaw && (
+                        <span style={{ padding: '1px 6px', borderRadius: 3, background: '#FBF0DF', font: `500 9.5px ${FONT}`, color: '#8A5A12' }}>
+                          Chưa xếp
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </span>
                 <span style={{ color: '#4A4945' }}>{f.category || '—'}</span>
                 <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#35342F' }}>

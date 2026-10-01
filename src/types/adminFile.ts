@@ -15,6 +15,10 @@ export interface AdminFile {
   partCount: number
   updatedAt: string
   thumbnailUrl: string | null
+  /** Có bản đã xếp (vào vùng cắt) — SA-DanhMucXe-v2 §8 */
+  hasNested?: boolean
+  /** Có bản chưa xếp (vào khu chưa cắt) */
+  hasRaw?: boolean
 }
 
 export interface AdminFileStats {
