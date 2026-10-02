@@ -60,6 +60,145 @@ type WidthChoice = number | typeof CUSTOM_WIDTH
 /** Ô số nhập tay — chuỗi rỗng là "thiếu", không phải 0. */
 const parseMm = (s: string): number => (s.trim() === '' ? NaN : Number(s))
 
+interface SvgDropZoneProps {
+  title: string
+  hint: string
+  /** File .svg mới chọn (chưa lưu) */
+  file: File | null
+  /** Tên bản đang có trên server (chế độ sửa); null = chưa có */
+  existingName: string | null
+  /** Đã đánh dấu bỏ bản đang có */
+  removed: boolean
+  /** Cho phép bỏ bản đang có — tắt khi đó là bản cuối cùng */
+  canRemove: boolean
+  dragActive: boolean
+  onBrowse: () => void
+  onDropFile: (f: File | undefined | null) => void
+  onDragActive: (v: boolean) => void
+  onClearNew: () => void
+  onMarkRemove: () => void
+  onUndoRemove: () => void
+}
+
+/** Một vùng thả file .svg — SA-DanhMucXe-v2 §8.2: hai vùng riêng cho bản đã xếp / chưa xếp. */
+const SvgDropZone: React.FC<SvgDropZoneProps> = ({
+  title,
+  hint,
+  file,
+  existingName,
+  removed,
+  canRemove,
+  dragActive,
+  onBrowse,
+  onDropFile,
+  onDragActive,
+  onClearNew,
+  onMarkRemove,
+  onUndoRemove,
+}) => {
+  const filled = !!file || (!!existingName && !removed)
+  const stop = (e: React.MouseEvent) => e.stopPropagation()
+  const smallBtn: React.CSSProperties = {
+    padding: '2px 8px',
+    border: '1px solid #D8D7D2',
+    borderRadius: 4,
+    background: '#FFF',
+    cursor: 'pointer',
+    font: `500 10.5px ${FONT}`,
+    color: '#4A4945',
+  }
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 4 }}>
+        <span style={{ font: `600 11px ${FONT}`, color: '#35342F' }}>{title}</span>
+        <span style={{ font: `400 10.5px ${FONT}`, color: '#8A8983' }}>{hint}</span>
+      </div>
+      <button
+        onClick={onBrowse}
+        onDragOver={e => {
+          e.preventDefault()
+          onDragActive(true)
+        }}
+        onDragLeave={() => onDragActive(false)}
+        onDrop={e => {
+          e.preventDefault()
+          onDragActive(false)
+          onDropFile(e.dataTransfer.files?.[0])
+        }}
+        style={{
+          width: '100%',
+          minHeight: 76,
+          border: `1.5px dashed ${filled || dragActive ? '#7C3AED' : '#C9BCF0'}`,
+          borderRadius: 6,
+          background: filled || dragActive ? '#F1EDFC' : '#FBFAFF',
+          cursor: 'pointer',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 4,
+          padding: '8px 10px',
+        }}
+      >
+        {file ? (
+          <>
+            <span style={{ font: `500 11.5px ${MONO}`, color: '#5B2BB0', wordBreak: 'break-all' }}>
+              {file.name}
+            </span>
+            <span style={{ display: 'flex', gap: 6 }} onClick={stop}>
+              <span style={{ font: `400 10.5px ${FONT}`, color: '#8A8983' }}>Bấm vùng này để đổi file</span>
+              <button style={smallBtn} onClick={onClearNew}>
+                Bỏ file
+              </button>
+            </span>
+          </>
+        ) : existingName && !removed ? (
+          <>
+            <span style={{ font: `400 11px ${FONT}`, color: '#6E6D68' }}>Đang có:</span>
+            <span style={{ font: `500 11.5px ${MONO}`, color: '#35342F', wordBreak: 'break-all' }}>
+              {existingName}
+            </span>
+            <span style={{ display: 'flex', gap: 6 }} onClick={stop}>
+              <button
+                style={{ ...smallBtn, ...(canRemove ? {} : { opacity: 0.45, cursor: 'not-allowed' }) }}
+                disabled={!canRemove}
+                title={canRemove ? 'Bỏ bản đang có' : 'Không bỏ được — file phải còn ít nhất một bản'}
+                onClick={onMarkRemove}
+              >
+                Bỏ bản này
+              </button>
+            </span>
+            <span style={{ font: `400 10.5px ${FONT}`, color: '#8A8983' }}>Bấm vùng này để thay file</span>
+          </>
+        ) : existingName && removed ? (
+          <>
+            <span style={{ font: `400 11px ${FONT}`, color: '#A93823' }}>
+              Sẽ bỏ: {existingName}
+            </span>
+            <span style={{ display: 'flex', gap: 6 }} onClick={stop}>
+              <button style={smallBtn} onClick={onUndoRemove}>
+                Giữ lại
+              </button>
+            </span>
+          </>
+        ) : (
+          <>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 16V5" />
+              <path d="M7.5 9.5 12 5l4.5 4.5" />
+              <path d="M4.5 19.5h15" />
+            </svg>
+            <span style={{ font: `500 11.5px ${FONT}`, color: '#5B2BB0' }}>
+              Chọn file hoặc thả vào đây
+            </span>
+            <span style={{ font: `400 10.5px ${FONT}`, color: '#8A8983' }}>SVG</span>
+          </>
+        )}
+      </button>
+    </div>
+  )
+}
+
 const YEARS: number[] = (() => {
   const now = new Date().getFullYear()
   const list: number[] = []
@@ -108,7 +247,11 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
   const [categoryId, setCategoryId] = useState<number | undefined>(undefined)
   const [year, setYear] = useState<number | undefined>(undefined)
   const [rows, setRows] = useState<VehicleRow[]>([emptyRow()])
-  const [file, setFile] = useState<File | null>(null)
+  // Hai bản file (SA-DanhMucXe-v2 §8.2): nested = đã xếp → vùng cắt, raw = chưa xếp → khu chưa cắt
+  const [nestedFile, setNestedFile] = useState<File | null>(null)
+  const [rawFile, setRawFile] = useState<File | null>(null)
+  const [removeNested, setRemoveNested] = useState(false)
+  const [removeRaw, setRemoveRaw] = useState(false)
   const [fileError, setFileError] = useState<string | null>(null)
   const [thumbnail, setThumbnail] = useState<File | null>(null)
   const [thumbPreview, setThumbPreview] = useState<string | null>(null)
@@ -116,8 +259,9 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
   const [widthCustom, setWidthCustom] = useState('')
   const [cutLength, setCutLength] = useState(String(DEFAULT_CUT_AREA_LENGTH_MM))
   const [saving, setSaving] = useState(false)
-  const [dragOver, setDragOver] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [dragOver, setDragOver] = useState<'nested' | 'raw' | null>(null)
+  const nestedInputRef = useRef<HTMLInputElement>(null)
+  const rawInputRef = useRef<HTMLInputElement>(null)
   const thumbInputRef = useRef<HTMLInputElement>(null)
 
   const nodeMap = useMemo(() => {
@@ -147,7 +291,10 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
 
   useEffect(() => {
     if (!open) return
-    setFile(null)
+    setNestedFile(null)
+    setRawFile(null)
+    setRemoveNested(false)
+    setRemoveRaw(false)
     setFileError(null)
     setThumbnail(null)
     setThumbPreview(null)
@@ -227,7 +374,7 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
     )
   }
 
-  const acceptFile = (f: File | undefined | null) => {
+  const acceptFile = (kind: 'nested' | 'raw', f: File | undefined | null) => {
     if (!f) return
     if (!f.name.toLowerCase().endsWith('.svg')) {
       setFileError(`Không nhận "${f.name}" — chỉ hỗ trợ file .svg`)
@@ -235,7 +382,13 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
       return
     }
     setFileError(null)
-    setFile(f)
+    if (kind === 'nested') {
+      setNestedFile(f)
+      setRemoveNested(false)
+    } else {
+      setRawFile(f)
+      setRemoveRaw(false)
+    }
     if (!name.trim()) setName(f.name.replace(/\.svg$/i, ''))
   }
 
@@ -244,11 +397,15 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
   // Lỗi zod tính mỗi render — hai ô luôn có mặc định nên chỉ báo khi admin sửa sai
   const cutErrors = validateCutArea(cutLengthMm, widthMm)
 
+  // Bản đang có hiệu lực: file mới chọn, hoặc bản cũ chưa bị đánh dấu bỏ (SA §8.2 — ít nhất một)
+  const nestedPresent = !!nestedFile || (isEdit && !!editing?.hasNested && !removeNested)
+  const rawPresent = !!rawFile || (isEdit && !!editing?.hasRaw && !removeRaw)
+
   const missing: string[] = []
   if (!name.trim()) missing.push('tên file')
   if (categoryId === undefined) missing.push('danh mục')
   if (!rows.some(r => r.modelId !== undefined)) missing.push('mẫu xe (chọn tới Model)')
-  if (!isEdit && !file) missing.push('file')
+  if (!nestedPresent && !rawPresent) missing.push('ít nhất một file .svg')
   const ready = missing.length === 0 && !cutErrors.length && !cutErrors.width
 
   const pathLabel = (r: VehicleRow): string => {
@@ -270,7 +427,10 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
     try {
       if (isEdit && editing) {
         await adminFileService.updateFile(editing.id, {
-          file,
+          nestedFile,
+          rawFile,
+          removeNested: removeNested && !nestedFile,
+          removeRaw: removeRaw && !rawFile,
           name: name.trim(),
           categoryId,
           year: year ?? null,
@@ -282,7 +442,8 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
         message.success(`Đã cập nhật "${name.trim()}"`)
       } else {
         await adminFileService.createFile({
-          file,
+          nestedFile,
+          rawFile,
           name: name.trim(),
           categoryId,
           year,
@@ -536,55 +697,53 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
 
         {/* ── cột phải: file + ảnh ── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            onDragOver={e => {
-              e.preventDefault()
-              setDragOver(true)
-            }}
-            onDragLeave={() => setDragOver(false)}
-            onDrop={e => {
-              e.preventDefault()
-              setDragOver(false)
-              acceptFile(e.dataTransfer.files?.[0])
-            }}
-            style={{
-              height: 110,
-              border: `1.5px dashed ${file ? '#7C3AED' : dragOver ? '#7C3AED' : '#C9BCF0'}`,
-              borderRadius: 6,
-              background: file || dragOver ? '#F1EDFC' : '#FBFAFF',
-              cursor: 'pointer',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 6,
-              padding: 10,
-            }}
-          >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 16V5" />
-              <path d="M7.5 9.5 12 5l4.5 4.5" />
-              <path d="M4.5 19.5h15" />
-            </svg>
-            <span style={{ font: `500 11.5px ${FONT}`, color: '#5B2BB0' }}>
-              {file
-                ? file.name
-                : isEdit
-                  ? 'Chọn file .svg mới (nếu thay)'
-                  : 'Chọn file hoặc thả vào đây'}
-            </span>
-            <span style={{ font: `400 10.5px ${FONT}`, color: '#8A8983' }}>
-              {file ? 'Bấm để đổi file khác' : 'SVG'}
-            </span>
-          </button>
+          <SvgDropZone
+            title="File đã xếp"
+            hint="→ vào vùng cắt"
+            file={nestedFile}
+            existingName={isEdit && editing?.hasNested ? editing.originalFilename || 'bản đã xếp' : null}
+            removed={removeNested}
+            canRemove={rawPresent}
+            dragActive={dragOver === 'nested'}
+            onBrowse={() => nestedInputRef.current?.click()}
+            onDropFile={f => acceptFile('nested', f)}
+            onDragActive={v => setDragOver(v ? 'nested' : null)}
+            onClearNew={() => setNestedFile(null)}
+            onMarkRemove={() => setRemoveNested(true)}
+            onUndoRemove={() => setRemoveNested(false)}
+          />
+          <SvgDropZone
+            title="File chưa xếp"
+            hint="→ vào khu chưa cắt"
+            file={rawFile}
+            existingName={isEdit && editing?.hasRaw ? 'bản chưa xếp' : null}
+            removed={removeRaw}
+            canRemove={nestedPresent}
+            dragActive={dragOver === 'raw'}
+            onBrowse={() => rawInputRef.current?.click()}
+            onDropFile={f => acceptFile('raw', f)}
+            onDragActive={v => setDragOver(v ? 'raw' : null)}
+            onClearNew={() => setRawFile(null)}
+            onMarkRemove={() => setRemoveRaw(true)}
+            onUndoRemove={() => setRemoveRaw(false)}
+          />
           <input
-            ref={fileInputRef}
+            ref={nestedInputRef}
             type="file"
             accept=".svg"
             style={{ display: 'none' }}
             onChange={e => {
-              acceptFile(e.target.files?.[0])
+              acceptFile('nested', e.target.files?.[0])
+              e.target.value = ''
+            }}
+          />
+          <input
+            ref={rawInputRef}
+            type="file"
+            accept=".svg"
+            style={{ display: 'none' }}
+            onChange={e => {
+              acceptFile('raw', e.target.files?.[0])
               e.target.value = ''
             }}
           />

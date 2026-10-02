@@ -9,7 +9,13 @@ import { PageResponse } from '@/types/common'
 import type { AxiosProgressEvent } from 'axios'
 
 export interface AdminFilePayload {
-  file?: File | null
+  /** Bản đã xếp — vào vùng cắt (SA-DanhMucXe-v2 §8.2) */
+  nestedFile?: File | null
+  /** Bản chưa xếp — vào khu chưa cắt */
+  rawFile?: File | null
+  /** Chỉ khi sửa: bỏ bản đã xếp / chưa xếp đang có (không được bỏ cả hai) */
+  removeNested?: boolean
+  removeRaw?: boolean
   name?: string
   categoryId?: number
   /** undefined = không gửi (giữ nguyên khi sửa); null = gửi rỗng (xoá năm → mọi năm) */
@@ -22,7 +28,10 @@ export interface AdminFilePayload {
 }
 
 const appendPayload = (formData: FormData, payload: AdminFilePayload, forEdit: boolean) => {
-  if (payload.file) formData.append('file', payload.file)
+  if (payload.nestedFile) formData.append('nestedFile', payload.nestedFile)
+  if (payload.rawFile) formData.append('rawFile', payload.rawFile)
+  if (forEdit && payload.removeNested) formData.append('removeNested', 'true')
+  if (forEdit && payload.removeRaw) formData.append('removeRaw', 'true')
   if (payload.name !== undefined) formData.append('name', payload.name)
   if (payload.categoryId !== undefined) formData.append('categoryId', String(payload.categoryId))
   // Khi sửa: gửi year kể cả rỗng để server phân biệt "không đổi" với "xoá năm" (SA §3.2)

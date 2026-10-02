@@ -18,6 +18,10 @@ export interface AdminFile {
   /** Khổ cắt đã khai, mm — null trên file cũ chưa khai (client dùng mặc định 15000 × 700) */
   cutAreaLengthMm: number | null
   cutAreaWidthMm: number | null
+  /** Có bản đã xếp (vào vùng cắt) — SA-DanhMucXe-v2 §8 */
+  hasNested?: boolean
+  /** Có bản chưa xếp (vào khu chưa cắt) */
+  hasRaw?: boolean
 }
 
 export interface AdminFileStats {
