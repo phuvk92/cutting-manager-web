@@ -15,6 +15,9 @@ export interface AdminFile {
   partCount: number
   updatedAt: string
   thumbnailUrl: string | null
+  /** Khổ cắt đã khai, mm — null trên file cũ chưa khai (client dùng mặc định 15000 × 700) */
+  cutAreaLengthMm: number | null
+  cutAreaWidthMm: number | null
 }
 
 export interface AdminFileStats {

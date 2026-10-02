@@ -19,6 +19,18 @@ export const formatDate = (dateStr?: string | null): string => {
   return dayjs(dateStr).format('YYYY-MM-DD')
 }
 
+/**
+ * Khổ cắt hiện ở bảng kho part file: "15 m × 700" — dài đổi sang mét
+ * (lẻ thì một số thập phân, vd 15200 -> "15,2 m"), khổ phim giữ nguyên mm.
+ */
+export const formatCutArea = (lengthMm: number, widthMm: number): string => {
+  const m =
+    lengthMm % 1000 === 0
+      ? String(lengthMm / 1000)
+      : (lengthMm / 1000).toLocaleString('vi-VN', { maximumFractionDigits: 1 })
+  return `${m} m × ${widthMm}`
+}
+
 export const truncateString = (str: string, maxLength = 30): string => {
   if (!str || str.length <= maxLength) return str
   return `${str.substring(0, maxLength)}...`

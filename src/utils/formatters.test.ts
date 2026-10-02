@@ -1,5 +1,17 @@
 import { describe, it, expect } from 'vitest'
-import { normalizeSvgFilename } from './formatters'
+import { formatCutArea, normalizeSvgFilename } from './formatters'
+
+describe('formatCutArea', () => {
+  it('dài tròn mét và khổ phim mm', () => {
+    expect(formatCutArea(15000, 700)).toBe('15 m × 700')
+    expect(formatCutArea(25000, 1520)).toBe('25 m × 1520')
+  })
+
+  it('dài lẻ đổi một số thập phân theo dấu phẩy vi-VN', () => {
+    expect(formatCutArea(15200, 760)).toBe('15,2 m × 760')
+  })
+})
+
 
 describe('normalizeSvgFilename', () => {
   it('tên không đuôi -> thêm đuôi .svg', () => {

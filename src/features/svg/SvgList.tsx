@@ -8,6 +8,8 @@ import { svgService } from '@/services/svg/svgService'
 import { PartFileFormModal } from './PartFileFormModal'
 import { SvgPreviewModal } from './SvgPreviewModal'
 import { extractErrorMessage } from '@/utils/error'
+import { formatCutArea } from '@/utils/formatters'
+import { DEFAULT_FILM_WIDTH_MM, DEFAULT_CUT_AREA_LENGTH_MM } from '@/constants/cutArea'
 
 const FONT = "'IBM Plex Sans', sans-serif"
 const MONO = "'IBM Plex Mono', monospace"
@@ -389,6 +391,16 @@ export const SvgList: React.FC = () => {
                   <div style={{ marginTop: 2, font: `400 10.5px ${MONO}`, color: '#A3A29C', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {f.originalFilename}
                   </div>
+                  {/* File cũ chưa khai khổ → nhãn mặc định nhạt màu (client vẫn xếp 15000 × 700) */}
+                  {f.cutAreaLengthMm != null && f.cutAreaWidthMm != null ? (
+                    <div style={{ marginTop: 1, font: `400 10.5px ${MONO}`, color: '#6E6D68' }}>
+                      {formatCutArea(f.cutAreaLengthMm, f.cutAreaWidthMm)}
+                    </div>
+                  ) : (
+                    <div style={{ marginTop: 1, font: `400 10.5px ${MONO}`, color: '#C6C5BF' }}>
+                      {formatCutArea(DEFAULT_CUT_AREA_LENGTH_MM, DEFAULT_FILM_WIDTH_MM)} (mặc định)
+                    </div>
+                  )}
                 </span>
                 <span style={{ color: '#4A4945' }}>{f.category || '—'}</span>
                 <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#35342F' }}>

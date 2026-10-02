@@ -6,6 +6,12 @@ import { adminFileService } from '@/services/admin/adminFileService'
 import { vehicleNodeService } from '@/services/admin/vehicleNodeService'
 import { axiosClient } from '@/services/api/axiosClient'
 import { extractErrorMessage } from '@/utils/error'
+import { validateCutArea } from './cutAreaSchema'
+import {
+  FILM_WIDTH_PRESETS_MM,
+  DEFAULT_FILM_WIDTH_MM,
+  DEFAULT_CUT_AREA_LENGTH_MM,
+} from '@/constants/cutArea'
 
 const FONT = "'IBM Plex Sans', sans-serif"
 const MONO = "'IBM Plex Mono', monospace"
@@ -46,6 +52,13 @@ interface PartFileFormModalProps {
 
 let rowSeq = 1
 const emptyRow = (): VehicleRow => ({ key: rowSeq++ })
+
+/** Giá trị combobox khổ phim: một khổ chuẩn, hoặc 'custom' mở ô gõ số. */
+const CUSTOM_WIDTH = 'custom' as const
+type WidthChoice = number | typeof CUSTOM_WIDTH
+
+/** Ô số nhập tay — chuỗi rỗng là "thiếu", không phải 0. */
+const parseMm = (s: string): number => (s.trim() === '' ? NaN : Number(s))
 
 const YEARS: number[] = (() => {
   const now = new Date().getFullYear()
@@ -99,6 +112,9 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
   const [fileError, setFileError] = useState<string | null>(null)
   const [thumbnail, setThumbnail] = useState<File | null>(null)
   const [thumbPreview, setThumbPreview] = useState<string | null>(null)
+  const [widthChoice, setWidthChoice] = useState<WidthChoice>(DEFAULT_FILM_WIDTH_MM)
+  const [widthCustom, setWidthCustom] = useState('')
+  const [cutLength, setCutLength] = useState(String(DEFAULT_CUT_AREA_LENGTH_MM))
   const [saving, setSaving] = useState(false)
   const [dragOver, setDragOver] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -157,11 +173,27 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
         .filter((r): r is VehicleRow => r !== null)
       setRows(prefill.length ? prefill : [emptyRow()])
       if (editing.thumbnailUrl) loadExistingThumb(editing.thumbnailUrl)
+      // Khổ đang lưu: trùng khổ chuẩn → chọn sẵn; lạ → "Khổ khác…"; chưa khai → mặc định 700/15000
+      const w = editing.cutAreaWidthMm
+      if (w == null) {
+        setWidthChoice(DEFAULT_FILM_WIDTH_MM)
+        setWidthCustom('')
+      } else if (FILM_WIDTH_PRESETS_MM.includes(w)) {
+        setWidthChoice(w)
+        setWidthCustom('')
+      } else {
+        setWidthChoice(CUSTOM_WIDTH)
+        setWidthCustom(String(w))
+      }
+      setCutLength(String(editing.cutAreaLengthMm ?? DEFAULT_CUT_AREA_LENGTH_MM))
     } else {
       setName('')
       setCategoryId(undefined)
       setYear(undefined)
       setRows([emptyRow()])
+      setWidthChoice(DEFAULT_FILM_WIDTH_MM)
+      setWidthCustom('')
+      setCutLength(String(DEFAULT_CUT_AREA_LENGTH_MM))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, editing])
@@ -207,12 +239,17 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
     if (!name.trim()) setName(f.name.replace(/\.svg$/i, ''))
   }
 
+  const cutLengthMm = parseMm(cutLength)
+  const widthMm = widthChoice === CUSTOM_WIDTH ? parseMm(widthCustom) : widthChoice
+  // Lỗi zod tính mỗi render — hai ô luôn có mặc định nên chỉ báo khi admin sửa sai
+  const cutErrors = validateCutArea(cutLengthMm, widthMm)
+
   const missing: string[] = []
   if (!name.trim()) missing.push('tên file')
   if (categoryId === undefined) missing.push('danh mục')
   if (!rows.some(r => r.modelId !== undefined)) missing.push('mẫu xe (chọn tới Model)')
   if (!isEdit && !file) missing.push('file')
-  const ready = missing.length === 0
+  const ready = missing.length === 0 && !cutErrors.length && !cutErrors.width
 
   const pathLabel = (r: VehicleRow): string => {
     const ids = [r.brandId, r.seriesId, r.modelId, r.subtypeId].filter(
@@ -239,6 +276,8 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
           year: year ?? null,
           vehicleNodeIds,
           thumbnail,
+          cutAreaLengthMm: cutLengthMm,
+          cutAreaWidthMm: widthMm,
         })
         message.success(`Đã cập nhật "${name.trim()}"`)
       } else {
@@ -249,6 +288,8 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
           year,
           vehicleNodeIds,
           thumbnail,
+          cutAreaLengthMm: cutLengthMm,
+          cutAreaWidthMm: widthMm,
         })
         message.success(`Đã tải lên "${name.trim()}"`)
       }
@@ -429,6 +470,67 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
               )
             })}
 
+          </div>
+
+          {/* ── khổ cắt: khổ phim chọn từ khổ chuẩn cuộn PPF, dài cuộn admin quyết (board 02/10) ── */}
+          <div style={{ padding: '12px 14px', background: '#FBFBFA', border: '1px solid #E4E3DE', borderRadius: 6 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+              <span style={{ font: `600 11.5px ${FONT}`, color: '#1B1B19' }}>Khổ cắt (vùng cắt)</span>
+              <span style={{ font: `400 11px ${FONT}`, color: '#8A8983' }}>
+                bản cắt xếp trong khung này, đơn vị mm
+              </span>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '96px minmax(0, 1fr)', gap: '9px 12px', alignItems: 'start' }}>
+              <span style={{ ...labelStyle, paddingTop: 6 }}>
+                Khổ phim <span style={{ fontWeight: 400, color: '#8A8983' }}>(trục Y)</span>
+              </span>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Select
+                    value={widthChoice}
+                    onChange={(v: WidthChoice) => setWidthChoice(v)}
+                    options={[
+                      ...FILM_WIDTH_PRESETS_MM.map(w => ({ value: w as WidthChoice, label: `${w} mm` })),
+                      { value: CUSTOM_WIDTH as WidthChoice, label: 'Khổ khác…' },
+                    ]}
+                    style={{ width: 140 }}
+                  />
+                  {widthChoice === CUSTOM_WIDTH && (
+                    <>
+                      <input
+                        type="number"
+                        value={widthCustom}
+                        onChange={e => setWidthCustom(e.target.value)}
+                        placeholder="VD: 900"
+                        style={{ width: 110, padding: '5px 9px', border: `1px solid ${cutErrors.width ? '#C2452D' : '#D8D7D2'}`, borderRadius: 4, background: '#FFF', outline: 'none', font: `400 12.5px ${MONO}`, color: '#1B1B19' }}
+                      />
+                      <span style={{ font: `400 11px ${FONT}`, color: '#8A8983' }}>mm</span>
+                    </>
+                  )}
+                </div>
+                {cutErrors.width && (
+                  <div style={{ marginTop: 4, font: `400 11px ${FONT}`, color: '#A93823' }}>{cutErrors.width}</div>
+                )}
+              </div>
+
+              <span style={{ ...labelStyle, paddingTop: 6 }}>
+                Dài dọc cuộn <span style={{ fontWeight: 400, color: '#8A8983' }}>(trục X)</span>
+              </span>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <input
+                    type="number"
+                    value={cutLength}
+                    onChange={e => setCutLength(e.target.value)}
+                    style={{ width: 140, padding: '5px 9px', border: `1px solid ${cutErrors.length ? '#C2452D' : '#D8D7D2'}`, borderRadius: 4, background: '#FFF', outline: 'none', font: `400 12.5px ${MONO}`, color: '#1B1B19' }}
+                  />
+                  <span style={{ font: `400 11px ${FONT}`, color: '#8A8983' }}>mm</span>
+                </div>
+                {cutErrors.length && (
+                  <div style={{ marginTop: 4, font: `400 11px ${FONT}`, color: '#A93823' }}>{cutErrors.length}</div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
