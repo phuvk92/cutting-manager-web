@@ -16,6 +16,9 @@ export interface AdminFilePayload {
   year?: number | null
   vehicleNodeIds?: number[]
   thumbnail?: File | null
+  /** Khổ cắt mm — luôn gửi cả cặp (NGO-401); server từ chối khi thiếu một (CUT_AREA_INCOMPLETE) */
+  cutAreaLengthMm?: number
+  cutAreaWidthMm?: number
 }
 
 const appendPayload = (formData: FormData, payload: AdminFilePayload, forEdit: boolean) => {
@@ -28,6 +31,12 @@ const appendPayload = (formData: FormData, payload: AdminFilePayload, forEdit: b
     payload.vehicleNodeIds.forEach(id => formData.append('vehicleNodeIds', String(id)))
   }
   if (payload.thumbnail) formData.append('thumbnail', payload.thumbnail)
+  if (payload.cutAreaLengthMm !== undefined) {
+    formData.append('cutAreaLengthMm', String(payload.cutAreaLengthMm))
+  }
+  if (payload.cutAreaWidthMm !== undefined) {
+    formData.append('cutAreaWidthMm', String(payload.cutAreaWidthMm))
+  }
   void forEdit
 }
 
