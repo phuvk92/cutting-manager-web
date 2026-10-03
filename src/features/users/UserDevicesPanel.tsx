@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useState } from 'react'
-import { Button, Popconfirm, Tag, Spin, message } from 'antd'
+import { Button, Tag, Spin, message } from 'antd'
 import { DesktopOutlined, ReloadOutlined } from '@ant-design/icons'
 import { UserDevice } from '@/types/user'
 import { userService } from '@/services/users/userService'
 import { extractErrorMessage } from '@/utils/error'
 import { formatDateTime } from '@/utils/formatters'
+import { DeviceRevokeButton } from '@/features/devices/DeviceRevokeButton'
 
 interface UserDevicesPanelProps {
   userId: number
@@ -132,22 +133,7 @@ export const UserDevicesPanel: React.FC<UserDevicesPanelProps> = ({ userId, user
                 </div>
               </div>
               {d.status === 'ACTIVE' && (
-                <Popconfirm
-                  title="Gỡ máy này khỏi tài khoản?"
-                  description={
-                    <div style={{ maxWidth: 280 }}>
-                      Phần mềm cắt trên máy này sẽ bị đăng xuất trong vài phút. Thợ đăng nhập lại được trên máy khác.
-                    </div>
-                  }
-                  okText="Gỡ máy"
-                  cancelText="Hủy"
-                  okButtonProps={{ danger: true }}
-                  onConfirm={() => handleRevoke(d)}
-                >
-                  <Button size="small" danger loading={revokingId === d.id}>
-                    Gỡ máy
-                  </Button>
-                </Popconfirm>
+                <DeviceRevokeButton loading={revokingId === d.id} onConfirm={() => handleRevoke(d)} />
               )}
             </div>
           ))
