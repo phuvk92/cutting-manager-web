@@ -53,6 +53,12 @@ export const API_ENDPOINTS = {
   AUDIT_LOGS_LIST: '/audit-logs',
   AUDIT_LOG_DETAIL: (id: number | string) => `/audit-logs/${id}`,
 
+  // Bản đã lưu của User (ADMIN view all)
+  ADMIN_USER_FILES: '/admin/user-files',
+  ADMIN_USER_FILE_DETAIL: (id: number | string) => `/admin/user-files/${id}`,
+  ADMIN_USER_FILE_DOWNLOAD: (id: number | string) => `/admin/user-files/${id}/download`,
+  ADMIN_USER_FILE_PREVIEW: (id: number | string) => `/admin/user-files/${id}/preview`,
+
   // Dealers (ADMIN only)
   DEALERS_LIST: '/dealers',
   DEALERS_ALL: '/dealers/all',

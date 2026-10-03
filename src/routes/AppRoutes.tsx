@@ -10,6 +10,7 @@ const LoginPage = lazy(() => import('@/pages/LoginPage').then(m => ({ default: m
 const DashboardPage = lazy(() => import('@/pages/DashboardPage').then(m => ({ default: m.DashboardPage })))
 const CategoriesPage = lazy(() => import('@/pages/CategoriesPage').then(m => ({ default: m.CategoriesPage })))
 const SvgPage = lazy(() => import('@/pages/SvgPage').then(m => ({ default: m.SvgPage })))
+const UserSavedFilesPage = lazy(() => import('@/pages/UserSavedFilesPage').then(m => ({ default: m.UserSavedFilesPage })))
 const UsersPage = lazy(() => import('@/pages/UsersPage').then(m => ({ default: m.UsersPage })))
 const AuditPage = lazy(() => import('@/pages/AuditPage').then(m => ({ default: m.AuditPage })))
 const DealersPage = lazy(() => import('@/pages/DealersPage').then(m => ({ default: m.DealersPage })))
@@ -49,6 +50,7 @@ export const AppRoutes: React.FC = () => {
               <Route path="/sessions" element={<SessionsPage />} />
               <Route path="/categories" element={<CategoriesPage />} />
               <Route path="/svg" element={<SvgPage />} />
+              <Route path="/admin/user-saved-files" element={<UserSavedFilesPage />} />
               <Route path="/bulk-upload" element={<BulkUploadPage />} />
               <Route path="/audit" element={<AuditPage />} />
             </Route>
