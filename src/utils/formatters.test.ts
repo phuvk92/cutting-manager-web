@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { formatCutArea, normalizeSvgFilename } from './formatters'
+import { formatCutArea, formatRelativeTime, normalizeSvgFilename } from './formatters'
 
 describe('formatCutArea', () => {
   it('dài tròn mét và khổ phim mm', () => {
@@ -50,5 +50,25 @@ describe('normalizeSvgFilename', () => {
     )
     expect(normalizeSvgFilename('file:name*.svg', 1)).toBe('filename.svg')
     expect(normalizeSvgFilename('***', 5)).toBe('file-5.svg')
+  })
+})
+
+
+describe('formatRelativeTime', () => {
+  const now = new Date('2026-10-03T12:00:00Z')
+
+  it('đổi mốc thời gian sang câu tương đối tiếng Việt', () => {
+    expect(formatRelativeTime('2026-10-03T11:59:30Z', now)).toBe('vừa xong')
+    expect(formatRelativeTime('2026-10-03T11:45:00Z', now)).toBe('15 phút trước')
+    expect(formatRelativeTime('2026-10-03T09:00:00Z', now)).toBe('3 giờ trước')
+    expect(formatRelativeTime('2026-10-01T12:00:00Z', now)).toBe('2 ngày trước')
+    expect(formatRelativeTime('2026-07-04T12:00:00Z', now)).toBe('3 tháng trước')
+    expect(formatRelativeTime('2024-10-03T12:00:00Z', now)).toBe('2 năm trước')
+  })
+
+  it('dữ liệu trống hoặc sai định dạng -> gạch ngang an toàn', () => {
+    expect(formatRelativeTime(undefined, now)).toBe('-')
+    expect(formatRelativeTime(null, now)).toBe('-')
+    expect(formatRelativeTime('không-phải-ngày', now)).toBe('-')
   })
 })

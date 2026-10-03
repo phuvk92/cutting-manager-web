@@ -41,6 +41,10 @@ export const API_ENDPOINTS = {
   USER_DEVICES: (id: number | string) => `/users/${id}/devices`,
   USER_DEVICE_REVOKE: (id: number | string, deviceId: number | string) => `/users/${id}/devices/${deviceId}`,
 
+  // Devices toàn hệ thống (ADMIN + AGENT)
+  DEVICES: '/devices',
+  DEVICE_STATS: '/devices/stats',
+
   // Actuator
   HEALTH: '/actuator/health',
   INFO: '/actuator/info',

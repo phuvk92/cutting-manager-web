@@ -19,6 +19,24 @@ export const formatDate = (dateStr?: string | null): string => {
   return dayjs(dateStr).format('YYYY-MM-DD')
 }
 
+/** Thời gian tương đối gọn cho cột "lần cuối thấy" của thiết bị. */
+export const formatRelativeTime = (dateStr?: string | null, now: Date = new Date()): string => {
+  if (!dateStr) return '-'
+  const time = dayjs(dateStr)
+  if (!time.isValid()) return '-'
+  const minutes = Math.floor((now.getTime() - time.valueOf()) / 60000)
+  if (minutes < 0) return 'vừa xong'
+  if (minutes < 1) return 'vừa xong'
+  if (minutes < 60) return `${minutes} phút trước`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours} giờ trước`
+  const days = Math.floor(hours / 24)
+  if (days < 30) return `${days} ngày trước`
+  const months = Math.floor(days / 30)
+  if (months < 12) return `${months} tháng trước`
+  return `${Math.floor(months / 12)} năm trước`
+}
+
 /**
  * Khổ cắt hiện ở bảng kho part file: "15 m × 700" — dài đổi sang mét
  * (lẻ thì một số thập phân, vd 15200 -> "15,2 m"), khổ phim giữ nguyên mm.
