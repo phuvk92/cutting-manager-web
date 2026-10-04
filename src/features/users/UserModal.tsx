@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
-import { Modal, Form, Input, InputNumber, Select, Switch, Alert, Button, message } from 'antd'
+import { Modal, Form, Input, InputNumber, Select, Switch, Alert, Button, message, DatePicker } from 'antd'
+import dayjs from 'dayjs'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -36,6 +37,7 @@ const createSchema = z.object({
   agentId: z.number().optional(),
   dealerId: z.number().optional(),
   enabled: z.boolean(),
+  expirationDate: z.string().nullable().optional(),
 })
 
 const editSchema = z.object({
@@ -49,6 +51,7 @@ const editSchema = z.object({
   agentId: z.number().optional(),
   dealerId: z.number().optional(),
   enabled: z.boolean(),
+  expirationDate: z.string().nullable().optional(),
   // F-57: số máy tối đa — null/không nhập = mặc định hệ thống
   maxDevices: z.number().int().min(1, 'Tối thiểu 1 máy').max(50, 'Tối đa 50 máy').nullable().optional(),
   password: z
@@ -105,6 +108,7 @@ export const UserModal: React.FC<UserModalProps> = ({
       agentId: undefined,
       dealerId: undefined,
       enabled: true,
+      expirationDate: null,
     },
   })
 
@@ -155,6 +159,7 @@ export const UserModal: React.FC<UserModalProps> = ({
           dealerId: user.dealerId,
           enabled: user.enabled,
           maxDevices: user.maxDevices ?? null,
+          expirationDate: user.expirationDate || null,
           password: '',
         })
       } else {
@@ -168,6 +173,7 @@ export const UserModal: React.FC<UserModalProps> = ({
           agentId: undefined,
           dealerId: !isAdmin ? currentUser?.dealerId : undefined,
           enabled: true,
+          expirationDate: null,
         })
       }
     }
@@ -187,6 +193,7 @@ export const UserModal: React.FC<UserModalProps> = ({
           agentId: data.role === 'USER' ? data.agentId : undefined,
           dealerId: data.dealerId ? data.dealerId : (data.dealerId === null ? 0 : undefined),
           enabled: data.enabled ?? true,
+          expirationDate: data.expirationDate ? data.expirationDate : null,
           ...(data.password ? { password: data.password } : {}),
           // Chỉ ADMIN đổi được; để trống = về mặc định hệ thống (backend nhận 0)
           ...(isAdmin ? { maxDevices: (data as EditFormData).maxDevices ?? 0 } : {}),
@@ -205,6 +212,7 @@ export const UserModal: React.FC<UserModalProps> = ({
           agentId: !isAdmin ? undefined : (createData.role === 'USER' ? createData.agentId : undefined),
           dealerId: !isAdmin ? currentUser?.dealerId : createData.dealerId,
           enabled: createData.enabled ?? true,
+          expirationDate: createData.expirationDate ? createData.expirationDate : null,
         }
         await userService.createUser(createPayload)
         message.success(`Tạo người dùng "${createPayload.username}" thành công`)
@@ -446,6 +454,41 @@ export const UserModal: React.FC<UserModalProps> = ({
               />
             </Form.Item>
           )}
+
+          <Form.Item
+            label="Ngày hết hạn tài khoản"
+            validateStatus={errors.expirationDate ? "error" : ""}
+            help={errors.expirationDate?.message}
+            extra={
+              watchedRole === "ADMIN" ? (
+                <span style={{ fontSize: 11, color: "#D97706" }}>
+                  Ngày hết hạn không áp dụng cho tài khoản ADMIN.
+                </span>
+              ) : (
+                <span style={{ fontSize: 11, color: "#8A8983" }}>
+                  Không bắt buộc. Để trống = không hết hạn. Quá ngày này tài khoản sẽ không thể đăng nhập.
+                </span>
+              )
+            }
+          >
+            <Controller
+              name="expirationDate"
+              control={control}
+              render={({ field }) => {
+                const dateObj = field.value ? dayjs(field.value, "YYYY-MM-DD") : null
+                return (
+                  <DatePicker
+                    value={dateObj && dateObj.isValid() ? dateObj : null}
+                    onChange={d => field.onChange(d ? d.format("YYYY-MM-DD") : null)}
+                    format="DD/MM/YYYY"
+                    placeholder={isEdit && !user?.expirationDate ? "Chưa thiết lập (Không hết hạn)" : "dd/MM/yyyy"}
+                    style={{ width: "100%" }}
+                    allowClear
+                  />
+                )
+              }}
+            />
+          </Form.Item>
 
           <Form.Item label="Trạng thái tài khoản" valuePropName="checked">
             <Controller

@@ -18,6 +18,10 @@ export interface User {
   maxDevices?: number | null
   /** Số máy tối đa đang áp dụng */
   effectiveMaxDevices?: number
+  /** Ngày hết hạn tài khoản (yyyy-MM-dd) — null = không hết hạn */
+  expirationDate?: string | null
+  /** Tài khoản đã hết hạn hay chưa */
+  expired?: boolean
   createdAt: string
   updatedAt: string
 }
@@ -32,6 +36,8 @@ export interface CreateUserRequest {
   agentId?: number
   dealerId?: number
   enabled?: boolean
+  /** Ngày hết hạn tài khoản (yyyy-MM-dd) — không bắt buộc */
+  expirationDate?: string | null
 }
 
 export interface UpdateUserRequest {
@@ -45,6 +51,8 @@ export interface UpdateUserRequest {
   password?: string
   /** Chỉ ADMIN. 0 = về mặc định hệ thống, bỏ trống = giữ nguyên */
   maxDevices?: number
+  /** Ngày hết hạn tài khoản (yyyy-MM-dd) — null để bỏ hết hạn */
+  expirationDate?: string | null
 }
 
 export interface UpdateUserStatusRequest {
@@ -64,6 +72,7 @@ export interface UserFilterParams {
   size?: number
   sortBy?: string
   sortDirection?: 'ASC' | 'DESC'
+  expirationStatus?: 'ALL' | 'VALID' | 'EXPIRED' | 'NO_EXPIRATION' | string
 }
 
 /** Máy đã đăng ký của một tài khoản (F-57 — 1 tài khoản 1 thiết bị) */

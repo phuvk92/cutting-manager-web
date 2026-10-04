@@ -4,6 +4,7 @@ import { AdminFile, AdminFileStats, VehicleNode } from '@/types/adminFile'
 import { CatalogOption } from '@/types/category'
 import { adminFileService } from '@/services/admin/adminFileService'
 import { vehicleNodeService } from '@/services/admin/vehicleNodeService'
+import { partLibraryCategoryService } from '@/services/admin/partLibraryCategoryService'
 import { svgService } from '@/services/svg/svgService'
 import { PartFileFormModal } from './PartFileFormModal'
 import { SvgPreviewModal } from './SvgPreviewModal'
@@ -121,7 +122,9 @@ export const SvgList: React.FC = () => {
 
   useEffect(() => {
     vehicleNodeService.getBrandTrees().then(setTree).catch(() => {})
-    vehicleNodeService.getFileCategories().then(setCategories).catch(() => {})
+    partLibraryCategoryService.getActiveCategories().then(cats => {
+      setCategories(cats.map(c => ({ value: String(c.id), label: c.name })))
+    }).catch(() => {})
   }, [])
 
   const seriesOptions = useMemo(

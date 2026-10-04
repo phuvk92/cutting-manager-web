@@ -44,7 +44,9 @@ export const LoginForm: React.FC = () => {
       navigate("/dashboard")
     } catch (err) {
       const code = axios.isAxiosError<ErrorResponse>(err) ? err.response?.data?.code : undefined
-      if (code === "USER_WEB_LOGIN_FORBIDDEN") {
+      if (code === "USER_ACCOUNT_EXPIRED") {
+        setErrorMessage("Tài khoản của bạn đã hết hạn. Vui lòng liên hệ quản trị viên.")
+      } else if (code === "USER_WEB_LOGIN_FORBIDDEN") {
         // F-57 (Q1): thợ chỉ dùng phần mềm cắt — trang web dành cho quản trị
         setErrorMessage("Tài khoản thợ chỉ dùng trong phần mềm cắt. Trang này dành cho quản trị đại lý.")
       } else if (code === "AUTH_SERVICE_UNAVAILABLE") {

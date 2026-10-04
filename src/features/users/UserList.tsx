@@ -22,6 +22,7 @@ import {
   LockOutlined,
   UnlockOutlined,
   ShopOutlined,
+  StopOutlined,
 } from '@ant-design/icons'
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table'
 import { User, UserFilterParams } from '@/types/user'
@@ -33,6 +34,7 @@ import { StatusTag } from '@/components/common/StatusTag'
 import { UserModal } from './UserModal'
 import { useAuthStore } from '@/stores/authStore'
 import { extractErrorMessage } from '@/utils/error'
+import dayjs from 'dayjs'
 
 export const UserList: React.FC = () => {
   const { user: currentUser } = useAuthStore()
@@ -50,6 +52,7 @@ export const UserList: React.FC = () => {
   const [emailInput, setEmailInput] = useState('')
   const [selectedRole, setSelectedRole] = useState<Role | undefined>(undefined)
   const [selectedEnabled, setSelectedEnabled] = useState<boolean | undefined>(undefined)
+  const [selectedExpiration, setSelectedExpiration] = useState<string | undefined>(undefined)
   const [sortBy, setSortBy] = useState('createdAt')
   const [sortDirection, setSortDirection] = useState<'ASC' | 'DESC'>('DESC')
 
@@ -70,6 +73,7 @@ export const UserList: React.FC = () => {
       if (emailInput.trim()) params.email = emailInput.trim()
       if (selectedRole) params.role = selectedRole
       if (selectedEnabled !== undefined) params.enabled = selectedEnabled
+      if (selectedExpiration) params.expirationStatus = selectedExpiration
 
       const res = await userService.getUsers(params)
       setData(res.content || [])
@@ -79,7 +83,7 @@ export const UserList: React.FC = () => {
     } finally {
       setLoading(false)
     }
-  }, [page, pageSize, usernameInput, emailInput, selectedRole, selectedEnabled, sortBy, sortDirection])
+  }, [page, pageSize, usernameInput, emailInput, selectedRole, selectedEnabled, selectedExpiration, sortBy, sortDirection])
 
   useEffect(() => {
     fetchUsers()
@@ -95,6 +99,7 @@ export const UserList: React.FC = () => {
     setEmailInput('')
     setSelectedRole(undefined)
     setSelectedEnabled(undefined)
+    setSelectedExpiration(undefined)
     setPage(0)
   }
 
@@ -244,15 +249,53 @@ export const UserList: React.FC = () => {
       title: 'Vai trò',
       dataIndex: 'role',
       key: 'role',
-      width: 140,
+      width: 130,
       render: (role: Role) => <RoleTag role={role} />,
     },
     {
+      title: 'Ngày hết hạn',
+      key: 'expirationDate',
+      width: 140,
+      render: (_: unknown, record: User) => {
+        if (record.role === 'ADMIN') {
+          return <span style={{ color: '#8A8983', fontSize: 12 }}>Không áp dụng</span>
+        }
+        if (!record.expirationDate) {
+          return <span style={{ color: '#8A8983', fontSize: 12 }}>Không hết hạn</span>
+        }
+        const isExpired = record.expired ?? dayjs().isAfter(dayjs(record.expirationDate), 'day')
+        return (
+          <span
+            style={{
+              fontFamily: "'IBM Plex Mono', monospace",
+              fontSize: 12,
+              color: isExpired ? '#DC2626' : '#35342F',
+              fontWeight: isExpired ? 600 : 400,
+            }}
+          >
+            {dayjs(record.expirationDate).format('DD/MM/YYYY')}
+          </span>
+        )
+      },
+    },
+    {
       title: 'Trạng thái',
-      dataIndex: 'enabled',
-      key: 'enabled',
+      key: 'status',
       width: 120,
-      render: (enabled: boolean) => <StatusTag enabled={enabled} />,
+      render: (_: unknown, record: User) => {
+        if (!record.enabled) {
+          return <StatusTag enabled={false} />
+        }
+        const isExpired = record.role !== 'ADMIN' && (record.expired ?? (record.expirationDate ? dayjs().isAfter(dayjs(record.expirationDate), 'day') : false))
+        if (isExpired) {
+          return (
+            <Tag icon={<StopOutlined />} color="warning">
+              Hết hạn
+            </Tag>
+          )
+        }
+        return <StatusTag enabled={true} />
+      },
     },
     {
       title: 'Ngày tạo',
@@ -360,7 +403,7 @@ export const UserList: React.FC = () => {
               </Select>
             </Col>
           )}
-          <Col xs={12} sm={6} md={4}>
+          <Col xs={12} sm={6} md={isAdmin ? 3 : 4}>
             <Select
               placeholder="Tất cả trạng thái"
               value={selectedEnabled}
@@ -370,6 +413,20 @@ export const UserList: React.FC = () => {
             >
               <Select.Option value={true}>Hoạt động</Select.Option>
               <Select.Option value={false}>Đang khóa</Select.Option>
+            </Select>
+          </Col>
+          <Col xs={12} sm={6} md={isAdmin ? 3 : 4}>
+            <Select
+              placeholder="Hạn tài khoản"
+              value={selectedExpiration}
+              onChange={val => setSelectedExpiration(val)}
+              allowClear
+              style={{ width: '100%' }}
+            >
+              <Select.Option value="ALL">Tất cả hạn</Select.Option>
+              <Select.Option value="VALID">Còn hạn</Select.Option>
+              <Select.Option value="EXPIRED">Hết hạn</Select.Option>
+              <Select.Option value="NO_EXPIRATION">Không có ngày hết hạn</Select.Option>
             </Select>
           </Col>
           <Col xs={24} md={isAdmin ? 4 : 8} style={{ textAlign: 'right' }}>

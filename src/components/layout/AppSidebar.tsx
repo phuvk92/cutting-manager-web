@@ -149,6 +149,14 @@ export const AppSidebar: React.FC = () => {
             </svg>
           )}
           {isAdmin && renderNavBtn(
+            '/admin/part-library/categories',
+            'Danh mục kho mẫu & part',
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 6h16M4 12h16M4 18h7" />
+              <rect x="15" y="15" width="6" height="6" rx="1" />
+            </svg>
+          )}
+          {isAdmin && renderNavBtn(
             '/admin/user-saved-files',
             'Bản đã lưu',
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">

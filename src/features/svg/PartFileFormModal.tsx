@@ -4,6 +4,7 @@ import { AdminFile, VehicleNode } from '@/types/adminFile'
 import { CatalogOption } from '@/types/category'
 import { adminFileService } from '@/services/admin/adminFileService'
 import { vehicleNodeService } from '@/services/admin/vehicleNodeService'
+import { partLibraryCategoryService } from '@/services/admin/partLibraryCategoryService'
 import { axiosClient } from '@/services/api/axiosClient'
 import { extractErrorMessage } from '@/utils/error'
 import { validateCutArea } from './cutAreaSchema'
@@ -238,7 +239,9 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
       vehicleNodeService.getBrandTrees().then(setTreeSelf).catch(() => {})
     }
     if (!categoriesProp?.length) {
-      vehicleNodeService.getFileCategories().then(setCategoriesSelf).catch(() => {})
+      partLibraryCategoryService.getActiveCategories().then(cats => {
+        setCategoriesSelf(cats.map(c => ({ value: String(c.id), label: c.name })))
+      }).catch(() => {})
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])

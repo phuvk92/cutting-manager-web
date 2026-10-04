@@ -30,6 +30,11 @@ export const API_ENDPOINTS = {
   ADMIN_FILE_DETAIL: (id: number | string) => `/admin/files/${id}`,
   FILE_CATEGORIES: '/v1/file-categories',
 
+  // Danh mục kho mẫu & part (PartLibraryCategory) — hoàn toàn độc lập với Danh mục xe
+  PART_LIBRARY_CATEGORIES: '/part-library-categories',
+  PART_LIBRARY_CATEGORIES_ACTIVE: '/part-library-categories/active',
+  PART_LIBRARY_CATEGORY_DETAIL: (id: number | string) => `/part-library-categories/${id}`,
+
   // Users (ADMIN and AGENT)
   USERS_LIST: '/users',
   USER_DETAIL: (id: number | string) => `/users/${id}`,
