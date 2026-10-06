@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react'
-import { Card, Row, Col, Typography, Descriptions, Badge, Table, Button, Space, Tag } from 'antd'
-import { ReloadOutlined, DatabaseOutlined, HeartOutlined, HistoryOutlined } from '@ant-design/icons'
+import { Card, Row, Col, Typography, Descriptions, Badge, Table, Button, Space, Tag, Input, Select } from 'antd'
+import { ReloadOutlined, DatabaseOutlined, HeartOutlined, HistoryOutlined, SearchOutlined } from '@ant-design/icons'
 import { auditService, ActuatorHealth } from '@/services/audit/auditService'
 import { svgService } from '@/services/svg/svgService'
 import { userService } from '@/services/users/userService'
@@ -23,6 +23,8 @@ export const AuditLogView: React.FC = () => {
   const [health, setHealth] = useState<ActuatorHealth | null>(null)
   const [events, setEvents] = useState<ActivityEvent[]>([])
   const [loading, setLoading] = useState(false)
+  const [roleFilter, setRoleFilter] = useState<string | undefined>(undefined)
+  const [searchKeyword, setSearchKeyword] = useState<string>('')
 
   const loadAuditData = useCallback(async () => {
     setLoading(true)
@@ -35,7 +37,35 @@ export const AuditLogView: React.FC = () => {
         setHealth({ status: 'DOWN' })
       }
 
-      // 2. Fetch Recent SVGs & Users to aggregate recent audit trail
+      // 2. Fetch Real Audit Logs from Backend
+      try {
+        const auditRes = await auditService.getAuditLogs({
+          page: 0,
+          size: 100,
+          actorRole: roleFilter,
+          keyword: searchKeyword || undefined,
+          sortBy: 'timestamp',
+          sortDirection: 'DESC',
+        })
+
+        if (auditRes && auditRes.content && auditRes.content.length > 0) {
+          const mappedEvents: ActivityEvent[] = auditRes.content.map(log => ({
+            id: `audit-${log.id}`,
+            timestamp: log.timestamp,
+            actor: log.actor || 'System',
+            actorRole: log.actorRole || 'USER',
+            action: log.action,
+            resource: log.resource || log.entity || 'General',
+            details: log.details || '',
+          }))
+          setEvents(mappedEvents)
+          return
+        }
+      } catch (err) {
+        console.warn('Backend /api/audit-logs returned error or is unreachable, falling back:', err)
+      }
+
+      // 3. Fallback: Aggregate from SVGs & Users if database logs are empty or during local transition
       const [svgRes, userRes] = await Promise.allSettled([
         svgService.getSvgFiles({ page: 0, size: 10, sortBy: 'createdAt', sortDirection: 'DESC' }),
         userService.getUsers({ page: 0, size: 10, sortBy: 'createdAt', sortDirection: 'DESC' }),
@@ -71,17 +101,26 @@ export const AuditLogView: React.FC = () => {
         })
       }
 
-      // Sort by latest timestamp descending
       aggregatedEvents.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
       setEvents(aggregatedEvents)
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [roleFilter, searchKeyword])
 
   useEffect(() => {
     loadAuditData()
   }, [loadAuditData])
+
+  const getActionColor = (action: string): string => {
+    const act = action.toUpperCase()
+    if (act.includes('DELETE') || act.includes('REVOKE')) return 'red'
+    if (act.includes('PUT') || act.includes('UPDATE')) return 'orange'
+    if (act.includes('POST') || act.includes('UPLOAD') || act.includes('SAVE') || act.includes('CREATE')) return 'cyan'
+    if (act.includes('LOGIN') || act.includes('AUTH')) return 'purple'
+    if (act.includes('GET') || act.includes('DOWNLOAD') || act.includes('PREVIEW')) return 'blue'
+    return 'geekblue'
+  }
 
   return (
     <div>
@@ -127,14 +166,14 @@ export const AuditLogView: React.FC = () => {
             }
           >
             <Descriptions column={1} bordered size="small">
+              <Descriptions.Item label="Audit Trail Logging">
+                Active — Tự động lưu vết toàn bộ API của User & Đại lý
+              </Descriptions.Item>
               <Descriptions.Item label="Authentication Scheme">
-                JWT Bearer (HMAC-SHA256) + UUID Refresh Token
+                JWT Bearer (Keycloak) + UUID Refresh Token
               </Descriptions.Item>
-              <Descriptions.Item label="Access Token TTL">
-                1 Hour (3,600 seconds)
-              </Descriptions.Item>
-              <Descriptions.Item label="SVG Sanitization">
-                OWASP / W3C XML Secure Processing Enabled
+              <Descriptions.Item label="Data Encryption">
+                AES-256-GCM Envelope Encryption (Internal V2)
               </Descriptions.Item>
             </Descriptions>
           </Card>
@@ -148,30 +187,57 @@ export const AuditLogView: React.FC = () => {
             <span>Audit Trail & Activity Log</span>
           </Space>
         }
+        extra={
+          <Space wrap>
+            <Input.Search
+              placeholder="Tìm kiếm actor, action, chi tiết..."
+              allowClear
+              onSearch={val => setSearchKeyword(val)}
+              style={{ width: 240 }}
+              prefix={<SearchOutlined />}
+            />
+            <Select
+              placeholder="Lọc vai trò"
+              allowClear
+              style={{ width: 140 }}
+              value={roleFilter}
+              onChange={val => setRoleFilter(val)}
+              options={[
+                { label: 'Tất cả vai trò', value: '' },
+                { label: 'USER (Thợ cắt)', value: 'USER' },
+                { label: 'AGENT (Đại lý)', value: 'AGENT' },
+                { label: 'ADMIN (Quản trị)', value: 'ADMIN' },
+              ]}
+            />
+            <Button icon={<ReloadOutlined />} onClick={loadAuditData} loading={loading}>
+              Làm mới
+            </Button>
+          </Space>
+        }
       >
         <Paragraph type="secondary" style={{ marginBottom: 16 }}>
-          Aggregated system activities including user registrations and SVG uploads chronologically recorded.
+          Nhật ký hoạt động hệ thống ghi nhận tự động toàn bộ API gọi từ người dùng máy cắt (USER) và đại lý (AGENT) theo trình tự thời gian.
         </Paragraph>
 
         <Table<ActivityEvent>
           dataSource={events}
           rowKey="id"
           loading={loading}
-          pagination={{ pageSize: 10, showSizeChanger: true }}
+          pagination={{ pageSize: 15, showSizeChanger: true }}
           size="middle"
           columns={[
             {
-              title: 'Timestamp',
+              title: 'Thời gian',
               dataIndex: 'timestamp',
               key: 'timestamp',
               width: 170,
               render: (t: string) => formatDateTime(t),
             },
             {
-              title: 'Actor',
+              title: 'Người thực hiện',
               dataIndex: 'actor',
               key: 'actor',
-              width: 150,
+              width: 170,
               render: (actor: string, record: ActivityEvent) => (
                 <Space size="small">
                   <span>{actor}</span>
@@ -180,25 +246,32 @@ export const AuditLogView: React.FC = () => {
               ),
             },
             {
-              title: 'Action',
+              title: 'Hành động / API',
               dataIndex: 'action',
               key: 'action',
-              width: 150,
-              render: (action: string) => {
-                const color = action.includes('UPLOAD') ? 'blue' : 'green'
-                return <Tag color={color}>{action}</Tag>
-              },
+              width: 220,
+              render: (action: string) => (
+                <Tag color={getActionColor(action)} style={{ maxWidth: 210, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {action}
+                </Tag>
+              ),
             },
             {
-              title: 'Resource',
+              title: 'Tài nguyên',
               dataIndex: 'resource',
               key: 'resource',
+              width: 160,
+              render: (res: string) => <Tag color="default">{res}</Tag>,
             },
             {
-              title: 'Event Details',
+              title: 'Chi tiết thông số (Status, IP, Device, Latency)',
               dataIndex: 'details',
               key: 'details',
-              render: (text: string) => <Text type="secondary" style={{ fontSize: 12 }}>{text}</Text>,
+              render: (text: string) => (
+                <Text type="secondary" style={{ fontSize: 12, wordBreak: 'break-all' }}>
+                  {text}
+                </Text>
+              ),
             },
           ]}
         />

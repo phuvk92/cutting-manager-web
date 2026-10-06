@@ -63,6 +63,9 @@ export const API_ENDPOINTS = {
   ADMIN_USER_FILE_DETAIL: (id: number | string) => `/admin/user-files/${id}`,
   ADMIN_USER_FILE_DOWNLOAD: (id: number | string) => `/admin/user-files/${id}/download`,
   ADMIN_USER_FILE_PREVIEW: (id: number | string) => `/admin/user-files/${id}/preview`,
+  ADMIN_USER_FILE_SHARES: (id: number | string) => `/admin/user-files/${id}/shares`,
+  ADMIN_USER_FILE_REVOKE_SHARE: (id: number | string, userId: number | string) =>
+    `/admin/user-files/${id}/shares/${userId}`,
 
   // Dealers (ADMIN only)
   DEALERS_LIST: '/dealers',

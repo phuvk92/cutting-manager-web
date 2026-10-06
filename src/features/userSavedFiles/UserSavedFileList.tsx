@@ -18,6 +18,7 @@ import {
   DownloadOutlined,
   FileImageOutlined,
   ShopOutlined,
+  ShareAltOutlined,
   ClearOutlined,
 } from '@ant-design/icons'
 import dayjs from 'dayjs'
@@ -36,6 +37,8 @@ import { dealerService } from '@/services/dealers/dealerService'
 import { userService } from '@/services/users/userService'
 import { UserSavedFileDetailDrawer } from './UserSavedFileDetailDrawer'
 import { UserSavedFilePreviewModal } from './UserSavedFilePreviewModal'
+import { UserSavedFileShareModal } from "./UserSavedFileShareModal"
+import { useAuthStore } from "@/stores/authStore"
 import { formatBytes, normalizeSvgFilename } from '@/utils/formatters'
 import { extractErrorMessage } from '@/utils/error'
 
@@ -140,6 +143,12 @@ export const UserSavedFileList: React.FC = () => {
 
   // Modals / Drawer
   const [selectedFileForDetail, setSelectedFileForDetail] = useState<UserSavedFile | null>(null)
+
+  const authUser = useAuthStore(state => state.user)
+  const isAdmin = authUser?.role === "ADMIN"
+
+  const [shareModalOpen, setShareModalOpen] = useState(false)
+  const [fileToShare, setFileToShare] = useState<UserSavedFile | null>(null)
   const [detailOpen, setDetailOpen] = useState(false)
   const [previewFileId, setPreviewFileId] = useState<number | null>(null)
   const [previewTitle, setPreviewTitle] = useState<string>('')
@@ -519,42 +528,46 @@ export const UserSavedFileList: React.FC = () => {
     {
       title: 'Thao tác',
       key: 'action',
-      width: 110,
+      width: 250,
       fixed: 'right',
       align: 'center',
       render: (_, record) => (
         <Space size={4}>
-          <Tooltip title="Xem chi tiết">
+          <Button
+            type="link"
+            size="small"
+            icon={<EyeOutlined />}
+            onClick={() => {
+              setSelectedFileForDetail(record)
+              setDetailOpen(true)
+            }}
+            style={{ padding: "0 4px", color: "#4A4945" }}
+          >
+            Xem
+          </Button>
+          <Button
+            type="link"
+            size="small"
+            icon={<DownloadOutlined />}
+            onClick={() => handleDownload(record)}
+            style={{ padding: "0 4px", color: "#1B1B19" }}
+          >
+            Download
+          </Button>
+          {isAdmin && (
             <Button
-              type="text"
+              type="link"
               size="small"
-              icon={<EyeOutlined style={{ color: '#4A4945' }} />}
+              icon={<ShareAltOutlined />}
               onClick={() => {
-                setSelectedFileForDetail(record)
-                setDetailOpen(true)
+                setFileToShare(record)
+                setShareModalOpen(true)
               }}
-            />
-          </Tooltip>
-          <Tooltip title="Xem trước SVG">
-            <Button
-              type="text"
-              size="small"
-              icon={<FileImageOutlined style={{ color: '#6C3BD6' }} />}
-              onClick={() => {
-                setPreviewFileId(record.id)
-                setPreviewTitle(record.fileName)
-                setPreviewOpen(true)
-              }}
-            />
-          </Tooltip>
-          <Tooltip title="Tải xuống file">
-            <Button
-              type="text"
-              size="small"
-              icon={<DownloadOutlined style={{ color: '#1B1B19' }} />}
-              onClick={() => handleDownload(record)}
-            />
-          </Tooltip>
+              style={{ padding: "0 4px", color: "#7C3AED", fontWeight: 500 }}
+            >
+              Chia sẻ
+            </Button>
+          )}
         </Space>
       ),
     },
@@ -842,6 +855,20 @@ export const UserSavedFileList: React.FC = () => {
         onClose={() => {
           setDetailOpen(false)
           setSelectedFileForDetail(null)
+        }}
+        onShare={isAdmin ? file => {
+          setFileToShare(file)
+          setShareModalOpen(true)
+        } : undefined}
+      />
+
+      {/* Modal Chia Sẻ File SVG */}
+      <UserSavedFileShareModal
+        file={fileToShare}
+        open={shareModalOpen}
+        onClose={() => {
+          setShareModalOpen(false)
+          setFileToShare(null)
         }}
       />
 

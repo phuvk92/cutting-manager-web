@@ -64,6 +64,7 @@ export interface UpdateUserRoleRequest {
 }
 
 export interface UserFilterParams {
+  search?: string
   username?: string
   email?: string
   role?: Role

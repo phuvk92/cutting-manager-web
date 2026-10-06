@@ -16,6 +16,7 @@ import {
   ShopOutlined,
   CarOutlined,
   FileImageOutlined,
+  ShareAltOutlined,
 } from '@ant-design/icons'
 import { UserSavedFile } from '@/types/userSavedFile'
 import { userSavedFileService } from '@/services/userSavedFile/userSavedFileService'
@@ -30,12 +31,14 @@ interface UserSavedFileDetailDrawerProps {
   file: UserSavedFile | null
   open: boolean
   onClose: () => void
+  onShare?: (file: UserSavedFile) => void
 }
 
 export const UserSavedFileDetailDrawer: React.FC<UserSavedFileDetailDrawerProps> = ({
   file,
   open,
   onClose,
+  onShare,
 }) => {
   const [blobUrl, setBlobUrl] = useState<string | null>(null)
   const [previewLoading, setPreviewLoading] = useState(false)
@@ -369,6 +372,14 @@ export const UserSavedFileDetailDrawer: React.FC<UserSavedFileDetailDrawerProps>
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
           <Space>
             <Button onClick={onClose}>Đóng</Button>
+            {onShare && (
+              <Button
+                icon={<ShareAltOutlined />}
+                onClick={() => onShare(file)}
+              >
+                Chia sẻ
+              </Button>
+            )}
             <Button
               type="primary"
               icon={<DownloadOutlined />}

@@ -78,3 +78,22 @@ export interface UserSavedFileFilterParams {
   status?: string
   sort?: string
 }
+
+export interface UserSvgFileShareItem {
+  userId: number
+  username: string
+  displayName?: string | null
+  dealerId?: number | null
+  dealerName?: string | null
+  sharedAt?: string | null
+  sharedBy?: {
+    userId: number
+    username: string
+  } | null
+  status: string
+}
+
+export interface FileSharesResponse {
+  fileId: number
+  shares: UserSvgFileShareItem[]
+}
