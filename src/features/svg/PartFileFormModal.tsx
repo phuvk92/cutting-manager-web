@@ -10,7 +10,7 @@ import { extractErrorMessage } from '@/utils/error'
 import { validateCutArea } from './cutAreaSchema'
 import {
   FILM_WIDTH_PRESETS_MM,
-  DEFAULT_FILM_WIDTH_MM,
+  FORM_DEFAULT_FILM_WIDTH_MM,
   DEFAULT_CUT_AREA_LENGTH_MM,
 } from '@/constants/cutArea'
 
@@ -258,7 +258,7 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
   const [fileError, setFileError] = useState<string | null>(null)
   const [thumbnail, setThumbnail] = useState<File | null>(null)
   const [thumbPreview, setThumbPreview] = useState<string | null>(null)
-  const [widthChoice, setWidthChoice] = useState<WidthChoice>(DEFAULT_FILM_WIDTH_MM)
+  const [widthChoice, setWidthChoice] = useState<WidthChoice>(FORM_DEFAULT_FILM_WIDTH_MM)
   const [widthCustom, setWidthCustom] = useState('')
   const [cutLength, setCutLength] = useState(String(DEFAULT_CUT_AREA_LENGTH_MM))
   const [saving, setSaving] = useState(false)
@@ -323,10 +323,10 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
         .filter((r): r is VehicleRow => r !== null)
       setRows(prefill.length ? prefill : [emptyRow()])
       if (editing.thumbnailUrl) loadExistingThumb(editing.thumbnailUrl)
-      // Khổ đang lưu: trùng khổ chuẩn → chọn sẵn; lạ → "Khổ khác…"; chưa khai → mặc định 700/15000
+      // Khổ đang lưu: trùng khổ chuẩn → chọn sẵn; lạ → "Khổ khác…"; chưa khai → chọn sẵn 1520/15000
       const w = editing.cutAreaWidthMm
       if (w == null) {
-        setWidthChoice(DEFAULT_FILM_WIDTH_MM)
+        setWidthChoice(FORM_DEFAULT_FILM_WIDTH_MM)
         setWidthCustom('')
       } else if (FILM_WIDTH_PRESETS_MM.includes(w)) {
         setWidthChoice(w)
@@ -341,7 +341,7 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
       setCategoryId(undefined)
       setYear(undefined)
       setRows([emptyRow()])
-      setWidthChoice(DEFAULT_FILM_WIDTH_MM)
+      setWidthChoice(FORM_DEFAULT_FILM_WIDTH_MM)
       setWidthCustom('')
       setCutLength(String(DEFAULT_CUT_AREA_LENGTH_MM))
     }

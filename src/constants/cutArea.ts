@@ -11,6 +11,9 @@ export const FILM_WIDTH_PRESETS_MM: readonly number[] = [700, 760, 1220, 1520]
 export const DEFAULT_FILM_WIDTH_MM = 700
 export const DEFAULT_CUT_AREA_LENGTH_MM = 15000
 
+/** Khổ chọn sẵn trong form tải lên / sửa part file (board 08/10). Khác mặc định của file cũ ở trên. */
+export const FORM_DEFAULT_FILM_WIDTH_MM = 1520
+
 /** Giới hạn server (NGO-400): dài dọc cuộn 100–50000, khổ phim 100–2000. */
 export const CUT_AREA_LENGTH_RANGE_MM = { min: 100, max: 50000 } as const
 export const FILM_WIDTH_RANGE_MM = { min: 100, max: 2000 } as const
