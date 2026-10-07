@@ -27,8 +27,8 @@ import { extractErrorMessage } from "@/utils/error"
 
 const { Text } = Typography
 
-const FONT = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
-const MONO = "'JetBrains Mono', 'SFMono-Regular', Consolas, monospace"
+const FONT = "'IBM Plex Sans', sans-serif"
+const MONO = "'IBM Plex Mono', monospace"
 
 export interface UserSavedFileShareModalProps {
   open: boolean
@@ -41,10 +41,10 @@ export const UserSavedFileShareModal: React.FC<UserSavedFileShareModalProps> = (
   file,
   onClose,
 }) => {
-  const [loadingShares, setLoadingShares] = useState(false)
   const [shares, setShares] = useState<UserSvgFileShareItem[]>([])
+  const [loadingShares, setLoadingShares] = useState(false)
 
-  // Search user state
+  // User search state for sharing
   const [searchQuery, setSearchQuery] = useState("")
   const [searching, setSearching] = useState(false)
   const [searchResults, setSearchResults] = useState<User[]>([])
@@ -55,10 +55,11 @@ export const UserSavedFileShareModal: React.FC<UserSavedFileShareModalProps> = (
     if (!file) return
     setLoadingShares(true)
     try {
-      const res = await userSavedFileService.getShares(file.id)
-      setShares(res.shares || [])
+      const data = await userSavedFileService.getShares(file.id)
+      setShares(data?.shares || [])
     } catch (err) {
-      message.error(extractErrorMessage(err, "Không thể tải danh sách người được chia sẻ"))
+      message.error(extractErrorMessage(err, "Không thể tải danh sách chia sẻ"))
+      setShares([])
     } finally {
       setLoadingShares(false)
     }
@@ -71,30 +72,23 @@ export const UserSavedFileShareModal: React.FC<UserSavedFileShareModalProps> = (
       setSearchResults([])
     } else {
       setShares([])
-      setSearchQuery("")
-      setSearchResults([])
-      setSharingUserId(null)
-      setRevokingUserId(null)
     }
   }, [open, file, fetchShares])
 
-  // Search users with debounce
+  // Search users debounce
   useEffect(() => {
-    if (!open || !file) return
-    const query = searchQuery.trim()
-    if (!query) {
+    if (!searchQuery.trim() || !open || !file) {
       setSearchResults([])
       setSearching(false)
       return
     }
 
+    setSearching(true)
     const timer = setTimeout(async () => {
-      setSearching(true)
       try {
         const res = await userService.getUsers({
-          search: query,
+          username: searchQuery.trim(),
           role: "USER",
-          enabled: true,
           size: 20,
         })
         // Filter out file creator
@@ -166,7 +160,8 @@ export const UserSavedFileShareModal: React.FC<UserSavedFileShareModalProps> = (
       }
       open={open}
       onCancel={onClose}
-      width={720}
+      width={typeof window !== 'undefined' && window.innerWidth < 740 ? '96vw' : 720}
+      style={{ top: 20 }}
       footer={[
         <Button key="close" onClick={onClose} style={{ borderRadius: 6 }}>
           Đóng
@@ -184,7 +179,7 @@ export const UserSavedFileShareModal: React.FC<UserSavedFileShareModalProps> = (
             padding: 12,
           }}
         >
-          <Descriptions size="small" column={2} bordered>
+          <Descriptions size="small" column={{ xs: 1, sm: 2 }} bordered>
             <Descriptions.Item label="File" span={2}>
               <span
                 style={{
@@ -309,9 +304,11 @@ export const UserSavedFileShareModal: React.FC<UserSavedFileShareModalProps> = (
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
+                        flexWrap: "wrap",
+                        gap: 8,
                       }}
                     >
-                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0, flex: "1 1 auto" }}>
                         <div
                           style={{
                             width: 28,
@@ -324,11 +321,12 @@ export const UserSavedFileShareModal: React.FC<UserSavedFileShareModalProps> = (
                             justifyContent: "center",
                             fontWeight: 600,
                             fontSize: 12,
+                            flexShrink: 0,
                           }}
                         >
                           {targetName.charAt(0).toUpperCase()}
                         </div>
-                        <div>
+                        <div style={{ minWidth: 0 }}>
                           <div style={{ fontWeight: 600, fontSize: 12.5, color: "#1B1B19" }}>
                             {targetName}{" "}
                             <span style={{ fontSize: 11, color: "#8A8983", fontFamily: MONO }}>
@@ -342,6 +340,7 @@ export const UserSavedFileShareModal: React.FC<UserSavedFileShareModalProps> = (
                               display: "flex",
                               alignItems: "center",
                               gap: 4,
+                              flexWrap: "wrap",
                             }}
                           >
                             {item.dealerName ? (
@@ -453,9 +452,11 @@ export const UserSavedFileShareModal: React.FC<UserSavedFileShareModalProps> = (
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "space-between",
+                          flexWrap: "wrap",
+                          gap: 8,
                         }}
                       >
-                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0, flex: "1 1 auto" }}>
                           <div
                             style={{
                               width: 28,
@@ -468,11 +469,12 @@ export const UserSavedFileShareModal: React.FC<UserSavedFileShareModalProps> = (
                               justifyContent: "center",
                               fontWeight: 600,
                               fontSize: 12,
+                              flexShrink: 0,
                             }}
                           >
                             {displayName.charAt(0).toUpperCase()}
                           </div>
-                          <div>
+                          <div style={{ minWidth: 0 }}>
                             <div style={{ fontWeight: 600, fontSize: 12.5, color: "#1B1B19" }}>
                               {displayName}
                             </div>
@@ -483,6 +485,7 @@ export const UserSavedFileShareModal: React.FC<UserSavedFileShareModalProps> = (
                                 display: "flex",
                                 alignItems: "center",
                                 gap: 6,
+                                flexWrap: "wrap",
                               }}
                             >
                               <span style={{ fontFamily: MONO }}>@{u.username}</span>

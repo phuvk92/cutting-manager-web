@@ -3,7 +3,6 @@ import {
   Drawer,
   Descriptions,
   Button,
-  Space,
   Typography,
   Divider,
   Spin,
@@ -99,17 +98,18 @@ export const UserSavedFileDetailDrawer: React.FC<UserSavedFileDetailDrawerProps>
       }
       open={open}
       onClose={onClose}
-      width={660}
+      width={typeof window !== 'undefined' && window.innerWidth < 680 ? '100%' : 660}
       extra={
         <Button
           type="primary"
+          size="small"
           icon={<DownloadOutlined />}
           style={{ background: '#7C3AED', borderColor: '#7C3AED' }}
           onClick={() =>
             userSavedFileService.download(file.id, normalizeSvgFilename(file.fileName, file.id))
           }
         >
-          Tải xuống SVG
+          Tải SVG
         </Button>
       }
     >
@@ -133,6 +133,8 @@ export const UserSavedFileDetailDrawer: React.FC<UserSavedFileDetailDrawerProps>
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: 4,
             }}
           >
             <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -148,6 +150,7 @@ export const UserSavedFileDetailDrawer: React.FC<UserSavedFileDetailDrawerProps>
           <div
             style={{
               height: 250,
+              maxHeight: '35vh',
               display: 'flex',
               justifyContent: 'center',
               alignItems: 'center',
@@ -160,7 +163,7 @@ export const UserSavedFileDetailDrawer: React.FC<UserSavedFileDetailDrawerProps>
               <Alert
                 type="warning"
                 showIcon
-                message="Xem trước không khả dụng"
+                message="Không thể xem trước"
                 description={previewError}
                 style={{ width: '100%' }}
               />
@@ -172,31 +175,30 @@ export const UserSavedFileDetailDrawer: React.FC<UserSavedFileDetailDrawerProps>
                 style={{
                   maxWidth: '100%',
                   maxHeight: '100%',
+                  width: 'auto',
+                  height: 'auto',
                   objectFit: 'contain',
                 }}
-                aria-label="SVG Safe Preview"
+                aria-label="SVG Preview"
               >
-                <Empty description="Không thể hiển thị bản vẽ" />
+                <Empty description="Trình duyệt không hỗ trợ hiển thị SVG này" />
               </object>
+            )}
+            {!previewLoading && !previewError && !blobUrl && (
+              <Empty description="Không có hình học xem trước" />
             )}
           </div>
         </div>
 
-        {/* Thông tin tập tin */}
+        {/* Thông tin cơ bản */}
         <div style={{ background: '#FBFBFA', border: '1px solid #E4E3DE', borderRadius: 6, padding: 12 }}>
           <div style={{ font: `600 12px ${FONT}`, color: '#1B1B19', marginBottom: 10 }}>
-            Thông tin tập tin
+            Thông tin tệp tin
           </div>
-          <Descriptions size="small" column={1} bordered>
-            <Descriptions.Item label="Tên hiển thị">
-              <Text strong style={{ color: '#1B1B19', font: `600 13px ${FONT}` }}>
-                {file.fileName}
-              </Text>
-            </Descriptions.Item>
-            <Descriptions.Item label="Tên file gốc">
-              <Text type="secondary" style={{ font: `400 12px ${FONT}` }}>
-                {file.originalFileName || file.fileName}
-              </Text>
+          <Descriptions size="small" column={{ xs: 1, sm: 2 }} bordered>
+            <Descriptions.Item label="ID">{file.id}</Descriptions.Item>
+            <Descriptions.Item label="Tên file">
+              <span style={{ fontWeight: 600, color: '#6C3BD6' }}>{file.fileName}</span>
             </Descriptions.Item>
             <Descriptions.Item label="Danh mục">
               {file.category?.name ? (
@@ -244,7 +246,7 @@ export const UserSavedFileDetailDrawer: React.FC<UserSavedFileDetailDrawerProps>
             <CarOutlined style={{ color: '#7C3AED' }} />
             <span>Mẫu xe & Cấu hình</span>
           </div>
-          <Descriptions size="small" column={2} bordered>
+          <Descriptions size="small" column={{ xs: 1, sm: 2 }} bordered>
             <Descriptions.Item label="Hãng xe">
               {file.vehicleConfiguration?.brandName ? (
                 <span style={{ fontWeight: 500 }}>{file.vehicleConfiguration.brandName}</span>
@@ -292,7 +294,7 @@ export const UserSavedFileDetailDrawer: React.FC<UserSavedFileDetailDrawerProps>
           <div style={{ font: `600 12px ${FONT}`, color: '#1B1B19', marginBottom: 10 }}>
             Khổ cắt đã thiết lập
           </div>
-          <Descriptions size="small" column={2} bordered>
+          <Descriptions size="small" column={{ xs: 1, sm: 2 }} bordered>
             <Descriptions.Item label="Khổ phim (Y)">
               {filmWidth !== null && filmWidth !== undefined ? (
                 <span style={{ fontFamily: MONO, fontWeight: 600, color: '#1B1B19' }}>
@@ -320,7 +322,7 @@ export const UserSavedFileDetailDrawer: React.FC<UserSavedFileDetailDrawerProps>
             <ShopOutlined style={{ color: '#7C3AED' }} />
             <span>Nguồn gốc & Quản trị</span>
           </div>
-          <Descriptions size="small" column={2} bordered>
+          <Descriptions size="small" column={{ xs: 1, sm: 2 }} bordered>
             <Descriptions.Item label="Người tạo">
               <span style={{ fontWeight: 500 }}>
                 {file.createdBy?.displayName || file.createdBy?.username || '—'}
@@ -369,28 +371,26 @@ export const UserSavedFileDetailDrawer: React.FC<UserSavedFileDetailDrawerProps>
 
         <Divider style={{ margin: '4px 0' }} />
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <Space>
-            <Button onClick={onClose}>Đóng</Button>
-            {onShare && (
-              <Button
-                icon={<ShareAltOutlined />}
-                onClick={() => onShare(file)}
-              >
-                Chia sẻ
-              </Button>
-            )}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', flexWrap: 'wrap', gap: 8 }}>
+          <Button onClick={onClose}>Đóng</Button>
+          {onShare && (
             <Button
-              type="primary"
-              icon={<DownloadOutlined />}
-              style={{ background: '#7C3AED', borderColor: '#7C3AED' }}
-              onClick={() =>
-                userSavedFileService.download(file.id, normalizeSvgFilename(file.fileName, file.id))
-              }
+              icon={<ShareAltOutlined />}
+              onClick={() => onShare(file)}
             >
-              Tải xuống file
+              Chia sẻ
             </Button>
-          </Space>
+          )}
+          <Button
+            type="primary"
+            icon={<DownloadOutlined />}
+            style={{ background: '#7C3AED', borderColor: '#7C3AED' }}
+            onClick={() =>
+              userSavedFileService.download(file.id, normalizeSvgFilename(file.fileName, file.id))
+            }
+          >
+            Tải xuống file
+          </Button>
         </div>
       </div>
     </Drawer>

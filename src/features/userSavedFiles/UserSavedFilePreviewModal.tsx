@@ -77,12 +77,24 @@ export const UserSavedFilePreviewModal: React.FC<UserSavedFilePreviewModalProps>
   return (
     <Modal
       title={
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingRight: 32 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <FileImageOutlined style={{ color: '#7C3AED', fontSize: 16 }} />
-            <span style={{ fontWeight: 600, fontSize: 14 }}>{title || `Bản vẽ #${fileId}`}</span>
+        <div className="saved-files-modal-header">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, flex: '1 1 auto' }}>
+            <FileImageOutlined style={{ color: '#7C3AED', fontSize: 16, flexShrink: 0 }} />
+            <span
+              style={{
+                fontWeight: 600,
+                fontSize: 14,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                maxWidth: 420,
+              }}
+              title={title || `Bản vẽ #${fileId}`}
+            >
+              {title || `Bản vẽ #${fileId}`}
+            </span>
           </div>
-          <Space size={6}>
+          <Space size={6} style={{ flexShrink: 0 }}>
             <Tooltip title="Thu nhỏ">
               <Button size="small" icon={<ZoomOutOutlined />} onClick={handleZoomOut} disabled={scale <= 0.5} />
             </Tooltip>
@@ -100,9 +112,10 @@ export const UserSavedFilePreviewModal: React.FC<UserSavedFilePreviewModalProps>
       }
       open={open}
       onCancel={onClose}
-      width={840}
+      width={typeof window !== 'undefined' && window.innerWidth < 880 ? '96vw' : 840}
+      style={{ top: 20 }}
       footer={
-        <Space>
+        <Space wrap style={{ justifyContent: 'flex-end', width: '100%' }}>
           <Button
             type="primary"
             icon={<DownloadOutlined />}
@@ -121,7 +134,7 @@ export const UserSavedFilePreviewModal: React.FC<UserSavedFilePreviewModalProps>
       <div
         style={{
           padding: '8px 0',
-          minHeight: 440,
+          minHeight: 320,
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
@@ -138,23 +151,7 @@ export const UserSavedFilePreviewModal: React.FC<UserSavedFilePreviewModalProps>
           />
         )}
         {!loading && !error && blobUrl && (
-          <div
-            style={{
-              width: '100%',
-              height: 460,
-              background: '#FFFFFF',
-              borderRadius: 6,
-              border: '1px solid #E4E3DE',
-              overflow: 'auto',
-              padding: 24,
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              backgroundImage:
-                'radial-gradient(rgba(0, 0, 0, 0.06) 1px, transparent 1px)',
-              backgroundSize: '16px 16px',
-            }}
-          >
+          <div className="saved-files-preview-box">
             <object
               data={blobUrl}
               type="image/svg+xml"

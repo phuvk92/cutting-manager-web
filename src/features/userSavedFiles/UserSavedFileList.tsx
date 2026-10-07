@@ -20,6 +20,8 @@ import {
   ShopOutlined,
   ShareAltOutlined,
   ClearOutlined,
+  CheckCircleOutlined,
+  HddOutlined,
 } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import {
@@ -37,10 +39,11 @@ import { dealerService } from '@/services/dealers/dealerService'
 import { userService } from '@/services/users/userService'
 import { UserSavedFileDetailDrawer } from './UserSavedFileDetailDrawer'
 import { UserSavedFilePreviewModal } from './UserSavedFilePreviewModal'
-import { UserSavedFileShareModal } from "./UserSavedFileShareModal"
-import { useAuthStore } from "@/stores/authStore"
+import { UserSavedFileShareModal } from './UserSavedFileShareModal'
+import { useAuthStore } from '@/stores/authStore'
 import { formatBytes, normalizeSvgFilename } from '@/utils/formatters'
 import { extractErrorMessage } from '@/utils/error'
+import './UserSavedFiles.css'
 
 const { RangePicker } = DatePicker
 const { Text } = Typography
@@ -79,7 +82,7 @@ const FileThumb: React.FC<{ fileId: number; title: string; onClick?: () => void 
       <span
         onClick={onClick}
         style={{
-          width: 46,
+          width: 44,
           height: 34,
           border: '1px solid #E4E3DE',
           borderRadius: 4,
@@ -145,7 +148,7 @@ export const UserSavedFileList: React.FC = () => {
   const [selectedFileForDetail, setSelectedFileForDetail] = useState<UserSavedFile | null>(null)
 
   const authUser = useAuthStore(state => state.user)
-  const isAdmin = authUser?.role === "ADMIN"
+  const isAdmin = authUser?.role === 'ADMIN'
 
   const [shareModalOpen, setShareModalOpen] = useState(false)
   const [fileToShare, setFileToShare] = useState<UserSavedFile | null>(null)
@@ -271,6 +274,28 @@ export const UserSavedFileList: React.FC = () => {
     dateRange,
   ])
 
+  const activeFilterCount = useMemo(() => {
+    let count = 0
+    if (keyword) count++
+    if (selectedCategory !== undefined) count++
+    if (selectedBrand !== undefined) count++
+    if (selectedModel !== undefined) count++
+    if (selectedDealer !== undefined) count++
+    if (selectedUser !== undefined) count++
+    if (selectedStatus !== undefined) count++
+    if (dateRange !== null) count++
+    return count
+  }, [
+    keyword,
+    selectedCategory,
+    selectedBrand,
+    selectedModel,
+    selectedDealer,
+    selectedUser,
+    selectedStatus,
+    dateRange,
+  ])
+
   const handleResetFilters = () => {
     setKeyword('')
     setDebouncedKeyword('')
@@ -313,7 +338,7 @@ export const UserSavedFileList: React.FC = () => {
   const columns: ColumnsType<UserSavedFile> = [
     {
       title: 'STT',
-      width: 52,
+      width: 50,
       align: 'center',
       render: (_, __, index) => (
         <span style={{ fontFamily: MONO, fontSize: 11.5, color: '#8A8983' }}>
@@ -337,7 +362,7 @@ export const UserSavedFileList: React.FC = () => {
               setPreviewOpen(true)
             }}
           />
-          <div style={{ minWidth: 0 }}>
+          <div style={{ minWidth: 0, flex: 1 }}>
             <div
               onClick={() => {
                 setSelectedFileForDetail(record)
@@ -352,7 +377,7 @@ export const UserSavedFileList: React.FC = () => {
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
-                maxWidth: 180,
+                maxWidth: 190,
               }}
               title={text}
             >
@@ -368,7 +393,7 @@ export const UserSavedFileList: React.FC = () => {
     {
       title: 'Danh mục',
       key: 'category',
-      width: 130,
+      width: 125,
       render: (_, record) =>
         record.category?.name ? (
           <span
@@ -380,7 +405,12 @@ export const UserSavedFileList: React.FC = () => {
               borderRadius: 4,
               font: `500 11px ${FONT}`,
               color: '#5B2BB0',
+              maxWidth: '100%',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
             }}
+            title={record.category.name}
           >
             {record.category.name}
           </span>
@@ -391,7 +421,7 @@ export const UserSavedFileList: React.FC = () => {
     {
       title: 'Mẫu xe',
       key: 'vehicle',
-      width: 180,
+      width: 175,
       render: (_, record) => {
         const vc = record.vehicleConfiguration
         if (!vc?.brandName && !vc?.modelName) {
@@ -399,7 +429,7 @@ export const UserSavedFileList: React.FC = () => {
         }
         return (
           <div>
-            <div style={{ fontWeight: 500, fontSize: 12.5, color: '#1B1B19' }}>
+            <div style={{ fontWeight: 500, fontSize: 12.5, color: '#1B1B19', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={`${vc.brandName || ''} ${vc.modelName || ''}`}>
               {vc.brandName} {vc.modelName}
             </div>
             {(vc.yearFrom || vc.generationCode) && (
@@ -415,7 +445,7 @@ export const UserSavedFileList: React.FC = () => {
     {
       title: 'Khổ cắt (Y × X)',
       key: 'cutSize',
-      width: 140,
+      width: 135,
       render: (_, record) => {
         const w = record.cutSize?.filmWidth ?? record.cutSize?.axisY
         const l = record.cutSize?.rollLength ?? record.cutSize?.axisX
@@ -430,14 +460,14 @@ export const UserSavedFileList: React.FC = () => {
     {
       title: 'Người tạo',
       key: 'createdBy',
-      width: 150,
+      width: 145,
       render: (_, record) => (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <div
             style={{
               width: 26,
               height: 26,
-              flex: 'none',
+              flexShrink: 0,
               borderRadius: '50%',
               background: '#EDEBE6',
               display: 'flex',
@@ -458,7 +488,9 @@ export const UserSavedFileList: React.FC = () => {
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
+                maxWidth: 105,
               }}
+              title={record.createdBy?.displayName || record.createdBy?.username}
             >
               {record.createdBy?.displayName || record.createdBy?.username || '—'}
             </div>
@@ -474,12 +506,21 @@ export const UserSavedFileList: React.FC = () => {
     {
       title: 'Đại lý',
       key: 'dealer',
-      width: 140,
+      width: 135,
       render: (_, record) =>
         record.dealer?.name ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-            <ShopOutlined style={{ color: '#6C3BD6', fontSize: 13 }} />
-            <span style={{ font: `500 11.5px ${FONT}`, color: '#35342F' }}>
+            <ShopOutlined style={{ color: '#6C3BD6', fontSize: 13, flexShrink: 0 }} />
+            <span
+              style={{
+                font: `500 11.5px ${FONT}`,
+                color: '#35342F',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+              title={record.dealer.name}
+            >
               {record.dealer.name}
             </span>
           </div>
@@ -491,7 +532,7 @@ export const UserSavedFileList: React.FC = () => {
       title: 'Thời gian lưu',
       dataIndex: 'createdAt',
       key: 'createdAt',
-      width: 135,
+      width: 130,
       render: (dateStr: string) => {
         if (!dateStr) return '—'
         const d = new Date(dateStr)
@@ -507,7 +548,7 @@ export const UserSavedFileList: React.FC = () => {
       title: 'Trạng thái',
       dataIndex: 'status',
       key: 'status',
-      width: 100,
+      width: 95,
       align: 'center',
       render: (status: string) => (
         <span
@@ -528,45 +569,51 @@ export const UserSavedFileList: React.FC = () => {
     {
       title: 'Thao tác',
       key: 'action',
-      width: 250,
+      width: 175,
       fixed: 'right',
       align: 'center',
       render: (_, record) => (
-        <Space size={4}>
-          <Button
-            type="link"
-            size="small"
-            icon={<EyeOutlined />}
-            onClick={() => {
-              setSelectedFileForDetail(record)
-              setDetailOpen(true)
-            }}
-            style={{ padding: "0 4px", color: "#4A4945" }}
-          >
-            Xem
-          </Button>
-          <Button
-            type="link"
-            size="small"
-            icon={<DownloadOutlined />}
-            onClick={() => handleDownload(record)}
-            style={{ padding: "0 4px", color: "#1B1B19" }}
-          >
-            Download
-          </Button>
-          {isAdmin && (
+        <Space size={2} wrap>
+          <Tooltip title="Xem chi tiết">
             <Button
               type="link"
               size="small"
-              icon={<ShareAltOutlined />}
+              icon={<EyeOutlined />}
               onClick={() => {
-                setFileToShare(record)
-                setShareModalOpen(true)
+                setSelectedFileForDetail(record)
+                setDetailOpen(true)
               }}
-              style={{ padding: "0 4px", color: "#7C3AED", fontWeight: 500 }}
+              style={{ padding: '0 4px', color: '#4A4945' }}
             >
-              Chia sẻ
+              Xem
             </Button>
+          </Tooltip>
+          <Tooltip title="Tải xuống tệp SVG">
+            <Button
+              type="link"
+              size="small"
+              icon={<DownloadOutlined />}
+              onClick={() => handleDownload(record)}
+              style={{ padding: '0 4px', color: '#1B1B19' }}
+            >
+              Tải
+            </Button>
+          </Tooltip>
+          {isAdmin && (
+            <Tooltip title="Chia sẻ file cho người dùng khác">
+              <Button
+                type="link"
+                size="small"
+                icon={<ShareAltOutlined />}
+                onClick={() => {
+                  setFileToShare(record)
+                  setShareModalOpen(true)
+                }}
+                style={{ padding: '0 4px', color: '#7C3AED', fontWeight: 500 }}
+              >
+                Chia sẻ
+              </Button>
+            </Tooltip>
           )}
         </Space>
       ),
@@ -575,263 +622,246 @@ export const UserSavedFileList: React.FC = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      {/* 4 Thẻ thống kê tổng quan */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 14 }}>
-        <div
-          style={{
-            padding: '13px 16px',
-            background: '#FBFBFA',
-            border: '1px solid #E4E3DE',
-            borderRadius: 6,
-          }}
-        >
-          <div style={{ font: `400 11.5px ${FONT}`, color: '#6E6D68' }}>Tổng số bản đã lưu</div>
-          <div style={{ marginTop: 6, font: `500 22px ${MONO}`, color: '#1B1B19' }}>
-            {stats.total.toLocaleString('vi-VN')}
+      {/* 4 Thẻ thống kê tổng quan (Responsive Grid) */}
+      <div className="saved-files-stats-grid">
+        <div className="saved-files-stat-card">
+          <div className="saved-files-stat-info">
+            <div className="saved-files-stat-label">Tổng số bản đã lưu</div>
+            <div className="saved-files-stat-value" style={{ color: '#1B1B19' }}>
+              {stats.total.toLocaleString('vi-VN')}
+            </div>
+          </div>
+          <div className="saved-files-stat-icon-wrap" style={{ background: '#F1EDFC', color: '#7C3AED' }}>
+            <FileImageOutlined />
           </div>
         </div>
 
-        <div
-          style={{
-            padding: '13px 16px',
-            background: '#FBFBFA',
-            border: '1px solid #E4E3DE',
-            borderRadius: 6,
-          }}
-        >
-          <div style={{ font: `400 11.5px ${FONT}`, color: '#6E6D68' }}>Bản lưu đang hoạt động</div>
-          <div style={{ marginTop: 6, font: `500 22px ${MONO}`, color: '#1E7E34' }}>
-            {stats.activeCount.toLocaleString('vi-VN')}
+        <div className="saved-files-stat-card">
+          <div className="saved-files-stat-info">
+            <div className="saved-files-stat-label">Bản lưu hoạt động</div>
+            <div className="saved-files-stat-value" style={{ color: '#1E7E34' }}>
+              {stats.activeCount.toLocaleString('vi-VN')}
+            </div>
+          </div>
+          <div className="saved-files-stat-icon-wrap" style={{ background: '#EBF8F0', color: '#1E7E34' }}>
+            <CheckCircleOutlined />
           </div>
         </div>
 
-        <div
-          style={{
-            padding: '13px 16px',
-            background: '#FBFBFA',
-            border: '1px solid #E4E3DE',
-            borderRadius: 6,
-          }}
-        >
-          <div style={{ font: `400 11.5px ${FONT}`, color: '#6E6D68' }}>Đại lý có bản lưu</div>
-          <div style={{ marginTop: 6, font: `500 22px ${MONO}`, color: '#6C3BD6' }}>
-            {stats.dealerCount.toLocaleString('vi-VN')}
+        <div className="saved-files-stat-card">
+          <div className="saved-files-stat-info">
+            <div className="saved-files-stat-label">Đại lý có bản lưu</div>
+            <div className="saved-files-stat-value" style={{ color: '#6C3BD6' }}>
+              {stats.dealerCount.toLocaleString('vi-VN')}
+            </div>
+          </div>
+          <div className="saved-files-stat-icon-wrap" style={{ background: '#F1EDFC', color: '#6C3BD6' }}>
+            <ShopOutlined />
           </div>
         </div>
 
-        <div
-          style={{
-            padding: '13px 16px',
-            background: '#FBFBFA',
-            border: '1px solid #E4E3DE',
-            borderRadius: 6,
-          }}
-        >
-          <div style={{ font: `400 11.5px ${FONT}`, color: '#6E6D68' }}>Dung lượng trang này</div>
-          <div style={{ marginTop: 6, font: `500 22px ${MONO}`, color: '#1B1B19' }}>
-            {formatBytes(stats.totalBytes)}
+        <div className="saved-files-stat-card">
+          <div className="saved-files-stat-info">
+            <div className="saved-files-stat-label">Dung lượng trang này</div>
+            <div className="saved-files-stat-value" style={{ color: '#4A4945' }}>
+              {formatBytes(stats.totalBytes)}
+            </div>
+          </div>
+          <div className="saved-files-stat-icon-wrap" style={{ background: '#EDEBE6', color: '#4A4945' }}>
+            <HddOutlined />
           </div>
         </div>
       </div>
 
-      {/* Thanh bộ lọc chuẩn thẩm mỹ */}
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          gap: 8,
-          padding: '10px 12px',
-          background: '#FBFBFA',
-          border: '1px solid #E4E3DE',
-          borderRadius: 6,
-        }}
-      >
-        <Select
-          placeholder="Danh mục"
-          value={selectedCategory}
-          onChange={v => {
-            setSelectedCategory(v)
-            setPage(0)
-          }}
-          style={{ width: 140 }}
-          allowClear
-          options={categories.map(c => ({ value: c.value, label: c.label }))}
-        />
+      {/* Thanh bộ lọc & tìm kiếm chuẩn responsive */}
+      <div className="saved-files-filter-box">
+        {/* Hàng 1: Tìm kiếm & Hành động */}
+        <div className="saved-files-toolbar-top">
+          <div className="saved-files-search-wrap">
+            <SearchOutlined style={{ color: '#8A8983', fontSize: 13, flexShrink: 0 }} />
+            <input
+              className="saved-files-search-input"
+              value={keyword}
+              onChange={e => setKeyword(e.target.value)}
+              placeholder="Tìm kiếm theo tên bản vẽ..."
+            />
+            {keyword && (
+              <span
+                onClick={() => setKeyword('')}
+                style={{ cursor: 'pointer', color: '#8A8983', fontSize: 12, padding: '0 4px' }}
+                title="Xoá từ khoá"
+              >
+                ✕
+              </span>
+            )}
+          </div>
 
-        <Select
-          placeholder="Hãng xe"
-          value={selectedBrand}
-          onChange={v => {
-            setSelectedBrand(v)
-            setSelectedModel(undefined)
-            setPage(0)
-          }}
-          style={{ width: 130 }}
-          allowClear
-          options={brandTrees.map(b => ({ value: b.id, label: b.name }))}
-        />
-
-        <Select
-          placeholder="Dòng xe"
-          value={selectedModel}
-          onChange={v => {
-            setSelectedModel(v)
-            setPage(0)
-          }}
-          disabled={!selectedBrand}
-          style={{ width: 150 }}
-          allowClear
-          options={modelOptions.map(m => ({ value: m.id, label: m.name }))}
-        />
-
-        <Select
-          placeholder="Đại lý"
-          value={selectedDealer}
-          onChange={v => {
-            setSelectedDealer(v)
-            setPage(0)
-          }}
-          style={{ width: 150 }}
-          allowClear
-          showSearch
-          optionFilterProp="label"
-          options={dealers.map(d => ({ value: d.id, label: d.name }))}
-        />
-
-        <Select
-          placeholder="Người tạo"
-          value={selectedUser}
-          onChange={v => {
-            setSelectedUser(v)
-            setPage(0)
-          }}
-          style={{ width: 140 }}
-          allowClear
-          showSearch
-          optionFilterProp="label"
-          options={users.map(u => ({ value: u.id, label: u.fullName || u.username }))}
-        />
-
-        <RangePicker
-          value={dateRange}
-          onChange={dates => {
-            setDateRange(dates as [dayjs.Dayjs | null, dayjs.Dayjs | null])
-            setPage(0)
-          }}
-          style={{ width: 220 }}
-          placeholder={['Từ ngày', 'Đến ngày']}
-        />
-
-        <Select
-          placeholder="Trạng thái"
-          value={selectedStatus}
-          onChange={v => {
-            setSelectedStatus(v)
-            setPage(0)
-          }}
-          style={{ width: 110 }}
-          allowClear
-          options={[
-            { value: 'ACTIVE', label: 'Hoạt động' },
-            { value: 'DELETED', label: 'Đã xoá' },
-          ]}
-        />
-
-        {hasFilter && (
-          <button
-            onClick={handleResetFilters}
-            style={{
-              padding: '6px 10px',
-              border: 0,
-              background: 'transparent',
-              cursor: 'pointer',
-              font: `500 11.5px ${FONT}`,
-              color: '#6C3BD6',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 4,
-            }}
-          >
-            <ClearOutlined /> Xoá lọc
-          </button>
-        )}
-
-        <div
-          style={{
-            marginLeft: 'auto',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '0 10px',
-            height: 32,
-            width: 240,
-            border: '1px solid #D8D7D2',
-            borderRadius: 5,
-            background: '#FFF',
-          }}
-        >
-          <SearchOutlined style={{ color: '#8A8983', fontSize: 13 }} />
-          <input
-            value={keyword}
-            onChange={e => setKeyword(e.target.value)}
-            placeholder="Tìm theo tên file..."
-            style={{
-              flex: 1,
-              minWidth: 0,
-              border: 0,
-              outline: 'none',
-              background: 'transparent',
-              font: `400 12px ${FONT}`,
-              color: '#1B1B19',
-            }}
-          />
-          {keyword && (
-            <span
-              onClick={() => setKeyword('')}
-              style={{ cursor: 'pointer', color: '#8A8983', fontSize: 12 }}
-            >
-              ✕
+          <div className="saved-files-toolbar-actions">
+            <span style={{ font: `500 11.5px ${FONT}`, color: '#6E6D68', marginRight: 4 }}>
+              Tổng <strong style={{ color: '#1B1B19', fontFamily: MONO }}>{total.toLocaleString('vi-VN')}</strong> bản lưu
             </span>
-          )}
+
+            {hasFilter && (
+              <button
+                onClick={handleResetFilters}
+                style={{
+                  padding: '5px 10px',
+                  border: '1px solid #C9B6F5',
+                  borderRadius: 5,
+                  background: '#F1EDFC',
+                  cursor: 'pointer',
+                  font: `500 11.5px ${FONT}`,
+                  color: '#6C3BD6',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <ClearOutlined /> Xoá lọc ({activeFilterCount})
+              </button>
+            )}
+
+            <Tooltip title="Làm mới danh sách">
+              <Button
+                icon={<ReloadOutlined />}
+                onClick={() => fetchList()}
+                style={{
+                  height: 32,
+                  borderRadius: 5,
+                  borderColor: '#D8D7D2',
+                  color: '#4A4945',
+                }}
+              />
+            </Tooltip>
+          </div>
         </div>
 
-        <Tooltip title="Làm mới danh sách">
-          <Button
-            icon={<ReloadOutlined />}
-            onClick={() => fetchList()}
-            style={{
-              height: 32,
-              borderRadius: 5,
-              borderColor: '#D8D7D2',
-              color: '#4A4945',
-            }}
-          />
-        </Tooltip>
+        {/* Hàng 2: Các bộ lọc danh mục, xe, đại lý, ngày tháng */}
+        <div className="saved-files-filter-row">
+          <div className="saved-files-filter-item">
+            <Select
+              placeholder="Danh mục"
+              value={selectedCategory}
+              onChange={v => {
+                setSelectedCategory(v)
+                setPage(0)
+              }}
+              style={{ width: '100%' }}
+              allowClear
+              options={categories.map(c => ({ value: c.value, label: c.label }))}
+            />
+          </div>
+
+          <div className="saved-files-filter-item">
+            <Select
+              placeholder="Hãng xe"
+              value={selectedBrand}
+              onChange={v => {
+                setSelectedBrand(v)
+                setSelectedModel(undefined)
+                setPage(0)
+              }}
+              style={{ width: '100%' }}
+              allowClear
+              options={brandTrees.map(b => ({ value: b.id, label: b.name }))}
+            />
+          </div>
+
+          <div className="saved-files-filter-item">
+            <Select
+              placeholder="Dòng xe"
+              value={selectedModel}
+              onChange={v => {
+                setSelectedModel(v)
+                setPage(0)
+              }}
+              disabled={!selectedBrand}
+              style={{ width: '100%' }}
+              allowClear
+              options={modelOptions.map(m => ({ value: m.id, label: m.name }))}
+            />
+          </div>
+
+          <div className="saved-files-filter-item">
+            <Select
+              placeholder="Đại lý"
+              value={selectedDealer}
+              onChange={v => {
+                setSelectedDealer(v)
+                setPage(0)
+              }}
+              style={{ width: '100%' }}
+              allowClear
+              showSearch
+              optionFilterProp="label"
+              options={dealers.map(d => ({ value: d.id, label: d.name }))}
+            />
+          </div>
+
+          <div className="saved-files-filter-item">
+            <Select
+              placeholder="Người tạo"
+              value={selectedUser}
+              onChange={v => {
+                setSelectedUser(v)
+                setPage(0)
+              }}
+              style={{ width: '100%' }}
+              allowClear
+              showSearch
+              optionFilterProp="label"
+              options={users.map(u => ({ value: u.id, label: u.fullName || u.username }))}
+            />
+          </div>
+
+          <div className="saved-files-filter-item-date">
+            <RangePicker
+              value={dateRange}
+              onChange={dates => {
+                setDateRange(dates as [dayjs.Dayjs | null, dayjs.Dayjs | null])
+                setPage(0)
+              }}
+              style={{ width: '100%' }}
+              placeholder={['Từ ngày', 'Đến ngày']}
+            />
+          </div>
+
+          <div className="saved-files-filter-item">
+            <Select
+              placeholder="Trạng thái"
+              value={selectedStatus}
+              onChange={v => {
+                setSelectedStatus(v)
+                setPage(0)
+              }}
+              style={{ width: '100%' }}
+              allowClear
+              options={[
+                { value: 'ACTIVE', label: 'Hoạt động' },
+                { value: 'DELETED', label: 'Đã xoá' },
+              ]}
+            />
+          </div>
+        </div>
       </div>
 
-      {/* Bảng dữ liệu viền nét thanh lịch */}
-      <div
-        style={{
-          background: '#FFFFFF',
-          border: '1px solid #E4E3DE',
-          borderRadius: 6,
-          overflow: 'hidden',
-        }}
-      >
+      {/* Bảng dữ liệu viền nét thanh lịch (Responsive Table) */}
+      <div className="saved-files-table-box">
         <Table<UserSavedFile>
           rowKey="id"
           columns={columns}
           dataSource={data}
           loading={loading}
-          scroll={{ x: 1350 }}
+          scroll={{ x: 1280 }}
           pagination={{
             current: page + 1,
             pageSize,
             total,
             showSizeChanger: true,
+            responsive: true,
             pageSizeOptions: ['20', '50', '100'],
-            showTotal: t => `Tổng số ${t} bản lưu`,
+            showTotal: t => `Tổng ${t} bản lưu`,
             onChange: (p, s) => {
               setPage(p - 1)
               setPageSize(s)
