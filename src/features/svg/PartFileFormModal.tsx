@@ -20,7 +20,7 @@ const MONO = "'IBM Plex Mono', monospace"
 const LEVEL_META = [
   { code: 'BRAND', vi: 'hãng', label: 'Hãng', bg: '#EEF3FC', color: '#2F5BA8', required: true },
   { code: 'SERIES', vi: 'dòng xe', label: 'Dòng xe', bg: '#E9F5EE', color: '#2E7D5B', required: true },
-  { code: 'MODEL', vi: 'model', label: 'Model', bg: '#FBF0DF', color: '#8A5A12', required: true },
+  { code: 'MODEL', vi: 'model', label: 'Model', bg: '#FBF0DF', color: '#8A5A12', required: false },
   { code: 'SUBTYPE', vi: 'phiên bản', label: 'Phiên bản', bg: '#FAE7E3', color: '#A93823', required: false },
 ]
 
@@ -70,8 +70,6 @@ interface SvgDropZoneProps {
   existingName: string | null
   /** Đã đánh dấu bỏ bản đang có */
   removed: boolean
-  /** Cho phép bỏ bản đang có — tắt khi đó là bản cuối cùng */
-  canRemove: boolean
   dragActive: boolean
   onBrowse: () => void
   onDropFile: (f: File | undefined | null) => void
@@ -88,7 +86,6 @@ const SvgDropZone: React.FC<SvgDropZoneProps> = ({
   file,
   existingName,
   removed,
-  canRemove,
   dragActive,
   onBrowse,
   onDropFile,
@@ -161,9 +158,8 @@ const SvgDropZone: React.FC<SvgDropZoneProps> = ({
             </span>
             <span style={{ display: 'flex', gap: 6 }} onClick={stop}>
               <button
-                style={{ ...smallBtn, ...(canRemove ? {} : { opacity: 0.45, cursor: 'not-allowed' }) }}
-                disabled={!canRemove}
-                title={canRemove ? 'Bỏ bản đang có' : 'Không bỏ được — file phải còn ít nhất một bản'}
+                style={smallBtn}
+                title="Bỏ bản đang có"
                 onClick={onMarkRemove}
               >
                 Bỏ bản này
@@ -400,15 +396,9 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
   // Lỗi zod tính mỗi render — hai ô luôn có mặc định nên chỉ báo khi admin sửa sai
   const cutErrors = validateCutArea(cutLengthMm, widthMm)
 
-  // Bản đang có hiệu lực: file mới chọn, hoặc bản cũ chưa bị đánh dấu bỏ (SA §8.2 — ít nhất một)
-  const nestedPresent = !!nestedFile || (isEdit && !!editing?.hasNested && !removeNested)
-  const rawPresent = !!rawFile || (isEdit && !!editing?.hasRaw && !removeRaw)
-
   const missing: string[] = []
   if (!name.trim()) missing.push('tên file')
   if (categoryId === undefined) missing.push('danh mục')
-  if (!rows.some(r => r.modelId !== undefined)) missing.push('mẫu xe (chọn tới Model)')
-  if (!nestedPresent && !rawPresent) missing.push('ít nhất một file .svg')
   const ready = missing.length === 0 && !cutErrors.length && !cutErrors.width
 
   const pathLabel = (r: VehicleRow): string => {
@@ -424,7 +414,7 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
   const handleSave = async () => {
     if (!ready || saving) return
     const vehicleNodeIds = rows
-      .map(r => r.subtypeId ?? r.modelId)
+      .map(r => r.subtypeId ?? r.modelId ?? r.seriesId ?? r.brandId)
       .filter((x): x is number => x !== undefined)
     setSaving(true)
     try {
@@ -487,7 +477,7 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
         value={value}
         disabled={disabled}
         placeholder={placeholder}
-        allowClear={!meta.required}
+        allowClear={true}
         showSearch
         // Gõ không dấu vẫn khớp: "vinfast", "dong" ra "VinFast", "Dòng…"
         filterOption={(input, option) => foldVi(String(option?.label ?? '')).includes(foldVi(input))}
@@ -626,7 +616,7 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
                     }}
                   >
                     Đường dẫn:{' '}
-                    <span style={{ fontWeight: 500, color: row.modelId ? '#1B1B19' : '#A5A49E' }}>
+                    <span style={{ fontWeight: 500, color: (row.subtypeId || row.modelId || row.seriesId || row.brandId) ? '#1B1B19' : '#A5A49E' }}>
                       {pathLabel(row)}
                     </span>
                   </div>
@@ -706,7 +696,6 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
             file={nestedFile}
             existingName={isEdit && editing?.hasNested ? editing.originalFilename || 'bản đã xếp' : null}
             removed={removeNested}
-            canRemove={rawPresent}
             dragActive={dragOver === 'nested'}
             onBrowse={() => nestedInputRef.current?.click()}
             onDropFile={f => acceptFile('nested', f)}
@@ -721,7 +710,6 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
             file={rawFile}
             existingName={isEdit && editing?.hasRaw ? 'bản chưa xếp' : null}
             removed={removeRaw}
-            canRemove={nestedPresent}
             dragActive={dragOver === 'raw'}
             onBrowse={() => rawInputRef.current?.click()}
             onDropFile={f => acceptFile('raw', f)}

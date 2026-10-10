@@ -36,8 +36,12 @@ const appendPayload = (formData: FormData, payload: AdminFilePayload, forEdit: b
   if (payload.categoryId !== undefined) formData.append('categoryId', String(payload.categoryId))
   // Khi sửa: gửi year kể cả rỗng để server phân biệt "không đổi" với "xoá năm" (SA §3.2)
   if (payload.year !== undefined) formData.append('year', payload.year === null ? '' : String(payload.year))
-  if (payload.vehicleNodeIds) {
-    payload.vehicleNodeIds.forEach(id => formData.append('vehicleNodeIds', String(id)))
+  if (payload.vehicleNodeIds !== undefined) {
+    if (payload.vehicleNodeIds.length === 0) {
+      if (forEdit) formData.append('clearVehicleNodes', 'true')
+    } else {
+      payload.vehicleNodeIds.forEach(id => formData.append('vehicleNodeIds', String(id)))
+    }
   }
   if (payload.thumbnail) formData.append('thumbnail', payload.thumbnail)
   if (payload.cutAreaLengthMm !== undefined) {
