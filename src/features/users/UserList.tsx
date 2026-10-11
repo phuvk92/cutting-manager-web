@@ -23,6 +23,7 @@ import {
   UnlockOutlined,
   ShopOutlined,
   StopOutlined,
+  KeyOutlined,
 } from '@ant-design/icons'
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table'
 import { User, UserFilterParams } from '@/types/user'
@@ -32,6 +33,7 @@ import { formatDateTime } from '@/utils/formatters'
 import { RoleTag } from '@/components/common/RoleTag'
 import { StatusTag } from '@/components/common/StatusTag'
 import { UserModal } from './UserModal'
+import { ResetPasswordModal } from './ResetPasswordModal'
 import { useAuthStore } from '@/stores/authStore'
 import { extractErrorMessage } from '@/utils/error'
 import dayjs from 'dayjs'
@@ -59,6 +61,8 @@ export const UserList: React.FC = () => {
   // Modal state
   const [modalOpen, setModalOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
+  const [resetModalOpen, setResetModalOpen] = useState(false)
+  const [resetUser, setResetUser] = useState<User | null>(null)
 
   const fetchUsers = useCallback(async () => {
     setLoading(true)
@@ -90,17 +94,31 @@ export const UserList: React.FC = () => {
   }, [fetchUsers])
 
   const handleSearch = () => {
+    if (loading) return
     setPage(0)
     fetchUsers()
   }
 
   const handleResetFilters = () => {
+    if (loading) return
+    const hasActiveFilters =
+      usernameInput !== '' ||
+      emailInput !== '' ||
+      selectedRole !== undefined ||
+      selectedEnabled !== undefined ||
+      selectedExpiration !== undefined ||
+      page !== 0
+
     setUsernameInput('')
     setEmailInput('')
     setSelectedRole(undefined)
     setSelectedEnabled(undefined)
     setSelectedExpiration(undefined)
     setPage(0)
+
+    if (!hasActiveFilters) {
+      fetchUsers()
+    }
   }
 
   const handleTableChange = (pagination: TablePaginationConfig, _filters: unknown, sorter: unknown) => {
@@ -131,6 +149,11 @@ export const UserList: React.FC = () => {
   const handleEdit = (record: User) => {
     setSelectedUser(record)
     setModalOpen(true)
+  }
+
+  const handleOpenResetPassword = (record: User) => {
+    setResetUser(record)
+    setResetModalOpen(true)
   }
 
   const handleToggleStatus = async (record: User) => {
@@ -312,7 +335,7 @@ export const UserList: React.FC = () => {
     {
       title: 'Thao tác',
       key: 'actions',
-      width: 120,
+      width: 140,
       align: 'center',
       render: (_: unknown, record: User) => {
         const isSelf = record.id === currentUser?.id
@@ -327,6 +350,16 @@ export const UserList: React.FC = () => {
                 onClick={() => handleEdit(record)}
               />
             </Tooltip>
+            {isAdmin && (
+              <Tooltip title="Đặt lại mật khẩu">
+                <Button
+                  type="text"
+                  size="small"
+                  icon={<KeyOutlined style={{ color: '#D97706' }} />}
+                  onClick={() => handleOpenResetPassword(record)}
+                />
+              </Tooltip>
+            )}
             {!isSelf && (
               <Tooltip title={record.enabled ? 'Khóa tài khoản' : 'Mở khóa tài khoản'}>
                 <Popconfirm
@@ -367,8 +400,8 @@ export const UserList: React.FC = () => {
   return (
     <div>
       <Card style={{ marginBottom: 14, borderRadius: 6, borderColor: '#E4E3DE' }} bodyStyle={{ padding: 14 }}>
-        <Row gutter={[12, 12]} align="middle">
-          <Col xs={24} sm={12} md={6}>
+        <Row gutter={[10, 10]} align="middle">
+          <Col xs={24} sm={12} md={isAdmin ? 5 : 6} lg={isAdmin ? 5 : 6}>
             <Input
               placeholder="Tìm theo tên đăng nhập..."
               value={usernameInput}
@@ -378,7 +411,7 @@ export const UserList: React.FC = () => {
               allowClear
             />
           </Col>
-          <Col xs={24} sm={12} md={6}>
+          <Col xs={24} sm={12} md={isAdmin ? 5 : 6} lg={isAdmin ? 5 : 6}>
             <Input
               placeholder="Tìm theo email..."
               value={emailInput}
@@ -389,7 +422,7 @@ export const UserList: React.FC = () => {
             />
           </Col>
           {isAdmin && (
-            <Col xs={12} sm={6} md={4}>
+            <Col xs={12} sm={6} md={3} lg={3}>
               <Select
                 placeholder="Tất cả vai trò"
                 value={selectedRole}
@@ -403,7 +436,7 @@ export const UserList: React.FC = () => {
               </Select>
             </Col>
           )}
-          <Col xs={12} sm={6} md={isAdmin ? 3 : 4}>
+          <Col xs={12} sm={6} md={isAdmin ? 3 : 4} lg={isAdmin ? 3 : 4}>
             <Select
               placeholder="Tất cả trạng thái"
               value={selectedEnabled}
@@ -415,7 +448,7 @@ export const UserList: React.FC = () => {
               <Select.Option value={false}>Đang khóa</Select.Option>
             </Select>
           </Col>
-          <Col xs={12} sm={6} md={isAdmin ? 3 : 4}>
+          <Col xs={12} sm={6} md={isAdmin ? 4 : 5} lg={isAdmin ? 4 : 5}>
             <Select
               placeholder="Hạn tài khoản"
               value={selectedExpiration}
@@ -429,12 +462,26 @@ export const UserList: React.FC = () => {
               <Select.Option value="NO_EXPIRATION">Không có ngày hết hạn</Select.Option>
             </Select>
           </Col>
-          <Col xs={24} md={isAdmin ? 4 : 8} style={{ textAlign: 'right' }}>
-            <Space>
-              <Button type="primary" onClick={handleSearch} style={{ background: '#6C3BD6', borderColor: '#6C3BD6' }}>
-                Lọc
-              </Button>
-              <Button onClick={handleResetFilters}>Đặt lại</Button>
+          <Col xs={24} sm={6} md={isAdmin ? 4 : 3} lg={isAdmin ? 4 : 3} style={{ display: 'flex', justifyContent: 'flex-end', marginLeft: 'auto' }}>
+            <Space size={8}>
+              <Tooltip title="Tìm kiếm">
+                <Button
+                  type="primary"
+                  icon={<SearchOutlined />}
+                  onClick={handleSearch}
+                  loading={loading}
+                  aria-label="Tìm kiếm"
+                  style={{ background: '#6C3BD6', borderColor: '#6C3BD6' }}
+                />
+              </Tooltip>
+              <Tooltip title="Đặt lại">
+                <Button
+                  icon={<ReloadOutlined />}
+                  onClick={handleResetFilters}
+                  disabled={loading}
+                  aria-label="Đặt lại"
+                />
+              </Tooltip>
             </Space>
           </Col>
         </Row>
@@ -478,6 +525,12 @@ export const UserList: React.FC = () => {
         user={selectedUser}
         onClose={() => setModalOpen(false)}
         onSuccess={fetchUsers}
+      />
+
+      <ResetPasswordModal
+        open={resetModalOpen}
+        user={resetUser}
+        onClose={() => setResetModalOpen(false)}
       />
     </div>
   )

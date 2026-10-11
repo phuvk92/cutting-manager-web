@@ -40,6 +40,7 @@ export const API_ENDPOINTS = {
   USER_DETAIL: (id: number | string) => `/users/${id}`,
   USER_CREATE: '/users',
   USER_UPDATE: (id: number | string) => `/users/${id}`,
+  USER_RESET_PASSWORD: (id: number | string) => `/users/${id}/reset-password`,
   USER_ROLE: (id: number | string) => `/users/${id}/role`,
   USER_STATUS: (id: number | string) => `/users/${id}/status`,
   USER_DELETE: (id: number | string) => `/users/${id}`,

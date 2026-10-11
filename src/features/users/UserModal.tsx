@@ -24,8 +24,8 @@ const createSchema = z.object({
     .string()
     .email('Vui lòng nhập địa chỉ email hợp lệ')
     .max(255, 'Tối đa 255 ký tự'),
-  fullName: z.string().max(255, 'Tối đa 255 ký tự').optional().or(z.literal('')),
-  phone: z.string().max(50, 'Tối đa 50 ký tự').optional().or(z.literal('')),
+  fullName: z.string().max(255, 'Tối đa 255 ký tự').nullable().optional().or(z.literal('')),
+  phone: z.string().max(50, 'Tối đa 50 ký tự').nullable().optional().or(z.literal('')),
   password: z
     .string()
     .min(8, 'Mật khẩu phải có ít nhất 8 ký tự')
@@ -34,8 +34,8 @@ const createSchema = z.object({
       'Mật khẩu phải chứa chữ hoa, chữ thường, số và ký tự đặc biệt'
     ),
   role: z.enum(['ADMIN', 'AGENT', 'USER'] as const),
-  agentId: z.number().optional(),
-  dealerId: z.number().optional(),
+  agentId: z.number().nullable().optional(),
+  dealerId: z.number().nullable().optional(),
   enabled: z.boolean(),
   expirationDate: z.string().nullable().optional(),
 })
@@ -45,22 +45,15 @@ const editSchema = z.object({
     .string()
     .email('Vui lòng nhập địa chỉ email hợp lệ')
     .max(255, 'Tối đa 255 ký tự'),
-  fullName: z.string().max(255, 'Tối đa 255 ký tự').optional().or(z.literal('')),
-  phone: z.string().max(50, 'Tối đa 50 ký tự').optional().or(z.literal('')),
+  fullName: z.string().max(255, 'Tối đa 255 ký tự').nullable().optional().or(z.literal('')),
+  phone: z.string().max(50, 'Tối đa 50 ký tự').nullable().optional().or(z.literal('')),
   role: z.enum(['ADMIN', 'AGENT', 'USER'] as const),
-  agentId: z.number().optional(),
-  dealerId: z.number().optional(),
+  agentId: z.number().nullable().optional(),
+  dealerId: z.number().nullable().optional(),
   enabled: z.boolean(),
   expirationDate: z.string().nullable().optional(),
   // F-57: số máy tối đa — null/không nhập = mặc định hệ thống
   maxDevices: z.number().int().min(1, 'Tối thiểu 1 máy').max(50, 'Tối đa 50 máy').nullable().optional(),
-  password: z
-    .string()
-    .optional()
-    .refine(
-      val => !val || passwordRegex.test(val),
-      'Mật khẩu mới nếu nhập phải có ít nhất 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt'
-    ),
 })
 
 type CreateFormData = z.infer<typeof createSchema>
@@ -151,16 +144,15 @@ export const UserModal: React.FC<UserModalProps> = ({
       setErrorMessage(null)
       if (user) {
         reset({
-          email: user.email,
+          email: user.email || '',
           fullName: user.fullName || '',
           phone: user.phone || '',
           role: user.role,
-          agentId: user.agentId,
-          dealerId: user.dealerId,
-          enabled: user.enabled,
+          agentId: user.agentId ?? undefined,
+          dealerId: user.dealerId ?? undefined,
+          enabled: user.enabled ?? true,
           maxDevices: user.maxDevices ?? null,
           expirationDate: user.expirationDate || null,
-          password: '',
         })
       } else {
         reset({
@@ -177,7 +169,7 @@ export const UserModal: React.FC<UserModalProps> = ({
         })
       }
     }
-  }, [open, user, reset])
+  }, [open, user, reset, isAdmin, currentUser?.dealerId])
 
   const onSubmit = async (data: CreateFormData | EditFormData) => {
     setSubmitting(true)
@@ -185,18 +177,17 @@ export const UserModal: React.FC<UserModalProps> = ({
 
     try {
       if (isEdit && user) {
+        const editData = data as EditFormData
         const updatePayload: UpdateUserRequest = {
-          email: data.email.trim(),
-          fullName: data.fullName?.trim() || undefined,
-          phone: data.phone?.trim() || undefined,
-          role: data.role as Role,
-          agentId: data.role === 'USER' ? data.agentId : undefined,
-          dealerId: data.dealerId ? data.dealerId : (data.dealerId === null ? 0 : undefined),
-          enabled: data.enabled ?? true,
-          expirationDate: data.expirationDate ? data.expirationDate : null,
-          ...(data.password ? { password: data.password } : {}),
-          // Chỉ ADMIN đổi được; để trống = về mặc định hệ thống (backend nhận 0)
-          ...(isAdmin ? { maxDevices: (data as EditFormData).maxDevices ?? 0 } : {}),
+          email: editData.email.trim(),
+          fullName: editData.fullName?.trim() || undefined,
+          phone: editData.phone?.trim() || undefined,
+          role: editData.role as Role,
+          agentId: editData.role === 'USER' ? (editData.agentId ?? 0) : undefined,
+          dealerId: editData.dealerId ? editData.dealerId : 0,
+          enabled: editData.enabled ?? true,
+          expirationDate: editData.expirationDate ? editData.expirationDate : null,
+          ...(isAdmin ? { maxDevices: editData.maxDevices ?? 0 } : {}),
         }
         await userService.updateUser(user.id, updatePayload)
         message.success(`Cập nhật người dùng "${user.username}" thành công`)
@@ -209,8 +200,8 @@ export const UserModal: React.FC<UserModalProps> = ({
           phone: createData.phone?.trim() || undefined,
           password: createData.password,
           role: !isAdmin ? 'USER' : (createData.role as Role),
-          agentId: !isAdmin ? undefined : (createData.role === 'USER' ? createData.agentId : undefined),
-          dealerId: !isAdmin ? currentUser?.dealerId : createData.dealerId,
+          agentId: !isAdmin ? undefined : (createData.role === 'USER' ? (createData.agentId ?? undefined) : undefined),
+          dealerId: !isAdmin ? currentUser?.dealerId : (createData.dealerId ?? undefined),
           enabled: createData.enabled ?? true,
           expirationDate: createData.expirationDate ? createData.expirationDate : null,
         }
@@ -226,6 +217,11 @@ export const UserModal: React.FC<UserModalProps> = ({
     }
   }
 
+  const onInvalid = (formErrors: Record<string, unknown>) => {
+    console.warn('Form validation failed:', formErrors)
+    message.error('Vui lòng kiểm tra lại các trường thông tin trên biểu mẫu')
+  }
+
   return (
     <Modal
       title={isEdit ? `Chỉnh sửa người dùng: ${user?.username}` : 'Thêm mới tài khoản người dùng'}
@@ -238,7 +234,7 @@ export const UserModal: React.FC<UserModalProps> = ({
         <Button
           key="submit"
           type="primary"
-          onClick={handleSubmit(onSubmit)}
+          onClick={handleSubmit(onSubmit, onInvalid)}
           loading={submitting}
           style={{ background: '#6C3BD6', borderColor: '#6C3BD6' }}
         >
@@ -288,7 +284,7 @@ export const UserModal: React.FC<UserModalProps> = ({
               name="fullName"
               control={control}
               render={({ field }) => (
-                <Input {...field} placeholder="VD: Nguyễn Văn Thắng" />
+                <Input {...field} value={field.value ?? ""} placeholder="VD: Nguyễn Văn Thắng" />
               )}
             />
           </Form.Item>
@@ -381,32 +377,30 @@ export const UserModal: React.FC<UserModalProps> = ({
               name="phone"
               control={control}
               render={({ field }) => (
-                <Input {...field} placeholder="VD: 0903123456" />
+                <Input {...field} value={field.value ?? ""} placeholder="VD: 0903123456" />
               )}
             />
           </Form.Item>
 
-          <Form.Item
-            label={isEdit ? 'Mật khẩu mới (để trống nếu giữ nguyên)' : 'Mật khẩu khởi tạo'}
-            validateStatus={errors.password ? 'error' : ''}
-            help={errors.password?.message}
-            required={!isEdit}
-          >
-            <Controller
-              name="password"
-              control={control}
-              render={({ field }) => (
-                <Input.Password
-                  {...field}
-                  placeholder={
-                    isEdit
-                      ? 'Nhập mật khẩu mới nếu muốn thay đổi'
-                      : 'Tối thiểu 8 ký tự (chữ hoa, chữ thường, số, ký tự đặc biệt)'
-                  }
-                />
-              )}
-            />
-          </Form.Item>
+          {!isEdit && (
+            <Form.Item
+              label="Mật khẩu khởi tạo"
+              validateStatus={'password' in errors && errors.password ? 'error' : ''}
+              help={'password' in errors ? errors.password?.message : undefined}
+              required
+            >
+              <Controller
+                name="password"
+                control={control}
+                render={({ field }) => (
+                  <Input.Password
+                    {...field}
+                    placeholder="Tối thiểu 8 ký tự (chữ hoa, chữ thường, số, ký tự đặc biệt)"
+                  />
+                )}
+              />
+            </Form.Item>
+          )}
 
           <Form.Item
             label="Vai trò tài khoản"

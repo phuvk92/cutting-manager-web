@@ -44,15 +44,19 @@ export interface UpdateUserRequest {
   email: string
   fullName?: string
   phone?: string
-  role: Role
-  agentId?: number
-  dealerId?: number
-  enabled: boolean
+  role?: Role
+  agentId?: number | null
+  dealerId?: number | null
+  enabled?: boolean
   password?: string
   /** Chỉ ADMIN. 0 = về mặc định hệ thống, bỏ trống = giữ nguyên */
-  maxDevices?: number
+  maxDevices?: number | null
   /** Ngày hết hạn tài khoản (yyyy-MM-dd) — null để bỏ hết hạn */
   expirationDate?: string | null
+}
+
+export interface ResetPasswordRequest {
+  newPassword: string
 }
 
 export interface UpdateUserStatusRequest {

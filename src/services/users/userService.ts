@@ -6,6 +6,7 @@ import {
   UpdateUserRequest,
   UpdateUserStatusRequest,
   UpdateUserRoleRequest,
+  ResetPasswordRequest,
   UserFilterParams,
   UserDevice,
 } from '@/types/user'
@@ -46,6 +47,14 @@ export const userService = {
 
   deleteUser: async (id: number): Promise<void> => {
     await axiosClient.delete(API_ENDPOINTS.USER_DELETE(id))
+  },
+
+  resetPassword: async (id: number, payload: ResetPasswordRequest): Promise<{ message: string; userId: number }> => {
+    const response = await axiosClient.post<{ message: string; userId: number }>(
+      API_ENDPOINTS.USER_RESET_PASSWORD(id),
+      payload
+    )
+    return response.data
   },
 
   getUserDevices: async (id: number): Promise<UserDevice[]> => {
