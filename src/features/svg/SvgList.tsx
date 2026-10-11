@@ -195,10 +195,10 @@ export const SvgList: React.FC = () => {
 
   const filters: FilterDef[] = [
     {
-      label: 'Danh mục',
+      label: 'Danh mục kho mẫu & part',
       value: fCategory,
       options: categories.map(c => ({ value: c.value, label: c.label })),
-      allLabel: 'Tất cả',
+      allLabel: 'Tất cả danh mục',
       onChange: v => {
         setFCategory(v)
         setPage(0)

@@ -18,11 +18,14 @@ export interface User {
   maxDevices?: number | null
   /** Số máy tối đa đang áp dụng */
   effectiveMaxDevices?: number
+  /** Số ngày đã phân bổ từ quỹ đại lý (quy ước 30 ngày/tháng, 360 ngày/năm) */
+  allocatedDays?: number
   /** Ngày hết hạn tài khoản (yyyy-MM-dd) — null = không hết hạn */
   expirationDate?: string | null
   /** Tài khoản đã hết hạn hay chưa */
   expired?: boolean
   createdAt: string
+  partCategoryIds?: number[]
   updatedAt: string
 }
 
@@ -36,8 +39,11 @@ export interface CreateUserRequest {
   agentId?: number
   dealerId?: number
   enabled?: boolean
+  /** Số ngày phân bổ từ quỹ đại lý */
+  allocatedDays?: number
   /** Ngày hết hạn tài khoản (yyyy-MM-dd) — không bắt buộc */
   expirationDate?: string | null
+  partCategoryIds?: number[]
 }
 
 export interface UpdateUserRequest {
@@ -49,10 +55,13 @@ export interface UpdateUserRequest {
   dealerId?: number | null
   enabled?: boolean
   password?: string
+  /** Số ngày phân bổ từ quỹ đại lý */
+  allocatedDays?: number
   /** Chỉ ADMIN. 0 = về mặc định hệ thống, bỏ trống = giữ nguyên */
   maxDevices?: number | null
   /** Ngày hết hạn tài khoản (yyyy-MM-dd) — null để bỏ hết hạn */
   expirationDate?: string | null
+  partCategoryIds?: number[]
 }
 
 export interface ResetPasswordRequest {

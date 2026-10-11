@@ -8,6 +8,7 @@ import {
   Spin,
   Alert,
   Empty,
+  Tag,
 } from 'antd'
 import {
   DownloadOutlined,
@@ -16,6 +17,8 @@ import {
   CarOutlined,
   FileImageOutlined,
   ShareAltOutlined,
+  AppstoreOutlined,
+  UserOutlined,
 } from '@ant-design/icons'
 import { UserSavedFile } from '@/types/userSavedFile'
 import { userSavedFileService } from '@/services/userSavedFile/userSavedFileService'
@@ -31,6 +34,7 @@ interface UserSavedFileDetailDrawerProps {
   open: boolean
   onClose: () => void
   onShare?: (file: UserSavedFile) => void
+  canDownload?: boolean
 }
 
 export const UserSavedFileDetailDrawer: React.FC<UserSavedFileDetailDrawerProps> = ({
@@ -38,6 +42,7 @@ export const UserSavedFileDetailDrawer: React.FC<UserSavedFileDetailDrawerProps>
   open,
   onClose,
   onShare,
+  canDownload = true,
 }) => {
   const [blobUrl, setBlobUrl] = useState<string | null>(null)
   const [previewLoading, setPreviewLoading] = useState(false)
@@ -47,7 +52,7 @@ export const UserSavedFileDetailDrawer: React.FC<UserSavedFileDetailDrawerProps>
     let active = true
     let currentUrl: string | null = null
 
-    if (open && file?.id) {
+    if (open && file?.id && canDownload) {
       setPreviewLoading(true)
       setPreviewError(null)
       userSavedFileService
@@ -100,20 +105,42 @@ export const UserSavedFileDetailDrawer: React.FC<UserSavedFileDetailDrawerProps>
       onClose={onClose}
       width={typeof window !== 'undefined' && window.innerWidth < 680 ? '100%' : 660}
       extra={
-        <Button
-          type="primary"
-          size="small"
-          icon={<DownloadOutlined />}
-          style={{ background: '#7C3AED', borderColor: '#7C3AED' }}
-          onClick={() =>
-            userSavedFileService.download(file.id, normalizeSvgFilename(file.fileName, file.id))
-          }
-        >
-          Tải SVG
-        </Button>
+        canDownload ? (
+          <Button
+            type="primary"
+            size="small"
+            icon={<DownloadOutlined />}
+            style={{ background: '#7C3AED', borderColor: '#7C3AED' }}
+            onClick={() =>
+              userSavedFileService.download(file.id, normalizeSvgFilename(file.fileName, file.id))
+            }
+          >
+            Tải SVG
+          </Button>
+        ) : null
       }
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        {(file.fileSource === 'ADMIN_LIBRARY' || file.id >= 1000000000) ? (
+          <Alert
+            type="info"
+            showIcon
+            icon={<AppstoreOutlined style={{ color: '#6D28D9' }} />}
+            message="Thư viện kho mẫu & part (Admin quản lý)"
+            description="Tệp SVG này thuộc thư viện hệ thống do Admin quản lý và được tự động phân phối theo quyền danh mục kho mẫu & part của bạn."
+            style={{ borderRadius: 6, border: '1px solid #DDD6FE', background: '#F5F3FF' }}
+          />
+        ) : (
+          <Alert
+            type="success"
+            showIcon
+            icon={<UserOutlined style={{ color: '#0D9488' }} />}
+            message={file.accessType === 'SHARED' ? 'File được chia sẻ' : 'File cá nhân của người dùng'}
+            description={file.accessType === 'SHARED' ? 'Tệp này được chia sẻ từ người dùng khác trên hệ thống.' : 'Tệp SVG do người dùng lưu từ máy cắt qua API internal.'}
+            style={{ borderRadius: 6, border: '1px solid #CCFBF1', background: '#F0FDFA' }}
+          />
+        )}
+
         {/* Khung xem trước SVG */}
         <div
           style={{
@@ -158,8 +185,17 @@ export const UserSavedFileDetailDrawer: React.FC<UserSavedFileDetailDrawerProps>
               background: '#FFFFFF',
             }}
           >
-            {previewLoading && <Spin tip="Đang tải bản vẽ SVG..." />}
-            {previewError && (
+            {!canDownload && (
+              <Alert
+                type="info"
+                showIcon
+                message="Chế độ giám sát đại lý (Chỉ đọc)"
+                description="Đại lý chỉ xem danh sách và thông tin tệp (metadata); không có quyền tải xuống hay xem trước nội dung."
+                style={{ width: '100%' }}
+              />
+            )}
+            {canDownload && previewLoading && <Spin tip="Đang tải bản vẽ SVG..." />}
+            {canDownload && previewError && (
               <Alert
                 type="warning"
                 showIcon
@@ -168,7 +204,7 @@ export const UserSavedFileDetailDrawer: React.FC<UserSavedFileDetailDrawerProps>
                 style={{ width: '100%' }}
               />
             )}
-            {!previewLoading && !previewError && blobUrl && (
+            {canDownload && !previewLoading && !previewError && blobUrl && (
               <object
                 data={blobUrl}
                 type="image/svg+xml"
@@ -197,6 +233,15 @@ export const UserSavedFileDetailDrawer: React.FC<UserSavedFileDetailDrawerProps>
           </div>
           <Descriptions size="small" column={{ xs: 1, sm: 2 }} bordered>
             <Descriptions.Item label="ID">{file.id}</Descriptions.Item>
+            <Descriptions.Item label="Nguồn gốc file">
+              {(file.fileSource === 'ADMIN_LIBRARY' || file.id >= 1000000000) ? (
+                <Tag color="purple" icon={<AppstoreOutlined />}>Thư viện kho mẫu & part</Tag>
+              ) : file.accessType === 'SHARED' ? (
+                <Tag color="cyan" icon={<ShareAltOutlined />}>Được chia sẻ</Tag>
+              ) : (
+                <Tag color="blue" icon={<UserOutlined />}>File cá nhân</Tag>
+              )}
+            </Descriptions.Item>
             <Descriptions.Item label="Tên file">
               <span style={{ fontWeight: 600, color: '#6C3BD6' }}>{file.fileName}</span>
             </Descriptions.Item>
@@ -381,16 +426,18 @@ export const UserSavedFileDetailDrawer: React.FC<UserSavedFileDetailDrawerProps>
               Chia sẻ
             </Button>
           )}
-          <Button
-            type="primary"
-            icon={<DownloadOutlined />}
-            style={{ background: '#7C3AED', borderColor: '#7C3AED' }}
-            onClick={() =>
-              userSavedFileService.download(file.id, normalizeSvgFilename(file.fileName, file.id))
-            }
-          >
-            Tải xuống file
-          </Button>
+          {canDownload && (
+            <Button
+              type="primary"
+              icon={<DownloadOutlined />}
+              style={{ background: '#7C3AED', borderColor: '#7C3AED' }}
+              onClick={() =>
+                userSavedFileService.download(file.id, normalizeSvgFilename(file.fileName, file.id))
+              }
+            >
+              Tải xuống file
+            </Button>
+          )}
         </div>
       </div>
     </Drawer>

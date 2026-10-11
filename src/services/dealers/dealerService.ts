@@ -5,6 +5,7 @@ import {
   CreateDealerRequest,
   UpdateDealerRequest,
   DealerStats,
+  DealerPackageResponse,
 } from '@/types/dealer'
 import { PageResponse } from '@/types/common'
 
@@ -80,5 +81,15 @@ export const dealerService = {
 
   deleteDealer: async (id: number): Promise<void> => {
     await axiosClient.delete(API_ENDPOINTS.DEALER_DELETE(id))
+  },
+
+  getMyPackage: async (): Promise<DealerPackageResponse> => {
+    const response = await axiosClient.get<DealerPackageResponse>(API_ENDPOINTS.DEALER_MY_PACKAGE)
+    return response.data
+  },
+
+  getDealerPackage: async (id: number): Promise<DealerPackageResponse> => {
+    const response = await axiosClient.get<DealerPackageResponse>(API_ENDPOINTS.DEALER_PACKAGE(id))
+    return response.data
   },
 }

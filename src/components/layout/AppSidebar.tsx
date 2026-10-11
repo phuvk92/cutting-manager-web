@@ -9,6 +9,7 @@ export const AppSidebar: React.FC = () => {
 
   const isAdmin = user?.role === 'ADMIN'
   const isAgent = user?.role === 'AGENT'
+  const isUser = user?.role === 'USER'
   const isAgentOrAdmin = isAdmin || isAgent
 
   const path = location.pathname
@@ -124,7 +125,7 @@ export const AppSidebar: React.FC = () => {
       )}
 
       {/* ── DATA CENTER ── */}
-      {isAgentOrAdmin && (
+      {(isAgentOrAdmin || isUser) && (
         <>
           <div style={{ padding: '16px 16px 6px', font: "600 10px 'IBM Plex Sans', sans-serif", letterSpacing: '0.1em', color: '#A3A29C' }}>
             DATA CENTER
@@ -156,7 +157,7 @@ export const AppSidebar: React.FC = () => {
               <rect x="15" y="15" width="6" height="6" rx="1" />
             </svg>
           )}
-          {isAdmin && renderNavBtn(
+          {(isAdmin || isAgent || isUser) && renderNavBtn(
             '/admin/user-saved-files',
             'Bản đã lưu',
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">

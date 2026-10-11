@@ -40,6 +40,11 @@ export const AppRoutes: React.FC = () => {
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<DashboardPage />} />
 
+            {/* Admin, Agent, and User routes */}
+            <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'AGENT', 'USER']} />}>
+              <Route path="/admin/user-saved-files" element={<UserSavedFilesPage />} />
+            </Route>
+
             {/* Admin and Agent routes */}
             <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'AGENT']} />}>
               <Route path="/users" element={<UsersPage />} />
@@ -53,7 +58,6 @@ export const AppRoutes: React.FC = () => {
               <Route path="/admin/part-library/categories" element={<PartLibraryCategoriesPage />} />
               <Route path="/admin/part-files/categories" element={<Navigate to="/admin/part-library/categories" replace />} />
               <Route path="/svg" element={<SvgPage />} />
-              <Route path="/admin/user-saved-files" element={<UserSavedFilesPage />} />
               <Route path="/bulk-upload" element={<BulkUploadPage />} />
               <Route path="/audit" element={<AuditPage />} />
             </Route>

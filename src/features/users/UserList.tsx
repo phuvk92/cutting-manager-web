@@ -34,6 +34,7 @@ import { RoleTag } from '@/components/common/RoleTag'
 import { StatusTag } from '@/components/common/StatusTag'
 import { UserModal } from './UserModal'
 import { ResetPasswordModal } from './ResetPasswordModal'
+import { DealerPackageBanner } from '@/features/dealers/DealerPackageBanner'
 import { useAuthStore } from '@/stores/authStore'
 import { extractErrorMessage } from '@/utils/error'
 import dayjs from 'dayjs'
@@ -276,28 +277,46 @@ export const UserList: React.FC = () => {
       render: (role: Role) => <RoleTag role={role} />,
     },
     {
-      title: 'Ngày hết hạn',
+      title: 'Thời hạn / Hết hạn',
       key: 'expirationDate',
-      width: 140,
+      width: 165,
       render: (_: unknown, record: User) => {
         if (record.role === 'ADMIN') {
           return <span style={{ color: '#8A8983', fontSize: 12 }}>Không áp dụng</span>
         }
+        const hasDays = record.allocatedDays && record.allocatedDays > 0
+        const months = record.allocatedDays ? Math.round(record.allocatedDays / 30) : 0
         if (!record.expirationDate) {
-          return <span style={{ color: '#8A8983', fontSize: 12 }}>Không hết hạn</span>
+          return (
+            <div>
+              {hasDays && (
+                <div style={{ fontSize: 11, color: '#6C3BD6', fontWeight: 500 }}>
+                  {record.allocatedDays} ngày ({months} th)
+                </div>
+              )}
+              <span style={{ color: '#8A8983', fontSize: 12 }}>Không hết hạn</span>
+            </div>
+          )
         }
         const isExpired = record.expired ?? dayjs().isAfter(dayjs(record.expirationDate), 'day')
         return (
-          <span
-            style={{
-              fontFamily: "'IBM Plex Mono', monospace",
-              fontSize: 12,
-              color: isExpired ? '#DC2626' : '#35342F',
-              fontWeight: isExpired ? 600 : 400,
-            }}
-          >
-            {dayjs(record.expirationDate).format('DD/MM/YYYY')}
-          </span>
+          <div>
+            {hasDays && (
+              <div style={{ fontSize: 11, color: '#6C3BD6', fontWeight: 500 }}>
+                {record.allocatedDays} ngày ({months} th)
+              </div>
+            )}
+            <span
+              style={{
+                fontFamily: "'IBM Plex Mono', monospace",
+                fontSize: 12,
+                color: isExpired ? '#DC2626' : '#35342F',
+                fontWeight: isExpired ? 600 : 400,
+              }}
+            >
+              {dayjs(record.expirationDate).format('DD/MM/YYYY')}
+            </span>
+          </div>
         )
       },
     },
@@ -399,6 +418,7 @@ export const UserList: React.FC = () => {
 
   return (
     <div>
+      <DealerPackageBanner />
       <Card style={{ marginBottom: 14, borderRadius: 6, borderColor: '#E4E3DE' }} bodyStyle={{ padding: 14 }}>
         <Row gutter={[10, 10]} align="middle">
           <Col xs={24} sm={12} md={isAdmin ? 5 : 6} lg={isAdmin ? 5 : 6}>
@@ -525,6 +545,7 @@ export const UserList: React.FC = () => {
         user={selectedUser}
         onClose={() => setModalOpen(false)}
         onSuccess={fetchUsers}
+        onResetPassword={handleOpenResetPassword}
       />
 
       <ResetPasswordModal

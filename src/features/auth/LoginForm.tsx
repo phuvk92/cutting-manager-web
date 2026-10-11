@@ -336,7 +336,7 @@ export const LoginForm: React.FC = () => {
                 render={({ field }) => (
                   <input
                     {...field}
-                    placeholder="ten.tho"
+                    placeholder="ten.dang.nhap"
                     autoComplete="username"
                     onFocus={() => setFocusedField("username")}
                     onBlur={() => {

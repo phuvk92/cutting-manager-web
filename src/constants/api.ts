@@ -61,10 +61,17 @@ export const API_ENDPOINTS = {
 
   // Bản đã lưu của User (ADMIN view all)
   ADMIN_USER_FILES: '/admin/user-files',
+  AGENT_USER_FILES: '/agent/user-files',
+  INTERNAL_USER_FILES: '/internal/user-files',
   ADMIN_USER_FILE_DETAIL: (id: number | string) => `/admin/user-files/${id}`,
   ADMIN_USER_FILE_DOWNLOAD: (id: number | string) => `/admin/user-files/${id}/download`,
   ADMIN_USER_FILE_PREVIEW: (id: number | string) => `/admin/user-files/${id}/preview`,
   ADMIN_USER_FILE_SHARES: (id: number | string) => `/admin/user-files/${id}/shares`,
+  INTERNAL_USER_FILE_DETAIL: (id: number | string) => `/internal/user-files/${id}`,
+  INTERNAL_USER_FILE_DOWNLOAD: (id: number | string) => `/internal/user-files/${id}/download`,
+  INTERNAL_USER_FILE_PREVIEW: (id: number | string) => `/internal/user-files/${id}/preview`,
+  INTERNAL_USER_FILE_SHARES: (id: number | string) => `/internal/user-files/${id}/shares`,
+
   ADMIN_USER_FILE_REVOKE_SHARE: (id: number | string, userId: number | string) =>
     `/admin/user-files/${id}/shares/${userId}`,
 
@@ -78,4 +85,6 @@ export const API_ENDPOINTS = {
   DEALER_UPDATE: (id: number | string) => `/dealers/${id}`,
   DEALER_STATUS: (id: number | string) => `/dealers/${id}/status`,
   DEALER_DELETE: (id: number | string) => `/dealers/${id}`,
+  DEALER_MY_PACKAGE: '/dealers/my-package',
+  DEALER_PACKAGE: (id: number | string) => `/dealers/${id}/package`,
 } as const

@@ -9,6 +9,7 @@ import {
   Empty,
   message,
   Typography,
+  Tag,
 } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import {
@@ -22,6 +23,8 @@ import {
   ClearOutlined,
   CheckCircleOutlined,
   HddOutlined,
+  AppstoreOutlined,
+  UserOutlined,
 } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import {
@@ -52,15 +55,17 @@ const FONT = "'IBM Plex Sans', sans-serif"
 const MONO = "'IBM Plex Mono', monospace"
 
 /** Ảnh xem trước thu nhỏ của file SVG */
-const FileThumb: React.FC<{ fileId: number; title: string; onClick?: () => void }> = ({
+const FileThumb: React.FC<{ fileId: number; title: string; canPreview?: boolean; onClick?: () => void }> = ({
   fileId,
   title,
+  canPreview = true,
   onClick,
 }) => {
   const [blob, setBlob] = useState<string | null>(null)
   const [failed, setFailed] = useState(false)
 
   useEffect(() => {
+    if (!canPreview) return
     let active = true
     setBlob(null)
     setFailed(false)
@@ -78,9 +83,9 @@ const FileThumb: React.FC<{ fileId: number; title: string; onClick?: () => void 
   }, [fileId])
 
   return (
-    <Tooltip title="Nhấn để xem trước bản vẽ">
+    <Tooltip title={canPreview ? "Nhấn để xem trước bản vẽ" : title}>
       <span
-        onClick={onClick}
+        onClick={canPreview ? onClick : undefined}
         style={{
           width: 44,
           height: 34,
@@ -91,7 +96,7 @@ const FileThumb: React.FC<{ fileId: number; title: string; onClick?: () => void 
           alignItems: 'center',
           justifyContent: 'center',
           overflow: 'hidden',
-          cursor: 'pointer',
+          cursor: canPreview ? 'pointer' : 'default',
           flexShrink: 0,
           transition: 'all 0.15s ease',
         }}
@@ -143,12 +148,15 @@ export const UserSavedFileList: React.FC = () => {
   const [selectedUser, setSelectedUser] = useState<number | undefined>(undefined)
   const [dateRange, setDateRange] = useState<[dayjs.Dayjs | null, dayjs.Dayjs | null] | null>(null)
   const [selectedStatus, setSelectedStatus] = useState<string | undefined>(undefined)
+  const [selectedSource, setSelectedSource] = useState<string | undefined>(undefined)
 
   // Modals / Drawer
   const [selectedFileForDetail, setSelectedFileForDetail] = useState<UserSavedFile | null>(null)
 
   const authUser = useAuthStore(state => state.user)
   const isAdmin = authUser?.role === 'ADMIN'
+  const isAgent = authUser?.role === 'AGENT'
+  const isUser = authUser?.role === 'USER'
 
   const [shareModalOpen, setShareModalOpen] = useState(false)
   const [fileToShare, setFileToShare] = useState<UserSavedFile | null>(null)
@@ -178,10 +186,12 @@ export const UserSavedFileList: React.FC = () => {
       .then(setBrandTrees)
       .catch(() => {})
 
-    dealerService
-      .getAllDealers()
-      .then(setDealers)
-      .catch(() => {})
+    if (isAdmin) {
+      dealerService
+        .getAllDealers()
+        .then(setDealers)
+        .catch(() => {})
+    }
 
     userService
       .getUsers({ size: 100 })
@@ -226,8 +236,14 @@ export const UserSavedFileList: React.FC = () => {
       }
 
       const res: UserSavedFileListResponse = await userSavedFileService.list(params)
-      setData(res.content || [])
-      setTotal(res.totalElements || 0)
+      let items = res.content || []
+      if (selectedSource === 'ADMIN_LIBRARY') {
+        items = items.filter(f => f.fileSource === 'ADMIN_LIBRARY' || f.id >= 1000000000)
+      } else if (selectedSource === 'USER_SAVED') {
+        items = items.filter(f => f.fileSource !== 'ADMIN_LIBRARY' && f.id < 1000000000)
+      }
+      setData(items)
+      setTotal(selectedSource && selectedSource !== 'ALL' ? items.length : (res.totalElements || 0))
     } catch (err) {
       message.error(extractErrorMessage(err, 'Không thể tải danh sách bản lưu'))
       setData([])
@@ -245,6 +261,7 @@ export const UserSavedFileList: React.FC = () => {
     selectedDealer,
     selectedUser,
     selectedStatus,
+    selectedSource,
     dateRange,
   ])
 
@@ -255,6 +272,7 @@ export const UserSavedFileList: React.FC = () => {
   const hasFilter = useMemo(() => {
     return Boolean(
       keyword ||
+        selectedSource !== undefined ||
         selectedCategory !== undefined ||
         selectedBrand !== undefined ||
         selectedModel !== undefined ||
@@ -271,6 +289,7 @@ export const UserSavedFileList: React.FC = () => {
     selectedDealer,
     selectedUser,
     selectedStatus,
+    selectedSource,
     dateRange,
   ])
 
@@ -293,12 +312,14 @@ export const UserSavedFileList: React.FC = () => {
     selectedDealer,
     selectedUser,
     selectedStatus,
+    selectedSource,
     dateRange,
   ])
 
   const handleResetFilters = () => {
     setKeyword('')
     setDebouncedKeyword('')
+    setSelectedSource(undefined)
     setSelectedCategory(undefined)
     setSelectedBrand(undefined)
     setSelectedModel(undefined)
@@ -356,10 +377,13 @@ export const UserSavedFileList: React.FC = () => {
           <FileThumb
             fileId={record.id}
             title={text}
+            canPreview={!isAgent}
             onClick={() => {
-              setPreviewFileId(record.id)
-              setPreviewTitle(record.fileName)
-              setPreviewOpen(true)
+              if (!isAgent) {
+                setPreviewFileId(record.id)
+                setPreviewTitle(record.fileName)
+                setPreviewOpen(true)
+              }
             }}
           />
           <div style={{ minWidth: 0, flex: 1 }}>
@@ -389,6 +413,33 @@ export const UserSavedFileList: React.FC = () => {
           </div>
         </div>
       ),
+    },
+    {
+      title: 'Nguồn file',
+      key: 'fileSource',
+      width: 175,
+      render: (_, record: UserSavedFile) => {
+        const isLibrary = record.fileSource === 'ADMIN_LIBRARY' || record.id >= 1000000000
+        if (isLibrary) {
+          return (
+            <Tag color="purple" icon={<AppstoreOutlined />}>
+              Thư viện kho mẫu & part
+            </Tag>
+          )
+        }
+        if (record.accessType === 'SHARED') {
+          return (
+            <Tag color="cyan" icon={<ShareAltOutlined />}>
+              Được chia sẻ
+            </Tag>
+          )
+        }
+        return (
+          <Tag color="blue" icon={<UserOutlined />}>
+            File cá nhân
+          </Tag>
+        )
+      },
     },
     {
       title: 'Danh mục',
@@ -588,17 +639,19 @@ export const UserSavedFileList: React.FC = () => {
               Xem
             </Button>
           </Tooltip>
-          <Tooltip title="Tải xuống tệp SVG">
-            <Button
-              type="link"
-              size="small"
-              icon={<DownloadOutlined />}
-              onClick={() => handleDownload(record)}
-              style={{ padding: '0 4px', color: '#1B1B19' }}
-            >
-              Tải
-            </Button>
-          </Tooltip>
+          {isAdmin && (
+            <Tooltip title="Tải xuống tệp SVG">
+              <Button
+                type="link"
+                size="small"
+                icon={<DownloadOutlined />}
+                onClick={() => handleDownload(record)}
+                style={{ padding: '0 4px', color: '#1B1B19' }}
+              >
+                Tải
+              </Button>
+            </Tooltip>
+          )}
           {isAdmin && (
             <Tooltip title="Chia sẻ file cho người dùng khác">
               <Button
@@ -741,6 +794,23 @@ export const UserSavedFileList: React.FC = () => {
         <div className="saved-files-filter-row">
           <div className="saved-files-filter-item">
             <Select
+              placeholder="Nguồn file"
+              value={selectedSource}
+              onChange={v => {
+                setSelectedSource(v)
+                setPage(0)
+              }}
+              style={{ width: '100%' }}
+              allowClear
+              options={[
+                { value: 'ALL', label: 'Tất cả nguồn' },
+                { value: 'ADMIN_LIBRARY', label: 'Thư viện kho mẫu & part' },
+                { value: 'USER_SAVED', label: 'File cá nhân' },
+              ]}
+            />
+          </div>
+          <div className="saved-files-filter-item">
+            <Select
               placeholder="Danh mục"
               value={selectedCategory}
               onChange={v => {
@@ -783,26 +853,29 @@ export const UserSavedFileList: React.FC = () => {
             />
           </div>
 
-          <div className="saved-files-filter-item">
-            <Select
-              placeholder="Đại lý"
-              value={selectedDealer}
-              onChange={v => {
-                setSelectedDealer(v)
-                setPage(0)
-              }}
-              style={{ width: '100%' }}
-              allowClear
-              showSearch
-              optionFilterProp="label"
-              options={dealers.map(d => ({ value: d.id, label: d.name }))}
-            />
-          </div>
+          {!isAgent && (
+            <div className="saved-files-filter-item">
+              <Select
+                placeholder="Đại lý"
+                value={selectedDealer}
+                onChange={v => {
+                  setSelectedDealer(v)
+                  setPage(0)
+                }}
+                style={{ width: '100%' }}
+                allowClear
+                showSearch
+                optionFilterProp="label"
+                options={dealers.map(d => ({ value: d.id, label: d.name }))}
+              />
+            </div>
+          )}
 
-          <div className="saved-files-filter-item">
-            <Select
-              placeholder="Người tạo"
-              value={selectedUser}
+          {!isUser && (
+            <div className="saved-files-filter-item">
+              <Select
+                placeholder="Người tạo"
+                value={selectedUser}
               onChange={v => {
                 setSelectedUser(v)
                 setPage(0)
@@ -812,8 +885,9 @@ export const UserSavedFileList: React.FC = () => {
               showSearch
               optionFilterProp="label"
               options={users.map(u => ({ value: u.id, label: u.fullName || u.username }))}
-            />
-          </div>
+              />
+            </div>
+          )}
 
           <div className="saved-files-filter-item-date">
             <RangePicker
@@ -882,13 +956,16 @@ export const UserSavedFileList: React.FC = () => {
       <UserSavedFileDetailDrawer
         file={selectedFileForDetail}
         open={detailOpen}
+        canDownload={isAdmin}
         onClose={() => {
           setDetailOpen(false)
           setSelectedFileForDetail(null)
         }}
-        onShare={isAdmin ? file => {
-          setFileToShare(file)
-          setShareModalOpen(true)
+        onShare={(isAdmin || isUser) ? file => {
+          if (file.fileSource !== 'ADMIN_LIBRARY' && file.id < 1000000000) {
+            setFileToShare(file)
+            setShareModalOpen(true)
+          }
         } : undefined}
       />
 

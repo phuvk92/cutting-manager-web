@@ -1,50 +1,62 @@
-import { axiosClient } from "@/services/api/axiosClient"
-import { API_ENDPOINTS } from "@/constants/api"
+import { axiosClient } from '@/services/api/axiosClient'
+import { API_ENDPOINTS } from '@/constants/api'
+import { useAuthStore } from '@/stores/authStore'
 import {
   UserSavedFile,
   UserSavedFileFilterParams,
   UserSavedFileListResponse,
   FileSharesResponse,
   UserSvgFileShareItem,
-} from "@/types/userSavedFile"
-import { normalizeSvgFilename } from "@/utils/formatters"
+} from '@/types/userSavedFile'
+import { normalizeSvgFilename } from '@/utils/formatters'
 
 export const userSavedFileService = {
   list: async (params?: UserSavedFileFilterParams): Promise<UserSavedFileListResponse> => {
+    const role = useAuthStore.getState().user?.role
+    let endpoint: string = API_ENDPOINTS.ADMIN_USER_FILES
+    if (role === 'AGENT') {
+      endpoint = API_ENDPOINTS.AGENT_USER_FILES
+    } else if (role === 'USER') {
+      endpoint = API_ENDPOINTS.INTERNAL_USER_FILES
+    }
     const response = await axiosClient.get<UserSavedFileListResponse>(
-      API_ENDPOINTS.ADMIN_USER_FILES,
+      endpoint,
       { params }
     )
     return response.data
   },
 
   getDetail: async (id: number): Promise<UserSavedFile> => {
-    const response = await axiosClient.get<UserSavedFile>(
-      API_ENDPOINTS.ADMIN_USER_FILE_DETAIL(id)
-    )
+    const role = useAuthStore.getState().user?.role
+    const endpoint = role === 'USER' ? API_ENDPOINTS.INTERNAL_USER_FILE_DETAIL(id) : API_ENDPOINTS.ADMIN_USER_FILE_DETAIL(id)
+    const response = await axiosClient.get<UserSavedFile>(endpoint)
     return response.data
   },
 
   getPreviewBlobUrl: async (id: number): Promise<string> => {
+    const role = useAuthStore.getState().user?.role
+    const endpoint = role === 'USER' ? API_ENDPOINTS.INTERNAL_USER_FILE_PREVIEW(id) : API_ENDPOINTS.ADMIN_USER_FILE_PREVIEW(id)
     const response = await axiosClient.get<Blob>(
-      API_ENDPOINTS.ADMIN_USER_FILE_PREVIEW(id),
-      { responseType: "blob" }
+      endpoint,
+      { responseType: 'blob' }
     )
     return URL.createObjectURL(response.data)
   },
 
   download: async (id: number, filename?: string): Promise<void> => {
     const safeFilename = normalizeSvgFilename(filename, id)
+    const role = useAuthStore.getState().user?.role
+    const endpoint = role === 'USER' ? API_ENDPOINTS.INTERNAL_USER_FILE_DOWNLOAD(id) : API_ENDPOINTS.ADMIN_USER_FILE_DOWNLOAD(id)
     const response = await axiosClient.get<Blob>(
-      API_ENDPOINTS.ADMIN_USER_FILE_DOWNLOAD(id),
-      { responseType: "blob" }
+      endpoint,
+      { responseType: 'blob' }
     )
 
-    const blob = new Blob([response.data], { type: "image/svg+xml" })
+    const blob = new Blob([response.data], { type: 'image/svg+xml' })
     const url = window.URL.createObjectURL(blob)
-    const link = document.createElement("a")
+    const link = document.createElement('a')
     link.href = url
-    link.setAttribute("download", safeFilename)
+    link.setAttribute('download', safeFilename)
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
@@ -52,23 +64,25 @@ export const userSavedFileService = {
   },
 
   getShares: async (fileId: number): Promise<FileSharesResponse> => {
-    const response = await axiosClient.get<FileSharesResponse>(
-      API_ENDPOINTS.ADMIN_USER_FILE_SHARES(fileId)
-    )
+    const role = useAuthStore.getState().user?.role
+    const endpoint = role === 'USER' ? API_ENDPOINTS.INTERNAL_USER_FILE_SHARES(fileId) : API_ENDPOINTS.ADMIN_USER_FILE_SHARES(fileId)
+    const response = await axiosClient.get<FileSharesResponse>(endpoint)
     return response.data
   },
 
   share: async (fileId: number, userId: number): Promise<UserSvgFileShareItem> => {
+    const role = useAuthStore.getState().user?.role
+    const endpoint = role === 'USER' ? API_ENDPOINTS.INTERNAL_USER_FILE_SHARES(fileId) : API_ENDPOINTS.ADMIN_USER_FILE_SHARES(fileId)
     const response = await axiosClient.post<UserSvgFileShareItem>(
-      API_ENDPOINTS.ADMIN_USER_FILE_SHARES(fileId),
+      endpoint,
       { userId }
     )
     return response.data
   },
 
   revokeShare: async (fileId: number, targetUserId: number): Promise<void> => {
-    await axiosClient.delete(
-      API_ENDPOINTS.ADMIN_USER_FILE_REVOKE_SHARE(fileId, targetUserId)
-    )
+    const role = useAuthStore.getState().user?.role
+    const endpoint = role === 'USER' ? `/internal/user-files/${fileId}/shares/${targetUserId}` : API_ENDPOINTS.ADMIN_USER_FILE_REVOKE_SHARE(fileId, targetUserId)
+    await axiosClient.delete(endpoint)
   },
 }

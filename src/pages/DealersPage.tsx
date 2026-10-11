@@ -1,3 +1,4 @@
+import dayjs from 'dayjs'
 import React, { useState, useEffect, useCallback } from 'react'
 import { PageHeader } from '@/components/common/PageHeader'
 import {
@@ -287,7 +288,7 @@ export const DealersPage: React.FC = () => {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: '92px 1fr 110px 60px 105px 95px 105px 90px',
+              gridTemplateColumns: '90px 1fr 90px 95px 135px 95px 95px 80px',
               padding: '9px 16px',
               background: '#F1F0EC',
               borderBottom: '1px solid #E4E3DE',
@@ -299,9 +300,9 @@ export const DealersPage: React.FC = () => {
             <span>Mã</span>
             <span>Tên đại lý</span>
             <span>Khu vực</span>
-            <span style={{ textAlign: 'right' }}>User</span>
-            <span>Gói cước</span>
-            <span>Hạn dùng</span>
+            <span style={{ textAlign: 'center' }}>Account</span>
+            <span style={{ textAlign: 'center' }}>Quỹ ngày</span>
+            <span>Hạn gói</span>
             <span style={{ textAlign: 'center' }}>Trạng thái</span>
             <span style={{ textAlign: 'right' }}>Thao tác</span>
           </div>
@@ -327,7 +328,7 @@ export const DealersPage: React.FC = () => {
                   className="pcut-table-row"
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: '92px 1fr 110px 60px 105px 95px 105px 90px',
+                    gridTemplateColumns: '90px 1fr 90px 95px 135px 95px 95px 80px',
                     alignItems: 'center',
                     padding: '11px 16px',
                     borderBottom: '1px solid #EFEEEA',
@@ -357,17 +358,25 @@ export const DealersPage: React.FC = () => {
                   {/* Khu vực */}
                   <span style={{ color: '#6E6D68' }}>{d.region || '—'}</span>
 
-                  {/* User count */}
-                  <span style={{ textAlign: 'right', fontFamily: "'IBM Plex Mono', monospace" }}>
-                    {d.usersCount ?? 0}
-                  </span>
+                  {/* Account Quota */}
+                  <div style={{ textAlign: 'center', fontFamily: "'IBM Plex Mono', monospace", fontSize: 11.5 }}>
+                    <strong style={{ color: '#1B1B19' }}>{d.usersCount ?? 0}</strong>
+                    <span style={{ color: '#8A8983' }}>/{d.maxAccounts ?? 10}</span>
+                  </div>
 
-                  {/* Gói cước */}
-                  <span style={{ color: '#35342F' }}>{d.plan || 'Cơ bản'}</span>
+                  {/* Days Quota */}
+                  <div style={{ textAlign: 'center', fontFamily: "'IBM Plex Mono', monospace", fontSize: 11 }}>
+                    <span style={{ color: '#6C3BD6', fontWeight: 500 }}>
+                      {(d.usedAllocatedDays ?? 0).toLocaleString()}
+                    </span>
+                    <span style={{ color: '#8A8983' }}>
+                      /{(d.totalAllocatedDays ?? 3600).toLocaleString()}d
+                    </span>
+                  </div>
 
-                  {/* Hạn dùng */}
-                  <span style={{ fontFamily: "'IBM Plex Mono', monospace", color: dueColor }}>
-                    {d.dueDate || '—'}
+                  {/* Hạn gói */}
+                  <span style={{ fontFamily: "'IBM Plex Mono', monospace", color: dueColor, fontSize: 11.5 }}>
+                    {d.packageExpiryDate ? dayjs(d.packageExpiryDate).format('DD/MM/YYYY') : (d.dueDate || '—')}
                   </span>
 
                   {/* Trạng thái */}

@@ -50,6 +50,8 @@ export interface UserSavedFile {
   mimeType: string
   checksum: string
   status: string
+  accessType?: 'OWNER' | 'SHARED' | string
+  fileSource?: 'USER_SAVED' | 'ADMIN_LIBRARY' | string
 }
 
 export interface UserSavedFileListResponse {
