@@ -1,3 +1,4 @@
+import { REGION_OPTIONS } from '@/constants/provinces'
 import React, { useEffect, useState, useCallback } from 'react'
 import {
   Modal,
@@ -76,18 +77,7 @@ interface DealerModalProps {
   onSuccess: () => void
 }
 
-const REGION_OPTIONS = [
-  { value: 'TP.HCM', label: 'TP.HCM' },
-  { value: 'Hà Nội', label: 'Hà Nội' },
-  { value: 'Đà Nẵng', label: 'Đà Nẵng' },
-  { value: 'Cần Thơ', label: 'Cần Thơ' },
-  { value: 'Hải Phòng', label: 'Hải Phòng' },
-  { value: 'Bình Dương', label: 'Bình Dương' },
-  { value: 'Đồng Nai', label: 'Đồng Nai' },
-  { value: 'Khánh Hoà', label: 'Khánh Hoà' },
-  { value: 'Quảng Ninh', label: 'Quảng Ninh' },
-  { value: 'Nghệ An', label: 'Nghệ An' },
-]
+
 
 const STATUS_OPTIONS = [
   { value: 'ACTIVE', label: 'Hoạt động' },
@@ -447,8 +437,21 @@ export const DealerModal: React.FC<DealerModalProps> = ({
                   <Select
                     {...field}
                     options={REGION_OPTIONS}
-                    placeholder="Chọn khu vực"
+                    placeholder="Chọn khu vực / tỉnh thành"
                     showSearch
+                    allowClear
+                    filterOption={(input, option) => {
+                      const label = (option?.label ?? '')
+                        .toString()
+                        .toLowerCase()
+                        .normalize('NFD')
+                        .replace(/[̀-ͯ]/g, '')
+                      const query = input
+                        .toLowerCase()
+                        .normalize('NFD')
+                        .replace(/[̀-ͯ]/g, '')
+                      return label.includes(query)
+                    }}
                   />
                 )}
               />
