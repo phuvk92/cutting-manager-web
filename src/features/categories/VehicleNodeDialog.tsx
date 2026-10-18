@@ -7,7 +7,7 @@ import { vehicleNodeService } from '@/services/vehicle/vehicleNodeService'
 import { LEVEL_META } from './vehicleLevels'
 import { extractErrorMessage } from '@/utils/error'
 
-interface VehicleNodeDialogProps {
+export interface VehicleNodeDialogProps {
   open: boolean
   /** null = thêm hãng mới; có node = thêm con (add) hoặc đổi tên (edit) */
   mode: 'add' | 'edit'
@@ -18,16 +18,19 @@ interface VehicleNodeDialogProps {
   /** level của node mới khi mode=add (suy từ cha hoặc BRAND) */
   level: keyof typeof LEVEL_META
   parentPath: string
+  zIndex?: number
   onClose: () => void
-  onSaved: () => void
+  onSaved: (createdNode?: VehicleNode) => void
 }
 
 export const VehicleNodeDialog: React.FC<VehicleNodeDialogProps> = ({
   open,
   mode,
   node,
+  parent,
   level,
   parentPath,
+  zIndex,
   onClose,
   onSaved,
 }) => {
@@ -49,12 +52,14 @@ export const VehicleNodeDialog: React.FC<VehicleNodeDialogProps> = ({
     setSaving(true)
     setError(null)
     try {
+      let created: VehicleNode | undefined
       if (mode === 'edit' && node) {
         await vehicleNodeService.rename(node.id, { name: trimmed })
       } else {
-        await vehicleNodeService.create({ parentId: node?.id ?? null, name: trimmed })
+        const parentId = (parent?.id ?? node?.id) ?? null
+        created = await vehicleNodeService.create({ parentId, name: trimmed })
       }
-      onSaved()
+      onSaved(created)
       onClose()
     } catch (err) {
       // 409 NODE_NAME_TAKEN — trùng tên trong cùng cha
@@ -74,6 +79,7 @@ export const VehicleNodeDialog: React.FC<VehicleNodeDialogProps> = ({
   return (
     <Modal
       open={open}
+      zIndex={zIndex}
       title={`${mode === 'add' ? 'Thêm' : 'Sửa'} ${meta.vi.toLowerCase()}`}
       okText="Lưu"
       cancelText="Huỷ"

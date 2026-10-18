@@ -120,8 +120,12 @@ export const SvgList: React.FC = () => {
   const [previewId, setPreviewId] = useState<number | null>(null)
   const [previewName, setPreviewName] = useState('')
 
-  useEffect(() => {
+  const loadTree = () => {
     vehicleNodeService.getBrandTrees().then(setTree).catch(() => {})
+  }
+
+  useEffect(() => {
+    loadTree()
     partLibraryCategoryService.getActiveCategories().then(cats => {
       setCategories(cats.map(c => ({ value: String(c.id), label: c.name })))
     }).catch(() => {})
@@ -542,6 +546,7 @@ export const SvgList: React.FC = () => {
           fetchFiles()
           fetchStats()
         }}
+        onTreeReload={loadTree}
       />
 
       <SvgPreviewModal

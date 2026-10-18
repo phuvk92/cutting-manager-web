@@ -87,4 +87,5 @@ export const API_ENDPOINTS = {
   DEALER_DELETE: (id: number | string) => `/dealers/${id}`,
   DEALER_MY_PACKAGE: '/dealers/my-package',
   DEALER_PACKAGE: (id: number | string) => `/dealers/${id}/package`,
+  DEALER_USERS: (id: number | string) => `/dealers/${id}/users`,
 } as const

@@ -1,6 +1,8 @@
 import React, { Fragment, useEffect, useMemo, useRef, useState } from 'react'
-import { Modal, Select, message } from 'antd'
-import { AdminFile, VehicleNode } from '@/types/adminFile'
+import { Modal, Select, Button, Tooltip, message } from 'antd'
+import { PlusOutlined } from '@ant-design/icons'
+import { AdminFile } from '@/types/adminFile'
+import { VehicleNode, VehicleLevel } from '@/types/vehicleNode'
 import { CatalogOption } from '@/types/category'
 import { adminFileService } from '@/services/admin/adminFileService'
 import { vehicleNodeService } from '@/services/admin/vehicleNodeService'
@@ -8,6 +10,8 @@ import { partLibraryCategoryService } from '@/services/admin/partLibraryCategory
 import { axiosClient } from '@/services/api/axiosClient'
 import { extractErrorMessage } from '@/utils/error'
 import { validateCutArea } from './cutAreaSchema'
+import { useAuthStore } from '@/stores/authStore'
+import { VehicleNodeDialog } from '@/features/categories/VehicleNodeDialog'
 import {
   FILM_WIDTH_PRESETS_MM,
   FORM_DEFAULT_FILM_WIDTH_MM,
@@ -23,6 +27,13 @@ const LEVEL_META = [
   { code: 'MODEL', vi: 'model', label: 'Model', bg: '#FBF0DF', color: '#8A5A12', required: false },
   { code: 'SUBTYPE', vi: 'phiên bản', label: 'Phiên bản', bg: '#FAE7E3', color: '#A93823', required: false },
 ]
+
+const ADD_TOOLTIPS: Record<string, string> = {
+  BRAND: 'Thêm hãng xe',
+  SERIES: 'Thêm dòng xe',
+  MODEL: 'Thêm model xe',
+  SUBTYPE: 'Thêm phiên bản xe',
+}
 
 /** Bỏ dấu + chữ thường để tìm tiếng Việt không cần gõ dấu (đ → d). */
 const foldVi = (text: string): string =>
@@ -49,6 +60,17 @@ interface PartFileFormModalProps {
   categories?: CatalogOption[]
   onClose: () => void
   onSaved: () => void
+  onTreeReload?: () => void
+}
+
+interface NodeDialogState {
+  mode: 'add'
+  level: VehicleLevel
+  node: VehicleNode | null
+  parent: VehicleNode | null
+  parentPath: string
+  targetLevel: VehicleLevel
+  targetRowKey: number
 }
 
 let rowSeq = 1
@@ -221,18 +243,22 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
   categories: categoriesProp,
   onClose,
   onSaved,
+  onTreeReload,
 }) => {
   const isEdit = !!editing
+  const { user } = useAuthStore()
+  const isAdmin = user?.role === 'ADMIN'
 
   const [treeSelf, setTreeSelf] = useState<VehicleNode[]>([])
   const [categoriesSelf, setCategoriesSelf] = useState<CatalogOption[]>([])
-  const tree = treeProp && treeProp.length ? treeProp : treeSelf
-  const categories = categoriesProp && categoriesProp.length ? categoriesProp : categoriesSelf
+  const [nodeDialog, setNodeDialog] = useState<NodeDialogState | null>(null)
 
   useEffect(() => {
     if (!open) return
     if (!treeProp?.length) {
       vehicleNodeService.getBrandTrees().then(setTreeSelf).catch(() => {})
+    } else {
+      setTreeSelf(treeProp)
     }
     if (!categoriesProp?.length) {
       partLibraryCategoryService.getActiveCategories().then(cats => {
@@ -240,7 +266,10 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
       }).catch(() => {})
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open])
+  }, [open, treeProp])
+
+  const tree = treeSelf.length ? treeSelf : (treeProp || [])
+  const categories = categoriesProp && categoriesProp.length ? categoriesProp : categoriesSelf
 
   const [name, setName] = useState('')
   const [categoryId, setCategoryId] = useState<number | undefined>(undefined)
@@ -298,6 +327,7 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
     setThumbnail(null)
     setThumbPreview(null)
     setSaving(false)
+    setNodeDialog(null)
     if (editing) {
       setName(editing.name || '')
       const cat = categories.find(c => c.label === editing.category)
@@ -371,6 +401,136 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
         return next
       })
     )
+  }
+
+  const handleOpenAddNode = (level: number, row: VehicleRow) => {
+    if (!isAdmin) return
+
+    if (level === 0) {
+      // BRAND: Thêm hãng xe
+      setNodeDialog({
+        mode: 'add',
+        level: 'BRAND',
+        node: null,
+        parent: null,
+        parentPath: '',
+        targetLevel: 'BRAND',
+        targetRowKey: row.key,
+      })
+      return
+    }
+
+    if (level === 1) {
+      // SERIES: Thêm dòng xe
+      if (!row.brandId) {
+        message.warning('Vui lòng chọn Hãng xe (BRAND) trước khi thêm dòng xe')
+        return
+      }
+      const brandNode = nodeMap.get(row.brandId)?.node
+      if (!brandNode) {
+        message.warning('Không tìm thấy thông tin hãng xe đã chọn')
+        return
+      }
+      setNodeDialog({
+        mode: 'add',
+        level: 'SERIES',
+        node: brandNode,
+        parent: brandNode,
+        parentPath: brandNode.name,
+        targetLevel: 'SERIES',
+        targetRowKey: row.key,
+      })
+      return
+    }
+
+    if (level === 2) {
+      // MODEL: Thêm model xe
+      if (!row.brandId) {
+        message.warning('Vui lòng chọn Hãng xe (BRAND) trước khi thêm model xe')
+        return
+      }
+      if (!row.seriesId) {
+        message.warning('Vui lòng chọn Dòng xe (SERIES) trước khi thêm model xe')
+        return
+      }
+      const brandNode = nodeMap.get(row.brandId)?.node
+      const seriesNode = nodeMap.get(row.seriesId)?.node
+      if (!seriesNode) {
+        message.warning('Không tìm thấy thông tin dòng xe đã chọn')
+        return
+      }
+      const path = [brandNode?.name, seriesNode.name].filter(Boolean).join(' › ')
+      setNodeDialog({
+        mode: 'add',
+        level: 'MODEL',
+        node: seriesNode,
+        parent: seriesNode,
+        parentPath: path,
+        targetLevel: 'MODEL',
+        targetRowKey: row.key,
+      })
+      return
+    }
+
+    if (level === 3) {
+      // SUBTYPE: Thêm phiên bản xe
+      if (!row.brandId) {
+        message.warning('Vui lòng chọn Hãng xe (BRAND) trước khi thêm phiên bản xe')
+        return
+      }
+      if (!row.seriesId) {
+        message.warning('Vui lòng chọn Dòng xe (SERIES) trước khi thêm phiên bản xe')
+        return
+      }
+      if (!row.modelId) {
+        message.warning('Vui lòng chọn Model xe trước khi thêm phiên bản xe')
+        return
+      }
+      const brandNode = nodeMap.get(row.brandId)?.node
+      const seriesNode = nodeMap.get(row.seriesId)?.node
+      const modelNode = nodeMap.get(row.modelId)?.node
+      if (!modelNode) {
+        message.warning('Không tìm thấy thông tin model xe đã chọn')
+        return
+      }
+      const path = [brandNode?.name, seriesNode?.name, modelNode.name].filter(Boolean).join(' › ')
+      setNodeDialog({
+        mode: 'add',
+        level: 'SUBTYPE',
+        node: modelNode,
+        parent: modelNode,
+        parentPath: path,
+        targetLevel: 'SUBTYPE',
+        targetRowKey: row.key,
+      })
+      return
+    }
+  }
+
+  const handleNodeSaved = async (created?: VehicleNode) => {
+    if (!created || !nodeDialog) return
+    const { targetLevel, targetRowKey } = nodeDialog
+
+    try {
+      // 1. Tải lại cây xe từ backend API thật
+      const freshTree = await vehicleNodeService.getBrandTrees()
+      setTreeSelf(freshTree)
+      onTreeReload?.()
+
+      // 2. Tự động chọn bản ghi vừa tạo theo ID trả về
+      const levelIdx = LEVEL_META.findIndex(l => l.code === targetLevel)
+      if (levelIdx >= 0) {
+        setRow(targetRowKey, levelIdx, created.id)
+      }
+
+      // 3. Thông báo thành công
+      const levelMeta = LEVEL_META.find(l => l.code === targetLevel)
+      message.success(`Đã thêm ${levelMeta?.vi.toLowerCase() || ''} "${created.name}" thành công`)
+    } catch (err) {
+      message.error(extractErrorMessage(err, 'Lỗi cập nhật danh mục xe'))
+    } finally {
+      setNodeDialog(null)
+    }
   }
 
   const acceptFile = (kind: 'nested' | 'raw', f: File | undefined | null) => {
@@ -602,7 +762,33 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
                             {meta.required ? 'bắt buộc' : 'nếu có'}
                           </span>
                         </span>
-                        {levelSelect(row, level, values[level], parents[level])}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            {levelSelect(row, level, values[level], parents[level])}
+                          </div>
+                          {isAdmin && (
+                            <Tooltip title={ADD_TOOLTIPS[meta.code]}>
+                              <Button
+                                danger
+                                type="default"
+                                size="middle"
+                                onClick={() => handleOpenAddNode(level, row)}
+                                icon={<PlusOutlined style={{ color: '#DC2626', fontSize: 13, fontWeight: 'bold' }} />}
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  width: 32,
+                                  height: 32,
+                                  flexShrink: 0,
+                                  borderColor: '#FCA5A5',
+                                  background: '#FEF2F2',
+                                  borderRadius: 4,
+                                }}
+                              />
+                            </Tooltip>
+                          )}
+                        </div>
                       </Fragment>
                     ))}
                   </div>
@@ -623,7 +809,6 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
                 </div>
               )
             })}
-
           </div>
 
           {/* ── khổ cắt: khổ phim chọn từ khổ chuẩn cuộn PPF, dài cuộn admin quyết (board 02/10) ── */}
@@ -817,6 +1002,20 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
           {saving ? 'Đang lưu…' : 'Lưu'}
         </button>
       </div>
+
+      {nodeDialog && (
+        <VehicleNodeDialog
+          open
+          mode="add"
+          node={nodeDialog.node}
+          parent={nodeDialog.parent}
+          level={nodeDialog.level}
+          parentPath={nodeDialog.parentPath}
+          zIndex={1100}
+          onClose={() => setNodeDialog(null)}
+          onSaved={handleNodeSaved}
+        />
+      )}
     </Modal>
   )
 }

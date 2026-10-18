@@ -10,11 +10,13 @@ import {
   UnlockOutlined,
   SearchOutlined,
   ReloadOutlined,
+  EyeOutlined,
 } from '@ant-design/icons'
 import { Popconfirm, message, Tooltip, Input, Spin, Empty } from 'antd'
 import { Dealer, DealerStats } from '@/types/dealer'
 import { dealerService } from '@/services/dealers/dealerService'
 import { DealerModal } from '@/features/dealers/DealerModal'
+import { DealerDetailDrawer } from '@/features/dealers/DealerDetailDrawer'
 import { extractErrorMessage } from '@/utils/error'
 
 const OK = { stBg: '#E6F1EB', stColor: '#2E7D5B', label: 'Hoạt động' }
@@ -31,9 +33,11 @@ export const DealersPage: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1)
   const [totalElements, setTotalElements] = useState(0)
 
-  // Modal state
+  // Modal & Drawer state
   const [modalOpen, setModalOpen] = useState(false)
   const [selectedDealer, setSelectedDealer] = useState<Dealer | null>(null)
+  const [detailDrawerOpen, setDetailDrawerOpen] = useState(false)
+  const [detailDealer, setDetailDealer] = useState<Dealer | null>(null)
 
   const fetchStats = useCallback(async () => {
     try {
@@ -88,6 +92,11 @@ export const DealersPage: React.FC = () => {
   const handleOpenEdit = (dealer: Dealer) => {
     setSelectedDealer(dealer)
     setModalOpen(true)
+  }
+
+  const handleOpenDetail = (dealer: Dealer) => {
+    setDetailDealer(dealer)
+    setDetailDrawerOpen(true)
   }
 
   const handleToggleStatus = async (dealer: Dealer) => {
@@ -288,7 +297,7 @@ export const DealersPage: React.FC = () => {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: '90px 1fr 90px 95px 135px 95px 95px 80px',
+              gridTemplateColumns: '80px 1.1fr 1fr 85px 95px 145px 90px 90px 110px',
               padding: '9px 16px',
               background: '#F1F0EC',
               borderBottom: '1px solid #E4E3DE',
@@ -299,8 +308,9 @@ export const DealersPage: React.FC = () => {
           >
             <span>Mã</span>
             <span>Tên đại lý</span>
+            <span>Tài khoản AGENT</span>
             <span>Khu vực</span>
-            <span style={{ textAlign: 'center' }}>Account</span>
+            <span style={{ textAlign: 'center' }}>Thợ cắt (USER)</span>
             <span style={{ textAlign: 'center' }}>Quỹ ngày</span>
             <span>Hạn gói</span>
             <span style={{ textAlign: 'center' }}>Trạng thái</span>
@@ -322,15 +332,21 @@ export const DealersPage: React.FC = () => {
               const dueColor = getDueColor(d)
               const isLocked = d.status === 'LOCKED'
 
+              const maxAcc = d.maxAccounts ?? 10
+              const createdAcc = d.createdAccounts ?? d.usersCount ?? 0
+              const totalDays = d.totalAllocatedDays ?? 3600
+              const usedDays = d.usedAllocatedDays ?? 0
+              const remainingDays = d.remainingAllocatedDays ?? Math.max(0, totalDays - usedDays)
+
               return (
                 <div
                   key={d.id}
-                  className="pcut-table-row"
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: '90px 1fr 90px 95px 135px 95px 95px 80px',
-                    alignItems: 'center',
+                    gridTemplateColumns: '80px 1.1fr 1fr 85px 95px 145px 90px 90px 110px',
                     padding: '11px 16px',
+                    alignItems: 'center',
+                    background: '#FFF',
                     borderBottom: '1px solid #EFEEEA',
                     font: "400 12px 'IBM Plex Sans', sans-serif",
                     transition: 'background 0.15s ease',
@@ -355,23 +371,46 @@ export const DealersPage: React.FC = () => {
                     )}
                   </div>
 
+                  {/* Tài khoản AGENT duy nhất */}
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    {d.agentUsername ? (
+                      <>
+                        <span style={{ fontWeight: 600, color: '#5B21B6', fontFamily: "'IBM Plex Mono', monospace", fontSize: 11.5 }}>
+                          {d.agentUsername}
+                        </span>
+                        <span style={{ fontSize: 10.5, color: '#8A8983' }}>
+                          {d.agentEmail || '—'}
+                        </span>
+                      </>
+                    ) : (
+                      <span style={{ color: '#B4741E', fontSize: 11, fontStyle: 'italic' }}>
+                        Chưa có AGENT
+                      </span>
+                    )}
+                  </div>
+
                   {/* Khu vực */}
                   <span style={{ color: '#6E6D68' }}>{d.region || '—'}</span>
 
-                  {/* Account Quota */}
+                  {/* Account Quota (chỉ tính USER) */}
                   <div style={{ textAlign: 'center', fontFamily: "'IBM Plex Mono', monospace", fontSize: 11.5 }}>
-                    <strong style={{ color: '#1B1B19' }}>{d.usersCount ?? 0}</strong>
-                    <span style={{ color: '#8A8983' }}>/{d.maxAccounts ?? 10}</span>
+                    <strong style={{ color: '#1B1B19' }}>{createdAcc}</strong>
+                    <span style={{ color: '#8A8983' }}>/{maxAcc}</span>
                   </div>
 
-                  {/* Days Quota */}
+                  {/* Days Quota (chỉ tính USER) */}
                   <div style={{ textAlign: 'center', fontFamily: "'IBM Plex Mono', monospace", fontSize: 11 }}>
-                    <span style={{ color: '#6C3BD6', fontWeight: 500 }}>
-                      {(d.usedAllocatedDays ?? 0).toLocaleString()}
-                    </span>
-                    <span style={{ color: '#8A8983' }}>
-                      /{(d.totalAllocatedDays ?? 3600).toLocaleString()}d
-                    </span>
+                    <div>
+                      <span style={{ color: '#6C3BD6', fontWeight: 600 }}>
+                        {usedDays.toLocaleString()}
+                      </span>
+                      <span style={{ color: '#8A8983' }}>
+                        /{totalDays.toLocaleString()}d
+                      </span>
+                    </div>
+                    <div style={{ fontSize: 10, color: remainingDays > 0 ? '#16A34A' : '#DC2626', marginTop: 1 }}>
+                      còn {remainingDays.toLocaleString()}d
+                    </div>
                   </div>
 
                   {/* Hạn gói */}
@@ -396,6 +435,23 @@ export const DealersPage: React.FC = () => {
 
                   {/* Thao tác */}
                   <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6 }}>
+                    <Tooltip title="Xem chi tiết đại lý & thợ cắt">
+                      <button
+                        onClick={() => handleOpenDetail(d)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          color: '#2563EB',
+                          padding: '4px',
+                          display: 'flex',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <EyeOutlined style={{ fontSize: 13 }} />
+                      </button>
+                    </Tooltip>
+
                     <Tooltip title="Chỉnh sửa thông tin">
                       <button
                         onClick={() => handleOpenEdit(d)}
@@ -436,7 +492,7 @@ export const DealersPage: React.FC = () => {
 
                     <Popconfirm
                       title="Xóa đại lý"
-                      description={`Bạn có chắc muốn xóa đại lý "${d.name}"?`}
+                      description={`Bạn có chắc muốn xóa đại lý "${d.name}"? Tất cả tài khoản thuộc đại lý sẽ bị vô hiệu hóa.`}
                       onConfirm={() => handleDelete(d.id)}
                       okText="Xóa"
                       cancelText="Hủy"
@@ -510,8 +566,7 @@ export const DealersPage: React.FC = () => {
         >
           <InfoCircleOutlined style={{ color: '#6C3BD6', marginTop: 2 }} />
           <div style={{ font: "400 11.5px/1.6 'IBM Plex Sans', sans-serif", color: '#4A3A6B' }}>
-            Đại lý tự quản lý user và kho mẫu trong phạm vi của mình. Admin không cần duyệt từng
-            thao tác, nhưng thấy toàn bộ dữ liệu tại đây.
+            Mỗi đại lý có duy nhất 1 tài khoản quản lý với vai trò <strong>AGENT</strong>. Gói account và Quỹ ngày phân bổ chỉ tính cho các tài khoản Thợ cắt (<strong>USER</strong>) thuộc đại lý. Tài khoản AGENT không tiêu thụ hạn ngạch account hay Quỹ ngày.
           </div>
         </div>
       </div>
@@ -527,6 +582,16 @@ export const DealersPage: React.FC = () => {
         onSuccess={() => {
           fetchDealers()
           fetchStats()
+        }}
+      />
+
+      {/* Dealer Detail Drawer */}
+      <DealerDetailDrawer
+        open={detailDrawerOpen}
+        dealer={detailDealer}
+        onClose={() => {
+          setDetailDrawerOpen(false)
+          setDetailDealer(null)
         }}
       />
     </div>

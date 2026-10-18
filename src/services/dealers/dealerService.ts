@@ -1,3 +1,4 @@
+import { User } from '@/types/user'
 import { axiosClient } from '@/services/api/axiosClient'
 import { API_ENDPOINTS } from '@/constants/api'
 import {
@@ -90,6 +91,11 @@ export const dealerService = {
 
   getDealerPackage: async (id: number): Promise<DealerPackageResponse> => {
     const response = await axiosClient.get<DealerPackageResponse>(API_ENDPOINTS.DEALER_PACKAGE(id))
+    return response.data
+  },
+
+  getDealerUsers: async (id: number): Promise<User[]> => {
+    const response = await axiosClient.get<User[]>(API_ENDPOINTS.DEALER_USERS(id))
     return response.data
   },
 }
