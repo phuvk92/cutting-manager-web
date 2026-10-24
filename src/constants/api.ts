@@ -59,6 +59,12 @@ export const API_ENDPOINTS = {
   AUDIT_LOGS_LIST: '/audit-logs',
   AUDIT_LOG_DETAIL: (id: number | string) => `/audit-logs/${id}`,
 
+  // Audit Logs V2 (Internal API Calls - ADMIN only)
+  AUDIT_V2_LIST: '/admin/audit/v2',
+  AUDIT_V2_DETAIL: (id: number | string) => `/admin/audit/v2/${id}`,
+  AUDIT_V2_STATS: '/admin/audit/v2/stats',
+  AUDIT_V2_EXPORT: '/admin/audit/v2/export',
+
   // Bản đã lưu của User (ADMIN view all)
   ADMIN_USER_FILES: '/admin/user-files',
   AGENT_USER_FILES: '/agent/user-files',
