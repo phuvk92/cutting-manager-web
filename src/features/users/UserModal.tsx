@@ -68,7 +68,6 @@ const createSchema = z.object({
       'Mật khẩu phải chứa chữ hoa, chữ thường, số và ký tự đặc biệt'
     ),
   role: z.enum(['ADMIN', 'AGENT', 'USER'] as const),
-  agentId: z.number().nullable().optional(),
   dealerId: z.number().nullable().optional(),
   enabled: z.boolean(),
   allocatedDays: z.number().int().min(1, 'Số ngày phân bổ phải lớn hơn 0').nullable().optional(),
@@ -84,7 +83,6 @@ const editSchema = z.object({
   fullName: z.string().max(255, 'Tối đa 255 ký tự').nullable().optional().or(z.literal('')),
   phone: z.string().max(50, 'Tối đa 50 ký tự').nullable().optional().or(z.literal('')),
   role: z.enum(['ADMIN', 'AGENT', 'USER'] as const),
-  agentId: z.number().nullable().optional(),
   dealerId: z.number().nullable().optional(),
   enabled: z.boolean(),
   allocatedDays: z.number().int().min(1, 'Số ngày phân bổ phải lớn hơn 0').nullable().optional(),
@@ -118,7 +116,6 @@ export const UserModal: React.FC<UserModalProps> = ({
   const isEdit = !!user
   const [submitting, setSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [agents, setAgents] = useState<{ id: number; username: string; fullName?: string }[]>([])
   const [activeDealers, setActiveDealers] = useState<Dealer[]>([])
   const [loadingDealers, setLoadingDealers] = useState(false)
 
@@ -156,7 +153,6 @@ export const UserModal: React.FC<UserModalProps> = ({
       phone: '',
       password: '',
       role: 'USER',
-      agentId: undefined,
       dealerId: undefined,
       enabled: true,
       allocatedDays: 360,
@@ -219,20 +215,6 @@ export const UserModal: React.FC<UserModalProps> = ({
     }
   }, [open, isAdmin])
 
-  // Load agent list for Admin
-  useEffect(() => {
-    if (open && isAdmin) {
-      userService
-        .getUsers({ role: 'AGENT', size: 100 })
-        .then(res => {
-          setAgents(res.content.map(u => ({ id: u.id, username: u.username, fullName: u.fullName })))
-        })
-        .catch(err => {
-          console.error('Không thể tải danh sách đại lý quản lý', err)
-        })
-    }
-  }, [open, isAdmin])
-
   // Reset form
   useEffect(() => {
     if (open) {
@@ -248,7 +230,6 @@ export const UserModal: React.FC<UserModalProps> = ({
           fullName: user.fullName || '',
           phone: user.phone || '',
           role: user.role,
-          agentId: user.agentId ?? undefined,
           dealerId: user.dealerId ?? undefined,
           enabled: user.enabled ?? true,
           allocatedDays: existingDays,
@@ -267,8 +248,7 @@ export const UserModal: React.FC<UserModalProps> = ({
           phone: '',
           password: '',
           role: 'USER',
-          agentId: undefined,
-          dealerId: !isAdmin ? currentUser?.dealerId : undefined,
+              dealerId: !isAdmin ? currentUser?.dealerId : undefined,
           enabled: true,
           allocatedDays: 360,
           expirationDate: null,
@@ -352,7 +332,6 @@ export const UserModal: React.FC<UserModalProps> = ({
           fullName: editData.fullName?.trim() || undefined,
           phone: editData.phone?.trim() || undefined,
           role: editData.role as Role,
-          agentId: editData.role === 'USER' ? (editData.agentId ?? 0) : undefined,
           dealerId: editData.dealerId ? editData.dealerId : 0,
           enabled: editData.enabled ?? true,
           allocatedDays: isAgent ? effectiveAllocatedDays : (editData.allocatedDays ?? undefined),
@@ -373,7 +352,6 @@ export const UserModal: React.FC<UserModalProps> = ({
           phone: createData.phone?.trim() || undefined,
           password: createData.password,
           role: !isAdmin ? 'USER' : (createData.role as Role),
-          agentId: !isAdmin ? undefined : (createData.role === 'USER' ? (createData.agentId ?? undefined) : undefined),
           dealerId: !isAdmin ? currentUser?.dealerId : (createData.dealerId ?? undefined),
           enabled: createData.enabled ?? true,
           allocatedDays: isAgent ? effectiveAllocatedDays : (createData.allocatedDays ?? undefined),
@@ -625,34 +603,6 @@ export const UserModal: React.FC<UserModalProps> = ({
               )}
             />
           </Form.Item>
-
-          {isAdmin && watchedRole === 'USER' && agents.length > 0 && (
-            <Form.Item
-              label="Đại lý phụ trách (Agent quản lý)"
-              validateStatus={errors.agentId ? 'error' : ''}
-              help={errors.agentId?.message}
-            >
-              <Controller
-                name="agentId"
-                control={control}
-                render={({ field }) => (
-                  <Select
-                    {...field}
-                    placeholder="Không gán (Người dùng trực tiếp)"
-                    allowClear
-                    showSearch
-                    optionFilterProp="children"
-                  >
-                    {agents.map(ag => (
-                      <Select.Option key={ag.id} value={ag.id}>
-                        {ag.fullName ? `${ag.fullName} (${ag.username})` : ag.username}
-                      </Select.Option>
-                    ))}
-                  </Select>
-                )}
-              />
-            </Form.Item>
-          )}
 
           {/* DURATION ALLOCATION SECTION FOR AGENT (OR ADMIN ALLOCATING PACKAGE) */}
           {(isAgent || (isAdmin && watchedRole === 'USER')) && (

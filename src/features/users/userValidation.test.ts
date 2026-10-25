@@ -8,7 +8,6 @@ const editSchema = z.object({
   fullName: z.string().max(255).nullable().optional().or(z.literal('')),
   phone: z.string().max(50).nullable().optional().or(z.literal('')),
   role: z.enum(['ADMIN', 'AGENT', 'USER'] as const),
-  agentId: z.number().nullable().optional(),
   dealerId: z.number().nullable().optional(),
   enabled: z.boolean(),
   expirationDate: z.string().nullable().optional(),
@@ -32,13 +31,12 @@ const resetPasswordSchema = z
   })
 
 describe('User Edit Schema Validation', () => {
-  it('accepts null agentId and null dealerId (default for users without agent/dealer)', () => {
+  it('accepts null dealerId (default for users without dealer)', () => {
     const validData = {
       email: 'cutter@example.com',
       fullName: 'Thợ Cắt',
       phone: null,
       role: 'USER',
-      agentId: null,
       dealerId: null,
       enabled: true,
       expirationDate: null,
@@ -48,7 +46,7 @@ describe('User Edit Schema Validation', () => {
     expect(result.success).toBe(true)
   })
 
-  it('accepts undefined agentId and undefined dealerId', () => {
+  it('accepts undefined dealerId', () => {
     const validData = {
       email: 'admin@example.com',
       fullName: '',

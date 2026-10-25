@@ -8,7 +8,6 @@ export interface User {
   fullName?: string
   phone?: string
   role: Role
-  agentId?: number
   agentUsername?: string
   dealerId?: number
   dealerName?: string
@@ -36,7 +35,6 @@ export interface CreateUserRequest {
   phone?: string
   password: string
   role: Role
-  agentId?: number
   dealerId?: number
   enabled?: boolean
   /** Số ngày phân bổ từ quỹ đại lý */
@@ -51,7 +49,6 @@ export interface UpdateUserRequest {
   fullName?: string
   phone?: string
   role?: Role
-  agentId?: number | null
   dealerId?: number | null
   enabled?: boolean
   password?: string
@@ -87,6 +84,7 @@ export interface UserFilterParams {
   sortBy?: string
   sortDirection?: 'ASC' | 'DESC'
   expirationStatus?: 'ALL' | 'VALID' | 'EXPIRED' | 'NO_EXPIRATION' | string
+  dealerId?: number
 }
 
 /** Máy đã đăng ký của một tài khoản (F-57 — 1 tài khoản 1 thiết bị) */

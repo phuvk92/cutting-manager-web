@@ -27,6 +27,8 @@ import {
 } from '@ant-design/icons'
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table'
 import { User, UserFilterParams } from '@/types/user'
+import { Dealer } from '@/types/dealer'
+import { dealerService } from '@/services/dealers/dealerService'
 import { Role } from '@/types/auth'
 import { userService } from '@/services/users/userService'
 import { formatDateTime } from '@/utils/formatters'
@@ -56,6 +58,17 @@ export const UserList: React.FC = () => {
   const [selectedRole, setSelectedRole] = useState<Role | undefined>(undefined)
   const [selectedEnabled, setSelectedEnabled] = useState<boolean | undefined>(undefined)
   const [selectedExpiration, setSelectedExpiration] = useState<string | undefined>(undefined)
+  const [dealers, setDealers] = useState<Dealer[]>([])
+  const [selectedDealerId, setSelectedDealerId] = useState<number | undefined>(undefined)
+
+  useEffect(() => {
+    if (isAdmin) {
+      dealerService
+        .getDealers({ status: 'ACTIVE', size: 200 })
+        .then(res => setDealers(res.content || []))
+        .catch(() => {})
+    }
+  }, [isAdmin])
   const [sortBy, setSortBy] = useState('createdAt')
   const [sortDirection, setSortDirection] = useState<'ASC' | 'DESC'>('DESC')
 
@@ -79,6 +92,7 @@ export const UserList: React.FC = () => {
       if (selectedRole) params.role = selectedRole
       if (selectedEnabled !== undefined) params.enabled = selectedEnabled
       if (selectedExpiration) params.expirationStatus = selectedExpiration
+      if (selectedDealerId !== undefined) params.dealerId = selectedDealerId
 
       const res = await userService.getUsers(params)
       setData(res.content || [])
@@ -88,7 +102,7 @@ export const UserList: React.FC = () => {
     } finally {
       setLoading(false)
     }
-  }, [page, pageSize, usernameInput, emailInput, selectedRole, selectedEnabled, selectedExpiration, sortBy, sortDirection])
+  }, [page, pageSize, usernameInput, emailInput, selectedRole, selectedEnabled, selectedExpiration, selectedDealerId, sortBy, sortDirection])
 
   useEffect(() => {
     fetchUsers()
@@ -421,9 +435,9 @@ export const UserList: React.FC = () => {
       <DealerPackageBanner />
       <Card style={{ marginBottom: 14, borderRadius: 6, borderColor: '#E4E3DE' }} bodyStyle={{ padding: 14 }}>
         <Row gutter={[10, 10]} align="middle">
-          <Col xs={24} sm={12} md={isAdmin ? 5 : 6} lg={isAdmin ? 5 : 6}>
+          <Col xs={24} sm={12} md={isAdmin ? 4 : 6} lg={isAdmin ? 4 : 6}>
             <Input
-              placeholder="Tìm theo tên đăng nhập..."
+              placeholder="Tìm theo tên, user đại lý..."
               value={usernameInput}
               onChange={e => setUsernameInput(e.target.value)}
               onPressEnter={handleSearch}
@@ -431,7 +445,7 @@ export const UserList: React.FC = () => {
               allowClear
             />
           </Col>
-          <Col xs={24} sm={12} md={isAdmin ? 5 : 6} lg={isAdmin ? 5 : 6}>
+          <Col xs={24} sm={12} md={isAdmin ? 4 : 6} lg={isAdmin ? 4 : 6}>
             <Input
               placeholder="Tìm theo email..."
               value={emailInput}
@@ -441,6 +455,25 @@ export const UserList: React.FC = () => {
               allowClear
             />
           </Col>
+          {isAdmin && (
+            <Col xs={12} sm={6} md={4} lg={4}>
+              <Select
+                placeholder="Tất cả đại lý"
+                value={selectedDealerId}
+                onChange={val => setSelectedDealerId(val)}
+                allowClear
+                showSearch
+                optionFilterProp="children"
+                style={{ width: '100%' }}
+              >
+                {dealers.map(d => (
+                  <Select.Option key={d.id} value={d.id}>
+                    {d.name} {d.agentUsername ? '(@' + d.agentUsername + ')' : ''}
+                  </Select.Option>
+                ))}
+              </Select>
+            </Col>
+          )}
           {isAdmin && (
             <Col xs={12} sm={6} md={3} lg={3}>
               <Select
@@ -468,7 +501,7 @@ export const UserList: React.FC = () => {
               <Select.Option value={false}>Đang khóa</Select.Option>
             </Select>
           </Col>
-          <Col xs={12} sm={6} md={isAdmin ? 4 : 5} lg={isAdmin ? 4 : 5}>
+          <Col xs={12} sm={6} md={isAdmin ? 3 : 5} lg={isAdmin ? 3 : 5}>
             <Select
               placeholder="Hạn tài khoản"
               value={selectedExpiration}
@@ -482,7 +515,7 @@ export const UserList: React.FC = () => {
               <Select.Option value="NO_EXPIRATION">Không có ngày hết hạn</Select.Option>
             </Select>
           </Col>
-          <Col xs={24} sm={6} md={isAdmin ? 4 : 3} lg={isAdmin ? 4 : 3} style={{ display: 'flex', justifyContent: 'flex-end', marginLeft: 'auto' }}>
+          <Col xs={24} sm={6} md={isAdmin ? 3 : 3} lg={isAdmin ? 3 : 3} style={{ display: 'flex', justifyContent: 'flex-end', marginLeft: 'auto' }}>
             <Space size={8}>
               <Tooltip title="Tìm kiếm">
                 <Button
