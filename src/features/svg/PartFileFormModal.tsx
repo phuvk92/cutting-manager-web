@@ -1,5 +1,6 @@
 import React, { Fragment, useEffect, useMemo, useRef, useState } from 'react'
-import { Modal, Select, Button, Tooltip, message } from 'antd'
+import { Modal, Select, Button, Tooltip, message, Spin } from 'antd'
+import { svgService } from '@/services/svg/svgService'
 import { PlusOutlined } from '@ant-design/icons'
 import { AdminFile } from '@/types/adminFile'
 import { VehicleNode, VehicleLevel } from '@/types/vehicleNode'
@@ -7,7 +8,6 @@ import { CatalogOption } from '@/types/category'
 import { adminFileService } from '@/services/admin/adminFileService'
 import { vehicleNodeService } from '@/services/admin/vehicleNodeService'
 import { partLibraryCategoryService } from '@/services/admin/partLibraryCategoryService'
-import { axiosClient } from '@/services/api/axiosClient'
 import { extractErrorMessage } from '@/utils/error'
 import { validateCutArea } from './cutAreaSchema'
 import { useAuthStore } from '@/stores/authStore'
@@ -38,6 +38,15 @@ const ADD_TOOLTIPS: Record<string, string> = {
 /** Bỏ dấu + chữ thường để tìm tiếng Việt không cần gõ dấu (đ → d). */
 const foldVi = (text: string): string =>
   text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/gi, 'd').toLowerCase()
+
+/** Đảm bảo file SVG luôn có MIME type image/svg+xml khi tạo object URL */
+const createSvgBlobUrl = (file: File | Blob): string => {
+  if (file.type === 'image/svg+xml') {
+    return URL.createObjectURL(file)
+  }
+  const typedBlob = new Blob([file], { type: 'image/svg+xml' })
+  return URL.createObjectURL(typedBlob)
+}
 
 interface VehicleRow {
   key: number
@@ -283,6 +292,8 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
   const [fileError, setFileError] = useState<string | null>(null)
   const [thumbnail, setThumbnail] = useState<File | null>(null)
   const [thumbPreview, setThumbPreview] = useState<string | null>(null)
+  const [previewLoading, setPreviewLoading] = useState(false)
+  const [imgFailed, setImgFailed] = useState(false)
   const [widthChoice, setWidthChoice] = useState<WidthChoice>(FORM_DEFAULT_FILM_WIDTH_MM)
   const [widthCustom, setWidthCustom] = useState('')
   const [cutLength, setCutLength] = useState(String(DEFAULT_CUT_AREA_LENGTH_MM))
@@ -307,14 +318,6 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
   const childrenOf = (parentId?: number): VehicleNode[] => {
     if (parentId === undefined) return tree
     return nodeMap.get(parentId)?.node.children || []
-  }
-
-  // Nạp thumbnail đang có khi mở sửa (ảnh qua API nên phải tải bằng axios blob)
-  const loadExistingThumb = (url: string) => {
-    axiosClient
-      .get<Blob>(url, { responseType: 'blob' })
-      .then(res => setThumbPreview(URL.createObjectURL(res.data)))
-      .catch(() => setThumbPreview(null))
   }
 
   useEffect(() => {
@@ -348,7 +351,6 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
         })
         .filter((r): r is VehicleRow => r !== null)
       setRows(prefill.length ? prefill : [emptyRow()])
-      if (editing.thumbnailUrl) loadExistingThumb(editing.thumbnailUrl)
       // Khổ đang lưu: trùng khổ chuẩn → chọn sẵn; lạ → "Khổ khác…"; chưa khai → chọn sẵn 1520/15000
       const w = editing.cutAreaWidthMm
       if (w == null) {
@@ -374,12 +376,93 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, editing])
 
+  // Quản lý xem trước SVG / Thumbnail phản ứng nhanh với mọi thay đổi nguồn
   useEffect(() => {
-    if (!thumbnail) return
-    const url = URL.createObjectURL(thumbnail)
-    setThumbPreview(url)
-    return () => URL.revokeObjectURL(url)
-  }, [thumbnail])
+    let active = true
+    let currentBlobUrl: string | null = null
+
+    setImgFailed(false)
+
+    // 1. Người dùng chọn ảnh thumbnail mới
+    if (thumbnail) {
+      const url = URL.createObjectURL(thumbnail)
+      currentBlobUrl = url
+      setThumbPreview(url)
+      setPreviewLoading(false)
+      return () => {
+        URL.revokeObjectURL(url)
+      }
+    }
+
+    // 2. Người dùng chọn file SVG mới (nestedFile hoặc rawFile)
+    const newSvg = (!removeNested && nestedFile) || (!removeRaw && rawFile)
+    if (newSvg) {
+      const url = createSvgBlobUrl(newSvg)
+      currentBlobUrl = url
+      setThumbPreview(url)
+      setPreviewLoading(false)
+      return () => {
+        URL.revokeObjectURL(url)
+      }
+    }
+
+    // 3. Chế độ sửa: tải file SVG hiện có từ server (hoặc thumbnailUrl nếu có)
+    if (open && isEdit && editing?.id) {
+      const fileId = editing.id
+      const thumbUrl = editing.thumbnailUrl
+
+      setPreviewLoading(true)
+      setThumbPreview(null)
+
+      const loadExisting = async () => {
+        try {
+          let url: string
+          if (thumbUrl) {
+            try {
+              url = await svgService.getThumbnailBlobUrl(thumbUrl)
+            } catch {
+              url = await svgService.getPreviewBlobUrl(fileId)
+            }
+          } else {
+            url = await svgService.getPreviewBlobUrl(fileId)
+          }
+
+          if (active) {
+            currentBlobUrl = url
+            setThumbPreview(url)
+            setPreviewLoading(false)
+          } else {
+            URL.revokeObjectURL(url)
+          }
+        } catch {
+          if (active) {
+            setThumbPreview(null)
+            setPreviewLoading(false)
+          }
+        }
+      }
+
+      loadExisting()
+
+      return () => {
+        active = false
+        if (currentBlobUrl) {
+          URL.revokeObjectURL(currentBlobUrl)
+        }
+      }
+    }
+
+    // 4. Mặc định chưa có file nào
+    setThumbPreview(null)
+    setPreviewLoading(false)
+
+    return () => {
+      active = false
+      if (currentBlobUrl) {
+        URL.revokeObjectURL(currentBlobUrl)
+      }
+    }
+  }, [open, isEdit, editing?.id, editing?.thumbnailUrl, thumbnail, nestedFile, rawFile, removeNested, removeRaw])
 
   const setRow = (key: number, level: number, value?: number) => {
     setRows(prev =>
@@ -928,9 +1011,21 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
           )}
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span style={{ font: `500 11px ${FONT}`, color: '#6E6D68' }}>Ảnh xem trước</span>
-            <button
+            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+              <span style={{ font: `500 11px ${FONT}`, color: '#6E6D68' }}>Ảnh xem trước (SVG / Thumbnail)</span>
+              {thumbPreview && (
+                <span style={{ font: `400 10.5px ${FONT}`, color: '#8A8983' }}>
+                  {thumbnail
+                    ? 'Ảnh thumbnail mới'
+                    : nestedFile || rawFile
+                    ? 'Từ SVG mới chọn'
+                    : 'Từ SVG hiện có'}
+                </span>
+              )}
+            </div>
+            <div
               onClick={() => thumbInputRef.current?.click()}
+              title="Nhấn để tải lên ảnh thumbnail riêng (tuỳ chọn)"
               style={{
                 height: 170,
                 border: '1px solid #D8D7D2',
@@ -941,15 +1036,42 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                padding: 6,
+                padding: 8,
+                position: 'relative',
               }}
             >
-              {thumbPreview ? (
-                <img src={thumbPreview} alt="thumbnail" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+              {previewLoading ? (
+                <Spin tip="Đang tải preview..." />
+              ) : thumbPreview ? (
+                !imgFailed ? (
+                  <img
+                    src={thumbPreview}
+                    alt="preview"
+                    style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', pointerEvents: 'none' }}
+                    onError={() => setImgFailed(true)}
+                  />
+                ) : (
+                  <object
+                    data={thumbPreview}
+                    type="image/svg+xml"
+                    style={{ maxWidth: '100%', maxHeight: '100%', pointerEvents: 'none' }}
+                    aria-label="SVG Preview"
+                  >
+                    <span style={{ font: `400 11px ${FONT}`, color: '#A5A49E' }}>Không thể hiển thị SVG</span>
+                  </object>
+                )
               ) : (
-                <span style={{ font: `400 11px ${FONT}`, color: '#A5A49E' }}>Ảnh thumbnail</span>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#C9C8C3" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3.5" y="4" width="17" height="16" rx="2" />
+                    <circle cx="9" cy="10" r="1.6" />
+                    <path d="M20 15.5 15.5 11 6.5 20" />
+                  </svg>
+                  <span style={{ font: `400 11px ${FONT}`, color: '#A5A49E' }}>Chưa có preview</span>
+                  <span style={{ font: `400 10px ${FONT}`, color: '#C6C5BF' }}>Chọn file SVG hoặc nhấn để chọn ảnh</span>
+                </div>
               )}
-            </button>
+            </div>
             <input
               ref={thumbInputRef}
               type="file"
@@ -960,6 +1082,28 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
                 e.target.value = ''
               }}
             />
+            {thumbnail && (
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setThumbnail(null)
+                  }}
+                  style={{
+                    padding: '2px 8px',
+                    border: '1px solid #D8D7D2',
+                    borderRadius: 4,
+                    background: '#FFF',
+                    cursor: 'pointer',
+                    font: `400 10.5px ${FONT}`,
+                    color: '#A93823',
+                  }}
+                >
+                  Xoá ảnh thumbnail đã chọn
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

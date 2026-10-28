@@ -34,29 +34,71 @@ const fmtDate = (s?: string | null) => {
 
 const SOURCE_LABEL: Record<string, string> = { SYSTEM: 'Hệ thống', DEALER: 'Đại lý' }
 
-/** Ảnh xem trước của file — thumbnailUrl từ API, tải bằng axios blob vì có JWT. */
-const FileThumb: React.FC<{ url: string | null; onClick?: () => void }> = ({ url, onClick }) => {
+interface FileThumbProps {
+  fileId: number
+  thumbnailUrl?: string | null
+  title?: string
+  onClick?: () => void
+}
+
+/** Ảnh xem trước của file — tự động tải SVG preview qua /api/svg/{id}/preview (hoặc thumbnailUrl nếu có). */
+const FileThumb: React.FC<FileThumbProps> = ({ fileId, thumbnailUrl, title, onClick }) => {
   const [blob, setBlob] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
   const [failed, setFailed] = useState(false)
+  const [imgFailed, setImgFailed] = useState(false)
 
   useEffect(() => {
     let active = true
+    let currentUrl: string | null = null
+
     setBlob(null)
+    setLoading(true)
     setFailed(false)
-    if (url) {
-      svgService
-        .getThumbnailBlobUrl(url)
-        .then(u => active && setBlob(u))
-        .catch(() => active && setFailed(true))
+    setImgFailed(false)
+
+    const fetchThumb = async () => {
+      try {
+        let u: string
+        if (thumbnailUrl) {
+          try {
+            u = await svgService.getThumbnailBlobUrl(thumbnailUrl)
+          } catch {
+            u = await svgService.getPreviewBlobUrl(fileId)
+          }
+        } else {
+          u = await svgService.getPreviewBlobUrl(fileId)
+        }
+
+        if (active) {
+          currentUrl = u
+          setBlob(u)
+          setLoading(false)
+        } else {
+          URL.revokeObjectURL(u)
+        }
+      } catch {
+        if (active) {
+          setFailed(true)
+          setLoading(false)
+        }
+      }
     }
+
+    fetchThumb()
+
     return () => {
       active = false
+      if (currentUrl) {
+        URL.revokeObjectURL(currentUrl)
+      }
     }
-  }, [url])
+  }, [fileId, thumbnailUrl])
 
   return (
     <span
       onClick={onClick}
+      title={title ? `Nhấn để xem trước: ${title}` : 'Nhấn để xem trước bản vẽ'}
       style={{
         width: 48,
         height: 34,
@@ -68,10 +110,28 @@ const FileThumb: React.FC<{ url: string | null; onClick?: () => void }> = ({ url
         justifyContent: 'center',
         overflow: 'hidden',
         cursor: onClick ? 'pointer' : 'default',
+        position: 'relative',
+        flexShrink: 0,
       }}
     >
-      {blob && !failed ? (
-        <img src={blob} alt="" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+      {loading ? (
+        <Spin size="small" />
+      ) : blob && !failed ? (
+        !imgFailed ? (
+          <img
+            src={blob}
+            alt={title || ''}
+            style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', pointerEvents: 'none' }}
+            onError={() => setImgFailed(true)}
+          />
+        ) : (
+          <object
+            data={blob}
+            type="image/svg+xml"
+            style={{ maxWidth: '100%', maxHeight: '100%', pointerEvents: 'none' }}
+            aria-label={title || 'SVG'}
+          />
+        )
       ) : (
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C9C8C3" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
           <rect x="3.5" y="4" width="17" height="16" rx="2" />
@@ -385,7 +445,9 @@ export const SvgList: React.FC = () => {
               >
                 <span style={{ font: `400 11.5px ${MONO}`, color: '#8A8983' }}>{page * pageSize + i + 1}</span>
                 <FileThumb
-                  url={f.thumbnailUrl}
+                  fileId={f.id}
+                  thumbnailUrl={f.thumbnailUrl}
+                  title={f.name || f.originalFilename}
                   onClick={() => {
                     setPreviewId(f.id)
                     setPreviewName(f.name || f.originalFilename)

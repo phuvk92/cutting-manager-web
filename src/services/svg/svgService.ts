@@ -14,14 +14,19 @@ export const svgService = {
     return response.data
   },
 
-  getPreviewBlobUrl: async (id: number): Promise<string> => {
+  getPreviewBlobUrl: async (id: number, layout?: string): Promise<string> => {
     const response = await axiosClient.get<Blob>(API_ENDPOINTS.SVG_PREVIEW(id), {
+      params: layout ? { layout } : undefined,
       responseType: 'blob',
     })
-    return URL.createObjectURL(response.data)
+    const blob = response.data.type === 'image/svg+xml'
+      ? response.data
+      : new Blob([response.data], { type: 'image/svg+xml' })
+    return URL.createObjectURL(blob)
   },
 
   getThumbnailBlobUrl: async (url: string): Promise<string> => {
+    if (!url) throw new Error('Thumbnail URL is required')
     // thumbnailUrl từ backend đã có sẵn tiền tố /api — gỡ đi để không bị baseURL nối lần nữa
     const path = url.startsWith('/api/') ? url.slice(4) : url
     const response = await axiosClient.get<Blob>(path, { responseType: 'blob' })
