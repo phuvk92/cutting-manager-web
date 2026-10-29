@@ -1,14 +1,13 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { Modal, Form, Input, Button, Alert, message } from 'antd'
-import { LockOutlined, KeyOutlined } from '@ant-design/icons'
+import { LockOutlined, UserOutlined } from '@ant-design/icons'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { User } from '@/types/user'
+import { useTranslation } from 'react-i18next'
+import { User, ResetPasswordRequest } from '@/types/user'
 import { userService } from '@/services/users/userService'
 import { extractErrorMessage } from '@/utils/error'
-
-const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#^()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/
 
 const resetPasswordSchema = z
   .object({
@@ -16,13 +15,13 @@ const resetPasswordSchema = z
       .string()
       .min(8, 'Mật khẩu phải có ít nhất 8 ký tự')
       .regex(
-        passwordRegex,
-        'Mật khẩu phải chứa ít nhất một chữ hoa, một chữ thường, một số và một ký tự đặc biệt'
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#^()_+\-=[\]{};':"\|,.<>/?]).{8,}$/,
+        'Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt'
       ),
     confirmPassword: z.string().min(1, 'Vui lòng xác nhận mật khẩu mới'),
   })
   .refine(data => data.newPassword === data.confirmPassword, {
-    message: 'Mật khẩu xác nhận không trùng khớp với mật khẩu mới',
+    message: 'Mật khẩu xác nhận không khớp',
     path: ['confirmPassword'],
   })
 
@@ -32,15 +31,14 @@ interface ResetPasswordModalProps {
   open: boolean
   user: User | null
   onClose: () => void
-  onSuccess?: () => void
 }
 
 export const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
   open,
   user,
   onClose,
-  onSuccess,
 }) => {
+  const { t } = useTranslation(['users', 'common'])
   const [submitting, setSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
@@ -57,78 +55,80 @@ export const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
     },
   })
 
-  useEffect(() => {
-    if (open) {
-      setErrorMessage(null)
-      reset({
-        newPassword: '',
-        confirmPassword: '',
-      })
-    }
-  }, [open, reset])
-
   const onSubmit = async (data: ResetPasswordFormData) => {
     if (!user) return
+
     setSubmitting(true)
     setErrorMessage(null)
 
     try {
-      await userService.resetPassword(user.id, {
+      const payload: ResetPasswordRequest = {
         newPassword: data.newPassword,
-      })
-      message.success(`Đặt lại mật khẩu cho tài khoản "${user.username}" thành công`)
-      onSuccess?.()
-      onClose()
-    } catch (err) {
-      setErrorMessage(extractErrorMessage(err, 'Không thể đặt lại mật khẩu cho người dùng'))
+      }
+      await userService.resetPassword(user.id, payload)
+      message.success(t('resetModal.success'))
+      handleClose()
+    } catch (err: unknown) {
+      setErrorMessage(extractErrorMessage(err, t('resetModal.error')))
     } finally {
       setSubmitting(false)
     }
   }
 
+  const handleClose = () => {
+    reset()
+    setErrorMessage(null)
+    onClose()
+  }
+
   return (
     <Modal
+      open={open}
       title={
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <KeyOutlined style={{ color: '#D97706' }} />
-          <span>Đặt lại mật khẩu người dùng</span>
+          <LockOutlined style={{ color: '#D97706' }} />
+          <span>
+            {t('resetModal.title')} <strong>{user?.username}</strong>
+          </span>
         </div>
       }
-      open={open}
-      onCancel={onClose}
+      onCancel={handleClose}
       footer={[
-        <Button key="cancel" onClick={onClose} disabled={submitting}>
-          Hủy
+        <Button key="cancel" onClick={handleClose} disabled={submitting}>
+          {t('actions.cancel', { ns: 'common' })}
         </Button>,
         <Button
           key="submit"
           type="primary"
           onClick={handleSubmit(onSubmit)}
           loading={submitting}
-          style={{ background: '#6C3BD6', borderColor: '#6C3BD6' }}
+          style={{ background: '#D97706', borderColor: '#D97706' }}
         >
-          Xác nhận đặt lại mật khẩu
+          {t('resetModal.save')}
         </Button>,
       ]}
       destroyOnClose
-      width={500}
+      width={480}
     >
       <div style={{ padding: '8px 0' }}>
         {user && (
           <div
             style={{
+              marginBottom: 16,
+              padding: '10px 14px',
               background: '#F9FAFB',
               border: '1px solid #E5E7EB',
               borderRadius: 6,
-              padding: '10px 14px',
-              marginBottom: 16,
             }}
           >
-            <div style={{ fontSize: 13, color: '#4B5563', marginBottom: 4 }}>
-              <strong>Tài khoản:</strong> <span style={{ color: '#111827' }}>{user.username}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+              <UserOutlined style={{ color: '#6B7280' }} />
+              <span style={{ fontSize: 13, fontWeight: 500, color: '#374151' }}>
+                {t('modal.username')}: <strong style={{ color: '#111827' }}>{user.username}</strong>
+              </span>
             </div>
             <div style={{ fontSize: 13, color: '#4B5563' }}>
-              <strong>Email:</strong> <span style={{ color: '#111827' }}>{user.email}</span>
+              <strong>{t('labels.email', { ns: 'common' })}:</strong> <span style={{ color: '#111827' }}>{user.email}</span>
               {user.fullName && <span> ({user.fullName})</span>}
             </div>
           </div>
@@ -138,7 +138,7 @@ export const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
           <Alert
             type="error"
             showIcon
-            message="Đặt lại mật khẩu thất bại"
+            message={t('resetModal.error')}
             description={errorMessage}
             style={{ marginBottom: 16 }}
             closable
@@ -148,12 +148,12 @@ export const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
 
         <Form layout="vertical">
           <Form.Item
-            label="Mật khẩu mới"
+            label={t('resetModal.newPassword')}
             validateStatus={errors.newPassword ? 'error' : ''}
             help={errors.newPassword?.message}
             extra={
               <span style={{ fontSize: 11, color: '#8A8983' }}>
-                Tối thiểu 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt.
+                {t('resetModal.passwordHelp')}
               </span>
             }
             required
@@ -165,14 +165,14 @@ export const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
                 <Input.Password
                   {...field}
                   prefix={<LockOutlined style={{ color: '#9CA3AF' }} />}
-                  placeholder="Nhập mật khẩu mới"
+                  placeholder={t('resetModal.newPasswordPlaceholder')}
                 />
               )}
             />
           </Form.Item>
 
           <Form.Item
-            label="Xác nhận mật khẩu mới"
+            label={t('resetModal.confirmPassword')}
             validateStatus={errors.confirmPassword ? 'error' : ''}
             help={errors.confirmPassword?.message}
             required
@@ -184,7 +184,7 @@ export const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
                 <Input.Password
                   {...field}
                   prefix={<LockOutlined style={{ color: '#9CA3AF' }} />}
-                  placeholder="Nhập lại mật khẩu mới để xác nhận"
+                  placeholder={t('resetModal.confirmPasswordPlaceholder')}
                 />
               )}
             />

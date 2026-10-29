@@ -2,10 +2,12 @@ import React, { useEffect } from 'react'
 import { BrowserRouter } from 'react-router-dom'
 import { ConfigProvider, App as AntApp } from 'antd'
 import { useAuthStore } from '@/stores/authStore'
+import { useLocaleStore } from '@/stores/localeStore'
 import { AppRoutes } from '@/routes/AppRoutes'
 
 export const App: React.FC = () => {
   const { initAuth } = useAuthStore()
+  const { antdLocale } = useLocaleStore()
 
   useEffect(() => {
     initAuth()
@@ -13,6 +15,7 @@ export const App: React.FC = () => {
 
   return (
     <ConfigProvider
+      locale={antdLocale}
       theme={{
         token: {
           colorPrimary: '#7C3AED',

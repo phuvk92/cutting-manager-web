@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Card, Row, Col, Typography, Descriptions, Badge, Table, Button, Space, Tag, Input, Select } from 'antd'
 import { ReloadOutlined, DatabaseOutlined, HeartOutlined, HistoryOutlined, SearchOutlined } from '@ant-design/icons'
 import { auditService, ActuatorHealth } from '@/services/audit/auditService'
@@ -20,6 +21,7 @@ interface ActivityEvent {
 }
 
 export const AuditLogView: React.FC = () => {
+  const { t } = useTranslation('audit')
   const [health, setHealth] = useState<ActuatorHealth | null>(null)
   const [events, setEvents] = useState<ActivityEvent[]>([])
   const [loading, setLoading] = useState(false)
@@ -130,26 +132,26 @@ export const AuditLogView: React.FC = () => {
             title={
               <Space>
                 <HeartOutlined style={{ color: '#eb2f96' }} />
-                <span>Backend Health Status</span>
+                <span>{t("v1.healthTitle")}</span>
               </Space>
             }
             extra={
               <Button size="small" icon={<ReloadOutlined />} onClick={loadAuditData} loading={loading}>
-                Refresh
+                {t("v1.refresh")}
               </Button>
             }
           >
             <Descriptions column={1} bordered size="small">
-              <Descriptions.Item label="System Health">
+              <Descriptions.Item label={t("v1.systemHealth")}>
                 <Badge
                   status={health?.status === 'UP' ? 'success' : 'error'}
                   text={<Text strong>{health?.status || 'UNKNOWN'}</Text>}
                 />
               </Descriptions.Item>
-              <Descriptions.Item label="API Gateway / Service">
+              <Descriptions.Item label={t("v1.apiGateway")}>
                 <Text code>/api/**</Text> — Spring Boot 3.x
               </Descriptions.Item>
-              <Descriptions.Item label="Actuator Endpoint">
+              <Descriptions.Item label={t("v1.actuatorEndpoint")}>
                 <Text code>/actuator/health</Text>
               </Descriptions.Item>
             </Descriptions>
@@ -161,18 +163,18 @@ export const AuditLogView: React.FC = () => {
             title={
               <Space>
                 <DatabaseOutlined style={{ color: '#1890ff' }} />
-                <span>Security & Authorization Info</span>
+                <span>{t("v1.securityTitle")}</span>
               </Space>
             }
           >
             <Descriptions column={1} bordered size="small">
-              <Descriptions.Item label="Audit Trail Logging">
-                Active — Tự động lưu vết toàn bộ API của User & Đại lý
+              <Descriptions.Item label={t("v1.auditTrailLogging")}>
+                {t("v1.auditTrailLoggingDesc")}
               </Descriptions.Item>
-              <Descriptions.Item label="Authentication Scheme">
+              <Descriptions.Item label={t("v1.authScheme")}>
                 JWT Bearer (Keycloak) + UUID Refresh Token
               </Descriptions.Item>
-              <Descriptions.Item label="Data Encryption">
+              <Descriptions.Item label={t("v1.encryption")}>
                 AES-256-GCM Envelope Encryption (Internal V2)
               </Descriptions.Item>
             </Descriptions>
@@ -184,39 +186,37 @@ export const AuditLogView: React.FC = () => {
         title={
           <Space>
             <HistoryOutlined style={{ color: '#722ed1' }} />
-            <span>Audit Trail & Activity Log</span>
+            <span>{t("v1.activityTitle")}</span>
           </Space>
         }
         extra={
           <Space wrap>
             <Input.Search
-              placeholder="Tìm kiếm actor, action, chi tiết..."
+              placeholder={t("v1.searchPlaceholder")}
               allowClear
               onSearch={val => setSearchKeyword(val)}
               style={{ width: 240 }}
               prefix={<SearchOutlined />}
             />
             <Select
-              placeholder="Lọc vai trò"
+              placeholder={t("v1.roleFilterPlaceholder")}
               allowClear
               style={{ width: 140 }}
               value={roleFilter}
               onChange={val => setRoleFilter(val)}
               options={[
-                { label: 'Tất cả vai trò', value: '' },
-                { label: 'USER (Thợ cắt)', value: 'USER' },
-                { label: 'AGENT (Đại lý)', value: 'AGENT' },
-                { label: 'ADMIN (Quản trị)', value: 'ADMIN' },
+                { label: t('v1.allRoles'), value: '' },
+                { label: t('v1.roleUser'), value: 'USER' },
+                { label: t('v1.roleAgent'), value: 'AGENT' },
+                { label: t('v1.roleAdmin'), value: 'ADMIN' },
               ]}
             />
-            <Button icon={<ReloadOutlined />} onClick={loadAuditData} loading={loading}>
-              Làm mới
-            </Button>
+            <Button icon={<ReloadOutlined />} onClick={loadAuditData} loading={loading}>{t("v1.refresh")}</Button>
           </Space>
         }
       >
         <Paragraph type="secondary" style={{ marginBottom: 16 }}>
-          Nhật ký hoạt động hệ thống ghi nhận tự động toàn bộ API gọi từ người dùng máy cắt (USER) và đại lý (AGENT) theo trình tự thời gian.
+          {t("v1.activityDesc")}
         </Paragraph>
 
         <Table<ActivityEvent>
@@ -227,7 +227,7 @@ export const AuditLogView: React.FC = () => {
           size="middle"
           columns={[
             {
-              title: 'Thời gian',
+              title: t('v1.colTimestamp'),
               dataIndex: 'timestamp',
               key: 'timestamp',
               width: 170,

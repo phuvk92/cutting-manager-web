@@ -26,6 +26,7 @@ import {
   KeyOutlined,
 } from '@ant-design/icons'
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table'
+import { useTranslation } from 'react-i18next'
 import { User, UserFilterParams } from '@/types/user'
 import { Dealer } from '@/types/dealer'
 import { dealerService } from '@/services/dealers/dealerService'
@@ -42,6 +43,7 @@ import { extractErrorMessage } from '@/utils/error'
 import dayjs from 'dayjs'
 
 export const UserList: React.FC = () => {
+  const { t } = useTranslation(['users', 'common'])
   const { user: currentUser } = useAuthStore()
   const isAdmin = currentUser?.role === 'ADMIN'
 
@@ -98,11 +100,11 @@ export const UserList: React.FC = () => {
       setData(res.content || [])
       setTotalElements(res.totalElements || 0)
     } catch (err) {
-      message.error(extractErrorMessage(err, 'Không thể tải danh sách người dùng'))
+      message.error(extractErrorMessage(err, t('common.messages.error', { ns: 'common' })))
     } finally {
       setLoading(false)
     }
-  }, [page, pageSize, usernameInput, emailInput, selectedRole, selectedEnabled, selectedExpiration, selectedDealerId, sortBy, sortDirection])
+  }, [page, pageSize, usernameInput, emailInput, selectedRole, selectedEnabled, selectedExpiration, selectedDealerId, sortBy, sortDirection, t])
 
   useEffect(() => {
     fetchUsers()
@@ -174,25 +176,25 @@ export const UserList: React.FC = () => {
   const handleToggleStatus = async (record: User) => {
     try {
       await userService.updateUserStatus(record.id, { enabled: !record.enabled })
-      message.success(`Đã cập nhật trạng thái người dùng "${record.username}"`)
+      message.success(t('userList.statusUpdateSuccess', { username: record.username }))
       fetchUsers()
     } catch (err) {
-      message.error(extractErrorMessage(err, 'Không thể cập nhật trạng thái người dùng'))
+      message.error(extractErrorMessage(err))
     }
   }
 
   const handleDelete = async (record: User) => {
     if (record.id === currentUser?.id) {
-      message.error('Bạn không thể tự xóa tài khoản của chính mình.')
+      message.error(t('userList.selfDeleteError'))
       return
     }
 
     try {
       await userService.deleteUser(record.id)
-      message.success(`Đã xóa người dùng "${record.username}" thành công`)
+      message.success(t('userList.deleteSuccess', { username: record.username }))
       fetchUsers()
     } catch (err) {
-      message.error(extractErrorMessage(err, 'Không thể xóa người dùng'))
+      message.error(extractErrorMessage(err))
     }
   }
 
@@ -207,7 +209,7 @@ export const UserList: React.FC = () => {
 
   const columns: ColumnsType<User> = [
     {
-      title: 'Họ tên & Tài khoản',
+      title: t('columns.nameAccount'),
       key: 'userInfo',
       sorter: true,
       render: (_: unknown, record: User) => (
@@ -233,7 +235,7 @@ export const UserList: React.FC = () => {
               <span style={{ fontWeight: 600, color: '#1B1B19' }}>
                 {record.fullName || record.username}
               </span>
-              {record.id === currentUser?.id && <Tag color="gold">Bạn</Tag>}
+              {record.id === currentUser?.id && <Tag color="gold">{t('userList.you')}</Tag>}
             </div>
             <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11.5, color: '#6E6D68' }}>
               @{record.username}
@@ -243,7 +245,7 @@ export const UserList: React.FC = () => {
       ),
     },
     {
-      title: 'Đại lý & Chi nhánh',
+      title: t('columns.dealerBranch'),
       key: 'dealer',
       width: 220,
       render: (_: unknown, record: User) => {
@@ -265,11 +267,11 @@ export const UserList: React.FC = () => {
         if (record.agentUsername) {
           return <Tag color="cyan">Agent: {record.agentUsername}</Tag>
         }
-        return <span style={{ color: '#8A8983', fontSize: 12 }}>Độc lập / Trực tiếp</span>
+        return <span style={{ color: '#8A8983', fontSize: 12 }}>{t('userList.independent')}</span>
       },
     },
     {
-      title: 'Liên hệ',
+      title: t('columns.contact'),
       key: 'contact',
       width: 210,
       render: (_: unknown, record: User) => (
@@ -284,19 +286,19 @@ export const UserList: React.FC = () => {
       ),
     },
     {
-      title: 'Vai trò',
+      title: t('columns.role'),
       dataIndex: 'role',
       key: 'role',
       width: 130,
       render: (role: Role) => <RoleTag role={role} />,
     },
     {
-      title: 'Thời hạn / Hết hạn',
+      title: t('columns.expiration'),
       key: 'expirationDate',
       width: 165,
       render: (_: unknown, record: User) => {
         if (record.role === 'ADMIN') {
-          return <span style={{ color: '#8A8983', fontSize: 12 }}>Không áp dụng</span>
+          return <span style={{ color: '#8A8983', fontSize: 12 }}>{t('userList.notApplicable')}</span>
         }
         const hasDays = record.allocatedDays && record.allocatedDays > 0
         const months = record.allocatedDays ? Math.round(record.allocatedDays / 30) : 0
@@ -305,10 +307,10 @@ export const UserList: React.FC = () => {
             <div>
               {hasDays && (
                 <div style={{ fontSize: 11, color: '#6C3BD6', fontWeight: 500 }}>
-                  {record.allocatedDays} ngày ({months} th)
+                  {t('userList.daysUnit', { days: record.allocatedDays, months })}
                 </div>
               )}
-              <span style={{ color: '#8A8983', fontSize: 12 }}>Không hết hạn</span>
+              <span style={{ color: '#8A8983', fontSize: 12 }}>{t('noExpiration')}</span>
             </div>
           )
         }
@@ -317,7 +319,7 @@ export const UserList: React.FC = () => {
           <div>
             {hasDays && (
               <div style={{ fontSize: 11, color: '#6C3BD6', fontWeight: 500 }}>
-                {record.allocatedDays} ngày ({months} th)
+                {t('userList.daysUnit', { days: record.allocatedDays, months })}
               </div>
             )}
             <span
@@ -335,7 +337,7 @@ export const UserList: React.FC = () => {
       },
     },
     {
-      title: 'Trạng thái',
+      title: t('columns.status'),
       key: 'status',
       width: 120,
       render: (_: unknown, record: User) => {
@@ -346,7 +348,7 @@ export const UserList: React.FC = () => {
         if (isExpired) {
           return (
             <Tag icon={<StopOutlined />} color="warning">
-              Hết hạn
+              {t('expired')}
             </Tag>
           )
         }
@@ -354,7 +356,7 @@ export const UserList: React.FC = () => {
       },
     },
     {
-      title: 'Ngày tạo',
+      title: t('columns.createdAt'),
       dataIndex: 'createdAt',
       key: 'createdAt',
       width: 150,
@@ -366,7 +368,7 @@ export const UserList: React.FC = () => {
       ),
     },
     {
-      title: 'Thao tác',
+      title: t('columns.actions'),
       key: 'actions',
       width: 140,
       align: 'center',
@@ -375,7 +377,7 @@ export const UserList: React.FC = () => {
 
         return (
           <Space size="small">
-            <Tooltip title="Chỉnh sửa thông tin">
+            <Tooltip title={t('userList.editTooltip')}>
               <Button
                 type="text"
                 size="small"
@@ -384,7 +386,7 @@ export const UserList: React.FC = () => {
               />
             </Tooltip>
             {isAdmin && (
-              <Tooltip title="Đặt lại mật khẩu">
+              <Tooltip title={t('userList.resetPasswordTooltip')}>
                 <Button
                   type="text"
                   size="small"
@@ -394,13 +396,16 @@ export const UserList: React.FC = () => {
               </Tooltip>
             )}
             {!isSelf && (
-              <Tooltip title={record.enabled ? 'Khóa tài khoản' : 'Mở khóa tài khoản'}>
+              <Tooltip title={record.enabled ? t('userList.lockTooltip') : t('userList.unlockTooltip')}>
                 <Popconfirm
-                  title={record.enabled ? 'Khóa người dùng' : 'Mở khóa người dùng'}
-                  description={`Bạn có chắc muốn ${record.enabled ? 'khóa' : 'mở khóa'} tài khoản "${record.username}"?`}
+                  title={record.enabled ? t('userList.lockConfirmTitle') : t('userList.unlockConfirmTitle')}
+                  description={t('userList.toggleConfirmDesc', {
+                    action: record.enabled ? t('userList.lockAction') : t('userList.unlockAction'),
+                    username: record.username,
+                  })}
                   onConfirm={() => handleToggleStatus(record)}
-                  okText="Đồng ý"
-                  cancelText="Hủy"
+                  okText={t('actions.confirm', { ns: 'common' })}
+                  cancelText={t('actions.cancel', { ns: 'common' })}
                 >
                   <Button
                     type="text"
@@ -411,13 +416,13 @@ export const UserList: React.FC = () => {
               </Tooltip>
             )}
             {!isSelf && (
-              <Tooltip title="Xóa tài khoản">
+              <Tooltip title={t('userList.deleteTooltip')}>
                 <Popconfirm
-                  title="Xóa người dùng"
-                  description={`Bạn có chắc muốn xóa vĩnh viễn người dùng "${record.username}"?`}
+                  title={t('userList.deleteConfirmTitle')}
+                  description={t('userList.deleteConfirmDesc', { username: record.username })}
                   onConfirm={() => handleDelete(record)}
-                  okText="Xóa"
-                  cancelText="Hủy"
+                  okText={t('actions.delete', { ns: 'common' })}
+                  cancelText={t('actions.cancel', { ns: 'common' })}
                   okButtonProps={{ danger: true }}
                 >
                   <Button type="text" danger size="small" icon={<DeleteOutlined />} />
@@ -437,7 +442,7 @@ export const UserList: React.FC = () => {
         <Row gutter={[10, 10]} align="middle">
           <Col xs={24} sm={12} md={isAdmin ? 4 : 6} lg={isAdmin ? 4 : 6}>
             <Input
-              placeholder="Tìm theo tên, user đại lý..."
+              placeholder={t('userList.searchName')}
               value={usernameInput}
               onChange={e => setUsernameInput(e.target.value)}
               onPressEnter={handleSearch}
@@ -447,7 +452,7 @@ export const UserList: React.FC = () => {
           </Col>
           <Col xs={24} sm={12} md={isAdmin ? 4 : 6} lg={isAdmin ? 4 : 6}>
             <Input
-              placeholder="Tìm theo email..."
+              placeholder={t('userList.searchEmail')}
               value={emailInput}
               onChange={e => setEmailInput(e.target.value)}
               onPressEnter={handleSearch}
@@ -458,7 +463,7 @@ export const UserList: React.FC = () => {
           {isAdmin && (
             <Col xs={12} sm={6} md={4} lg={4}>
               <Select
-                placeholder="Tất cả đại lý"
+                placeholder={t('userList.allDealers')}
                 value={selectedDealerId}
                 onChange={val => setSelectedDealerId(val)}
                 allowClear
@@ -477,62 +482,62 @@ export const UserList: React.FC = () => {
           {isAdmin && (
             <Col xs={12} sm={6} md={3} lg={3}>
               <Select
-                placeholder="Tất cả vai trò"
+                placeholder={t('userList.allRoles')}
                 value={selectedRole}
                 onChange={val => setSelectedRole(val)}
                 allowClear
                 style={{ width: '100%' }}
               >
-                <Select.Option value="ADMIN">Quản trị viên (ADMIN)</Select.Option>
-                <Select.Option value="AGENT">Quản lý đại lý (AGENT)</Select.Option>
-                <Select.Option value="USER">Thợ cắt (USER)</Select.Option>
+                <Select.Option value="ADMIN">{t('roles.ADMIN', { ns: 'common' })} (ADMIN)</Select.Option>
+                <Select.Option value="AGENT">{t('roles.AGENT', { ns: 'common' })} (AGENT)</Select.Option>
+                <Select.Option value="USER">{t('roles.USER', { ns: 'common' })} (USER)</Select.Option>
               </Select>
             </Col>
           )}
           <Col xs={12} sm={6} md={isAdmin ? 3 : 4} lg={isAdmin ? 3 : 4}>
             <Select
-              placeholder="Tất cả trạng thái"
+              placeholder={t('userList.allStatuses')}
               value={selectedEnabled}
               onChange={val => setSelectedEnabled(val)}
               allowClear
               style={{ width: '100%' }}
             >
-              <Select.Option value={true}>Hoạt động</Select.Option>
-              <Select.Option value={false}>Đang khóa</Select.Option>
+              <Select.Option value={true}>{t('userList.active')}</Select.Option>
+              <Select.Option value={false}>{t('userList.locked')}</Select.Option>
             </Select>
           </Col>
           <Col xs={12} sm={6} md={isAdmin ? 3 : 5} lg={isAdmin ? 3 : 5}>
             <Select
-              placeholder="Hạn tài khoản"
+              placeholder={t('userList.expiration')}
               value={selectedExpiration}
               onChange={val => setSelectedExpiration(val)}
               allowClear
               style={{ width: '100%' }}
             >
-              <Select.Option value="ALL">Tất cả hạn</Select.Option>
-              <Select.Option value="VALID">Còn hạn</Select.Option>
-              <Select.Option value="EXPIRED">Hết hạn</Select.Option>
-              <Select.Option value="NO_EXPIRATION">Không có ngày hết hạn</Select.Option>
+              <Select.Option value="ALL">{t('userList.allExpiration')}</Select.Option>
+              <Select.Option value="VALID">{t('userList.valid')}</Select.Option>
+              <Select.Option value="EXPIRED">{t('userList.expired')}</Select.Option>
+              <Select.Option value="NO_EXPIRATION">{t('userList.noExpiration')}</Select.Option>
             </Select>
           </Col>
           <Col xs={24} sm={6} md={isAdmin ? 3 : 3} lg={isAdmin ? 3 : 3} style={{ display: 'flex', justifyContent: 'flex-end', marginLeft: 'auto' }}>
             <Space size={8}>
-              <Tooltip title="Tìm kiếm">
+              <Tooltip title={t('userList.search')}>
                 <Button
                   type="primary"
                   icon={<SearchOutlined />}
                   onClick={handleSearch}
                   loading={loading}
-                  aria-label="Tìm kiếm"
+                  aria-label={t('userList.search')}
                   style={{ background: '#6C3BD6', borderColor: '#6C3BD6' }}
                 />
               </Tooltip>
-              <Tooltip title="Đặt lại">
+              <Tooltip title={t('userList.reset')}>
                 <Button
                   icon={<ReloadOutlined />}
                   onClick={handleResetFilters}
                   disabled={loading}
-                  aria-label="Đặt lại"
+                  aria-label={t('userList.reset')}
                 />
               </Tooltip>
             </Space>
@@ -543,7 +548,7 @@ export const UserList: React.FC = () => {
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 14 }}>
         <Space>
           <Button icon={<ReloadOutlined />} onClick={fetchUsers} loading={loading}>
-            Làm mới
+            {t('userList.refresh')}
           </Button>
           <Button
             type="primary"
@@ -551,7 +556,7 @@ export const UserList: React.FC = () => {
             onClick={handleCreate}
             style={{ background: '#6C3BD6', borderColor: '#6C3BD6' }}
           >
-            Thêm người dùng
+            {t('userList.addUser')}
           </Button>
         </Space>
       </div>
@@ -566,7 +571,7 @@ export const UserList: React.FC = () => {
           pageSize,
           total: totalElements,
           showSizeChanger: true,
-          showTotal: total => `Tổng số: ${total} người dùng`,
+          showTotal: total => t('userList.totalUsers', { total }),
         }}
         onChange={handleTableChange}
         bordered

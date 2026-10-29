@@ -1,0 +1,72 @@
+{
+  "title": "Sessions & Devices",
+  "subtitle": "Monitor cutter devices, active login sessions and session management",
+  "stats": {
+    "activeNow": "Active Now",
+    "registered": "Registered Machines",
+    "usersAtLimit": "Users at Device Limit",
+    "staleDevices": "Stale / Inactive Devices",
+    "active15m": "Active (15 mins)",
+    "atLimit": "Accounts at Device Limit",
+    "stale30d": "Inactive > 30 days"
+  },
+  "searchPlaceholder": "Search by Device ID, IP, machine name, user...",
+  "allDealers": "All Dealers",
+  "allStatuses": "All Device Statuses",
+  "columns": {
+    "deviceId": "Device ID / Machine Name",
+    "user": "User",
+    "dealer": "Dealer",
+    "ip": "IP Address",
+    "appVersion": "App Version",
+    "lastActive": "Last Active",
+    "status": "Status",
+    "actions": "Actions",
+    "device": "Device",
+    "lastIp": "Last IP",
+    "firstSeen": "First Seen",
+    "lastSeen": "Last Seen",
+    "revokedBy": "Revoked by {{by}}",
+    "revoked": "Revoked",
+    "usable": "Active & Usable",
+    "unknownUser": "Unnamed User",
+    "unknownDevice": "Unnamed Machine",
+    "unknownPlatform": "Unknown Platform"
+  },
+  "revoke": {
+    "button": "Revoke Session",
+    "confirm": "Are you sure you want to disconnect this device? It will be logged out immediately.",
+    "success": "Device session revoked successfully!"
+  },
+  "dot": {
+    "revoked": "Revoked",
+    "activeRecent": "Active — seen within the last {{minutes}} minutes",
+    "stale": "Registered but inactive for a long time"
+  },
+  "messages": {
+    "revokeSuccess": "Revoked machine \"{{name}}\" from account {{user}}",
+    "revokeError": "Failed to revoke device",
+    "loadError": "Failed to load device list",
+    "openUserError": "Failed to open user details",
+    "dealersError": "Failed to load dealers list",
+    "statsError": "Failed to load device statistics"
+  },
+  "revokeModal": {
+    "title": "Revoke this device from account?",
+    "description": "The cutting software on this device will be logged out within minutes. The cutter can log in on another device.",
+    "okText": "Revoke Device",
+    "cancelText": "Cancel"
+  },
+  "filters": {
+    "searchPlaceholder": "Search user, device, or IP...",
+    "allDealers": "All Dealers",
+    "activeOnly": "Active & Usable",
+    "revokedOnly": "Revoked",
+    "all": "All",
+    "reset": "Reset",
+    "refresh": "Refresh",
+    "totalDevices": "Total: {{total}} devices",
+    "emptyFiltered": "No devices match current filters.",
+    "emptyInitial": "No registered devices yet. Devices appear when cutters log into the cutting app."
+  }
+}

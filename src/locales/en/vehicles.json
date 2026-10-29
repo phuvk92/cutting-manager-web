@@ -1,0 +1,54 @@
+{
+  "title": "Vehicle Catalog",
+  "subtitle": "Manage hierarchy of brands, series, models and trims for patterns",
+  "searchPlaceholder": "Search by brand, series, model year...",
+  "expandAll": "Expand All",
+  "collapseAll": "Collapse All",
+  "addBrand": "Add Brand",
+  "levels": {
+    "BRAND": "Vehicle Brand",
+    "SERIES": "Vehicle Series",
+    "MODEL": "Model (Year)",
+    "SUBTYPE": "Trim / Subtype"
+  },
+  "dialog": {
+    "addTitle": "Add New {level}",
+    "editTitle": "Edit {level}",
+    "parentPath": "Parent Path",
+    "rootBrand": "Root Level (New Brand)",
+    "name": "Display Name",
+    "slug": "Identifier Slug",
+    "sortOrder": "Sort Order",
+    "active": "Active",
+    "saveSuccess": "Saved successfully!",
+    "deleteSuccess": "Deleted successfully!",
+    "level": "Level",
+    "belongTo": "Parent",
+    "root": "— (root)",
+    "nameLabel": "Name",
+    "nameTaken": "A {{level}} named \"{{name}}\" already exists in the same parent."
+  },
+  "deleteConfirm": "Are you sure you want to delete this item and all its children?",
+  "columns": {
+    "stt": "NO.",
+    "name": "NAME",
+    "children": "SUB-ITEMS",
+    "actions": "ACTIONS"
+  },
+  "hint": "4-level hierarchy: Brand › Series › Model › SubType. Category and Year selected on file upload.",
+  "table": {
+    "totalBrands": "Total {{total}} brands",
+    "noMatch": "No items matching \"{{query}}\".",
+    "noBrands": "No brands yet.",
+    "addSubLevel": "Add {{level}} under {{name}}",
+    "editTooltip": "Edit",
+    "deleteTooltip": "Delete (including all sub-items)",
+    "deleteTitle": "Delete {{level}}?",
+    "deleteImpactDesc": "Delete «{{name}}»{{nodes}}.",
+    "impactNodes": " and {{count}} sub-items",
+    "impactFiles": "{{count}} files will lose vehicle link (files remain in library).",
+    "impactNoFiles": "No files linked to this branch.",
+    "deleteSuccessMsg": "Deleted {{deleted}} items{{unlinked}}",
+    "unlinkedMsg": " · {{count}} unlinked files"
+  }
+}

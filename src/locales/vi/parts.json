@@ -1,0 +1,102 @@
+{
+  "title": "Kho mẫu & part file",
+  "subtitle": "Danh mục dùng chung và mẫu do đại lý nạp",
+  "searchPlaceholder": "Tìm theo mã part, tên xe, vị trí...",
+  "categoryFilter": "Danh mục kho mẫu",
+  "allCategories": "Tất cả danh mục",
+  "brandFilter": "Hãng xe",
+  "allBrands": "Tất cả hãng xe",
+  "yearFilter": "Năm",
+  "allYears": "Tất cả năm",
+  "sourceFilter": "Nguồn",
+  "allSources": "Tất cả nguồn",
+  "addPart": "Nạp part file mới",
+  "editPart": "Chỉnh sửa part file",
+  "columns": {
+    "preview": "Xem trước",
+    "code": "Mã part",
+    "name": "Tên part / Mô tả",
+    "vehicle": "Dòng xe áp dụng",
+    "category": "Phân loại",
+    "dimensions": "Kích thước cắt (mm)",
+    "area": "Diện tích (m²)",
+    "source": "Nguồn",
+    "updatedAt": "Cập nhật",
+    "actions": "Thao tác"
+  },
+  "sources": {
+    "SYSTEM": "Hệ thống",
+    "DEALER": "Đại lý"
+  },
+  "preview": {
+    "title": "Xem trước tệp SVG",
+    "dimensions": "Kích thước",
+    "zoomIn": "Phóng to",
+    "zoomOut": "Thu nhỏ",
+    "resetZoom": "Đặt lại",
+    "download": "Tải tệp SVG"
+  },
+  "modal": {
+    "addTitle": "Thêm mới part file SVG",
+    "editTitle": "Chỉnh sửa part file SVG",
+    "vehicle": "Dòng xe & Phiên bản",
+    "selectVehicle": "Chọn dòng xe áp dụng",
+    "category": "Danh mục kho mẫu & part",
+    "selectCategory": "Chọn danh mục",
+    "name": "Tên part file",
+    "namePlaceholder": "VD: Cản trước Full PPF",
+    "code": "Mã part file",
+    "codePlaceholder": "VD: VF9-2024-FRONT-BUMPER",
+    "svgFile": "Tệp SVG thiết kế",
+    "dropzone": "Kéo thả tệp SVG vào đây hoặc nhấn để duyệt",
+    "dropzoneHint": "Định dạng .svg hợp lệ, hỗ trợ xem trước trực quan",
+    "cutArea": "Kích thước & Diện tích cắt",
+    "filmWidth": "Chiều rộng cuộn phim (mm)",
+    "cutLength": "Chiều dài cắt (mm)",
+    "calculatedArea": "Diện tích cắt tính toán",
+    "saveSuccess": "Lưu part file thành công!"
+  },
+  "stats": {
+    "total": "Part file trong kho",
+    "modelsWithFiles": "Model đã có file",
+    "fromDealers": "Do đại lý nạp",
+    "unlinked": "Chưa gắn mẫu xe"
+  },
+  "filters": {
+    "category": "Danh mục kho mẫu & part",
+    "year": "Năm",
+    "brand": "Hãng",
+    "series": "Dòng xe",
+    "model": "Model",
+    "all": "Tất cả",
+    "allCategories": "Tất cả danh mục",
+    "selectBrandFirst": "Chọn hãng trước",
+    "selectSeriesFirst": "Chọn dòng trước",
+    "clear": "Xoá lọc",
+    "searchPlaceholder": "Tìm theo tên file…",
+    "uploadBtn": "Upload part file"
+  },
+  "table": {
+    "stt": "STT",
+    "thumb": "Ảnh",
+    "name": "Tên file",
+    "category": "Danh mục",
+    "vehicle": "Mẫu xe",
+    "year": "Năm",
+    "source": "Nguồn",
+    "updatedAt": "Cập nhật",
+    "empty": "Không có file nào khớp bộ lọc.",
+    "unlinkedBadge": "Chưa gắn xe",
+    "allYearsBadge": "Mọi năm",
+    "deleteConfirm": "Xoá file này khỏi kho mẫu?",
+    "tooltipEdit": "Chỉnh sửa",
+    "tooltipDelete": "Xoá file",
+    "tooltipPreview": "Xem trước SVG"
+  },
+  "pagination": {
+    "showing": "Hiển thị {{count}} / {{total}} part file",
+    "prev": "Trước",
+    "next": "Sau",
+    "perPage": "{{size}} / trang"
+  }
+}

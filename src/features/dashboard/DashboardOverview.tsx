@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { Tooltip, Spin } from 'antd'
 import { EyeOutlined, DownloadOutlined, CloudUploadOutlined } from '@ant-design/icons'
@@ -12,6 +13,7 @@ import { PartFileFormModal } from '@/features/svg/PartFileFormModal'
 import { SvgPreviewModal } from '@/features/svg/SvgPreviewModal'
 
 export const DashboardOverview: React.FC = () => {
+  const { t } = useTranslation('dashboard')
   const navigate = useNavigate()
   const { user } = useAuthStore()
   const isAdmin = user?.role === 'ADMIN'
@@ -168,7 +170,7 @@ export const DashboardOverview: React.FC = () => {
           }}
         >
           <div style={{ font: "400 11.5px 'IBM Plex Sans', sans-serif", color: '#6E6D68' }}>
-            Đại lý đang hoạt động
+            {t("stats.activeDealers")}
           </div>
           <div
             style={{ marginTop: 6, font: "500 22px 'IBM Plex Mono', monospace", color: '#1B1B19' }}
@@ -178,7 +180,7 @@ export const DashboardOverview: React.FC = () => {
           <div
             style={{ marginTop: 4, font: "400 11px 'IBM Plex Sans', sans-serif", color: '#2E7D5B' }}
           >
-            +3 trong 30 ngày
+            {t("stats.dealers30d")}
           </div>
         </div>
 
@@ -191,7 +193,7 @@ export const DashboardOverview: React.FC = () => {
           }}
         >
           <div style={{ font: "400 11.5px 'IBM Plex Sans', sans-serif", color: '#6E6D68' }}>
-            Thợ đang dùng phần mềm
+            {t("stats.activeCutters")}
           </div>
           <div
             style={{ marginTop: 6, font: "500 22px 'IBM Plex Mono', monospace", color: '#1B1B19' }}
@@ -201,7 +203,7 @@ export const DashboardOverview: React.FC = () => {
           <div
             style={{ marginTop: 4, font: "400 11px 'IBM Plex Sans', sans-serif", color: '#6E6D68' }}
           >
-            286 online hôm nay
+            {t("stats.onlineToday")}
           </div>
         </div>
 
@@ -214,7 +216,7 @@ export const DashboardOverview: React.FC = () => {
           }}
         >
           <div style={{ font: "400 11.5px 'IBM Plex Sans', sans-serif", color: '#6E6D68' }}>
-            Lượt cắt 30 ngày
+            {t("stats.cuts30d")}
           </div>
           <div
             style={{ marginTop: 6, font: "500 22px 'IBM Plex Mono', monospace", color: '#1B1B19' }}
@@ -224,7 +226,7 @@ export const DashboardOverview: React.FC = () => {
           <div
             style={{ marginTop: 4, font: "400 11px 'IBM Plex Sans', sans-serif", color: '#2E7D5B' }}
           >
-            +12% so với kỳ trước
+            {t("overview.vsPreviousPeriod")}
           </div>
         </div>
 
@@ -237,7 +239,7 @@ export const DashboardOverview: React.FC = () => {
           }}
         >
           <div style={{ font: "400 11.5px 'IBM Plex Sans', sans-serif", color: '#6E6D68' }}>
-            Tỷ lệ cắt lỗi
+            {t("overview.errorRate")}
           </div>
           <div
             style={{ marginTop: 6, font: "500 22px 'IBM Plex Mono', monospace", color: '#1B1B19' }}
@@ -247,7 +249,7 @@ export const DashboardOverview: React.FC = () => {
           <div
             style={{ marginTop: 4, font: "400 11px 'IBM Plex Sans', sans-serif", color: '#6E6D68' }}
           >
-            228 job phải cắt lại
+            {t("overview.recutJobs")}
           </div>
         </div>
       </div>
@@ -271,10 +273,10 @@ export const DashboardOverview: React.FC = () => {
         >
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
             <span style={{ font: "600 12.5px 'IBM Plex Sans', sans-serif" }}>
-              Lượt cắt theo ngày
+              {t("overview.cutsByDay")}
             </span>
             <span style={{ font: "400 11px 'IBM Plex Sans', sans-serif", color: '#8A8983' }}>
-              14 ngày gần nhất
+              {t("overview.last14Days")}
             </span>
             <span
               style={{
@@ -350,15 +352,15 @@ export const DashboardOverview: React.FC = () => {
             }}
           >
             <span>
-              Trung bình:{' '}
+              {t("overview.average")}{' '}
               <strong style={{ color: '#1B1B19', fontFamily: "'IBM Plex Mono', monospace" }}>
-                318 lượt / ngày
+                {t("overview.cutsPerDay", { val: 318 })}
               </strong>
             </span>
             <span>
-              Hôm nay:{' '}
+              {t("overview.today")}{' '}
               <strong style={{ color: '#7C3AED', fontFamily: "'IBM Plex Mono', monospace" }}>
-                412 lượt
+                {t("overview.todayCuts", { val: 412 })}
               </strong>{' '}
               (+14%)
             </span>
@@ -387,7 +389,7 @@ export const DashboardOverview: React.FC = () => {
                 font: "500 10.5px 'IBM Plex Sans', sans-serif",
               }}
             >
-              4 việc
+              {t("overview.tasksCount", { count: 4 })}
             </span>
           </div>
 
@@ -459,7 +461,7 @@ export const DashboardOverview: React.FC = () => {
       <div
         style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 14 }}
       >
-        {/* User đang hoạt động */}
+        {/* {t("overview.activeUsers12m")} */}
         <div
           style={{
             background: '#FBFBFA',
@@ -470,10 +472,10 @@ export const DashboardOverview: React.FC = () => {
         >
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
             <span style={{ font: "600 12.5px 'IBM Plex Sans', sans-serif" }}>
-              User đang hoạt động
+              {t("overview.activeUsers12m")}
             </span>
             <span style={{ font: "400 11px 'IBM Plex Sans', sans-serif", color: '#8A8983' }}>
-              12 tháng qua
+              {t("overview.last12Months")}
             </span>
             <span
               style={{
@@ -532,7 +534,7 @@ export const DashboardOverview: React.FC = () => {
           >
             <div>
               <div style={{ font: "400 10.5px 'IBM Plex Sans', sans-serif", color: '#8A8983' }}>
-                Mới trong tháng
+                {t("overview.newInMonth")}
               </div>
               <div
                 style={{
@@ -546,7 +548,7 @@ export const DashboardOverview: React.FC = () => {
             </div>
             <div>
               <div style={{ font: "400 10.5px 'IBM Plex Sans', sans-serif", color: '#8A8983' }}>
-                Ngưng dùng
+                {t("overview.churned")}
               </div>
               <div
                 style={{
@@ -560,7 +562,7 @@ export const DashboardOverview: React.FC = () => {
             </div>
             <div>
               <div style={{ font: "400 10.5px 'IBM Plex Sans', sans-serif", color: '#8A8983' }}>
-                Tỷ lệ dùng thật
+                {t("overview.realUsageRate")}
               </div>
               <div
                 style={{
@@ -588,7 +590,7 @@ export const DashboardOverview: React.FC = () => {
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span style={{ font: "600 12.5px 'IBM Plex Sans', sans-serif" }}>
-              Kho mẫu & Part file SVG
+              {t("overview.svgLibrary")}
             </span>
             {isAgentOrAdmin && (
               <button
@@ -607,7 +609,7 @@ export const DashboardOverview: React.FC = () => {
                   cursor: 'pointer',
                 }}
               >
-                <CloudUploadOutlined /> Tải lên SVG
+                <CloudUploadOutlined /> {t("overview.uploadSvgBtn")}
               </button>
             )}
           </div>
@@ -621,7 +623,7 @@ export const DashboardOverview: React.FC = () => {
           >
             <div style={{ padding: '10px 12px', background: '#F4F3F0', borderRadius: 5 }}>
               <div style={{ font: "400 10.5px 'IBM Plex Sans', sans-serif", color: '#8A8983' }}>
-                Mẫu SVG trong kho
+                {t("overview.svgInStore")}
               </div>
               <div
                 style={{
@@ -635,7 +637,7 @@ export const DashboardOverview: React.FC = () => {
             </div>
             <div style={{ padding: '10px 12px', background: '#F4F3F0', borderRadius: 5 }}>
               <div style={{ font: "400 10.5px 'IBM Plex Sans', sans-serif", color: '#8A8983' }}>
-                Part file thực tế
+                {t("overview.realPartFiles")}
               </div>
               <div
                 style={{
@@ -649,7 +651,7 @@ export const DashboardOverview: React.FC = () => {
             </div>
             <div style={{ padding: '10px 12px', background: '#F4F3F0', borderRadius: 5 }}>
               <div style={{ font: "400 10.5px 'IBM Plex Sans', sans-serif", color: '#8A8983' }}>
-                Bảo mật XML
+                {t("overview.xmlSecurity")}
               </div>
               <div
                 style={{
@@ -681,7 +683,7 @@ export const DashboardOverview: React.FC = () => {
                 color: '#6E6D68',
               }}
             >
-              <span>Dung lượng tối đa / file</span>
+              <span>{t("overview.maxFileSize")}</span>
               <span style={{ fontFamily: "'IBM Plex Mono', monospace", color: '#1B1B19' }}>
                 10 MB
               </span>
@@ -694,7 +696,7 @@ export const DashboardOverview: React.FC = () => {
                 color: '#6E6D68',
               }}
             >
-              <span>Mã hóa kiểm tra SHA-256</span>
+              <span>{t("overview.sha256Checksum")}</span>
               <span style={{ fontFamily: "'IBM Plex Mono', monospace", color: '#2E7D5B' }}>
                 Bật
               </span>
@@ -707,7 +709,7 @@ export const DashboardOverview: React.FC = () => {
                 color: '#6E6D68',
               }}
             >
-              <span>Cấu trúc lưu trữ</span>
+              <span>{t("overview.storageStructure")}</span>
               <span style={{ fontFamily: "'IBM Plex Mono', monospace", color: '#6E6D68' }}>
                 /data/svg/YYYY/MM
               </span>
@@ -734,7 +736,7 @@ export const DashboardOverview: React.FC = () => {
           }}
         >
           <span style={{ font: "600 12.5px 'IBM Plex Sans', sans-serif" }}>
-            Đại lý theo sản lượng
+            {t("tables.dealersByVolume")}
           </span>
           <span
             style={{
@@ -821,7 +823,7 @@ export const DashboardOverview: React.FC = () => {
           }}
         >
           <span style={{ font: "600 12.5px 'IBM Plex Sans', sans-serif" }}>
-            Mẫu SVG mới cập nhật trong kho
+            {t("tables.recentPatterns")}
           </span>
           <button
             onClick={() => navigate('/svg')}

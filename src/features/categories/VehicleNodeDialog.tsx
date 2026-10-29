@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Modal, Input, Alert } from 'antd'
 import axios, { AxiosError } from 'axios'
+import { useTranslation } from 'react-i18next'
 import { ErrorResponse } from '@/types/common'
 import { VehicleNode } from '@/types/vehicleNode'
 import { vehicleNodeService } from '@/services/vehicle/vehicleNodeService'
@@ -34,7 +35,9 @@ export const VehicleNodeDialog: React.FC<VehicleNodeDialogProps> = ({
   onClose,
   onSaved,
 }) => {
+  const { t } = useTranslation(['vehicles', 'common'])
   const meta = LEVEL_META[level]
+  const levelText = t(`levels.${level}`, { defaultValue: meta.vi })
   const [name, setName] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -62,13 +65,12 @@ export const VehicleNodeDialog: React.FC<VehicleNodeDialogProps> = ({
       onSaved(created)
       onClose()
     } catch (err) {
-      // 409 NODE_NAME_TAKEN — trùng tên trong cùng cha
       const code = axios.isAxiosError(err)
         ? (err as AxiosError<ErrorResponse>).response?.data?.code
         : undefined
       setError(
         code === 'NODE_NAME_TAKEN'
-          ? `Đã có ${meta.vi.toLowerCase()} tên "${trimmed}" trong cùng mục cha.`
+          ? t('dialog.nameTaken', { level: levelText.toLowerCase(), name: trimmed })
           : extractErrorMessage(err)
       )
     } finally {
@@ -76,13 +78,18 @@ export const VehicleNodeDialog: React.FC<VehicleNodeDialogProps> = ({
     }
   }
 
+  const modalTitle =
+    mode === 'add'
+      ? t('dialog.addTitle', { level: levelText.toLowerCase() })
+      : t('dialog.editTitle', { level: levelText.toLowerCase() })
+
   return (
     <Modal
       open={open}
       zIndex={zIndex}
-      title={`${mode === 'add' ? 'Thêm' : 'Sửa'} ${meta.vi.toLowerCase()}`}
-      okText="Lưu"
-      cancelText="Huỷ"
+      title={modalTitle}
+      okText={t('actions.save', { ns: 'common' })}
+      cancelText={t('actions.cancel', { ns: 'common' })}
       onCancel={onClose}
       onOk={save}
       confirmLoading={saving}
@@ -103,7 +110,9 @@ export const VehicleNodeDialog: React.FC<VehicleNodeDialogProps> = ({
           borderRadius: 5,
         }}
       >
-        <span style={{ font: "500 11px 'IBM Plex Sans', sans-serif", color: '#6E6D68' }}>Cấp</span>
+        <span style={{ font: "500 11px 'IBM Plex Sans', sans-serif", color: '#6E6D68' }}>
+          {t('dialog.level')}
+        </span>
         <span>
           <span
             style={{
@@ -114,17 +123,21 @@ export const VehicleNodeDialog: React.FC<VehicleNodeDialogProps> = ({
               color: meta.color,
             }}
           >
-            {meta.code} · {meta.vi}
+            {meta.code} · {levelText}
           </span>
         </span>
-        <span style={{ font: "500 11px 'IBM Plex Sans', sans-serif", color: '#6E6D68' }}>Thuộc</span>
+        <span style={{ font: "500 11px 'IBM Plex Sans', sans-serif", color: '#6E6D68' }}>
+          {t('dialog.belongTo')}
+        </span>
         <span style={{ font: "400 12px 'IBM Plex Sans', sans-serif", color: '#35342F' }}>
-          {parentPath || '— (gốc)'}
+          {parentPath || t('dialog.root')}
         </span>
       </div>
 
       <label style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-        <span style={{ font: "500 11px 'IBM Plex Sans', sans-serif", color: '#6E6D68' }}>Tên</span>
+        <span style={{ font: "500 11px 'IBM Plex Sans', sans-serif", color: '#6E6D68' }}>
+          {t('dialog.nameLabel')}
+        </span>
         <Input
           value={name}
           onChange={e => setName(e.target.value)}

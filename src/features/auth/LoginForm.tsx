@@ -3,11 +3,13 @@ import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { useNavigate } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import { useAuthStore } from "@/stores/authStore"
 import axios from "axios"
 import { extractErrorMessage } from "@/utils/error"
 import { ErrorResponse } from "@/types/common"
 import { message } from "antd"
+import { LanguageSwitcher } from "@/components/common/LanguageSwitcher"
 
 const loginSchema = z.object({
   username: z.string().min(1, "Vui lòng nhập tên đăng nhập"),
@@ -18,6 +20,7 @@ type LoginFormData = z.infer<typeof loginSchema>
 
 export const LoginForm: React.FC = () => {
   const navigate = useNavigate()
+  const { t } = useTranslation(['auth', 'common'])
   const { login, isLoading } = useAuthStore()
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
@@ -40,22 +43,21 @@ export const LoginForm: React.FC = () => {
     setErrorMessage(null)
     try {
       await login(data)
-      message.success("Đăng nhập thành công")
+      message.success(t('messages.success', { ns: 'common' }))
       navigate("/dashboard")
     } catch (err) {
       const code = axios.isAxiosError<ErrorResponse>(err) ? err.response?.data?.code : undefined
       if (code === "USER_ACCOUNT_EXPIRED") {
-        setErrorMessage("Tài khoản của bạn đã hết hạn. Vui lòng liên hệ quản trị viên.")
+        setErrorMessage(t('login.checkCredentials', { ns: 'auth' }))
       } else if (code === "USER_WEB_LOGIN_FORBIDDEN") {
-        // F-57 (Q1): thợ chỉ dùng phần mềm cắt — trang web dành cho quản trị
-        setErrorMessage("Tài khoản thợ chỉ dùng trong phần mềm cắt. Trang này dành cho quản trị đại lý.")
+        setErrorMessage(t('login.loginFailed', { ns: 'auth' }))
       } else if (code === "AUTH_SERVICE_UNAVAILABLE") {
-        setErrorMessage("Máy chủ xác thực đang gặp sự cố. Vui lòng thử lại sau ít phút.")
+        setErrorMessage(t('messages.networkError', { ns: 'common' }))
       } else {
         setErrorMessage(
           extractErrorMessage(
             err,
-            "Đăng nhập không thành công. Vui lòng kiểm tra lại tài khoản và mật khẩu."
+            t('login.checkCredentials', { ns: 'auth' })
           )
         )
       }
@@ -64,7 +66,7 @@ export const LoginForm: React.FC = () => {
 
   const handleForgotPassword = (e: React.MouseEvent) => {
     e.preventDefault()
-    message.info("Vui lòng liên hệ quản trị xưởng hoặc admin để đặt lại mật khẩu.")
+    message.info(t('login.forgotPasswordNotice', { ns: 'auth' }))
   }
 
   return (
@@ -183,7 +185,7 @@ export const LoginForm: React.FC = () => {
               color: "#FFF",
             }}
           >
-            Phần mềm cắt phim chuyên dụng cho xưởng dán xe
+            {t('login.subtitle', { ns: 'auth' })}
           </div>
           <div
             style={{
@@ -192,7 +194,7 @@ export const LoginForm: React.FC = () => {
               color: "#A9A7B2",
             }}
           >
-            Thư viện 1 284 mẫu xe, sửa biên dạng trực tiếp và xuất lệnh cắt trong cùng một luồng.
+            {t('login.badge', { ns: 'auth' })}
           </div>
         </div>
       </div>
@@ -212,34 +214,37 @@ export const LoginForm: React.FC = () => {
           zIndex: 3,
         }}
       >
-        {/* Brand Logo */}
-        <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
-          <svg width="30" height="30" viewBox="0 0 32 32" fill="none">
-            <rect x="1.2" y="1.2" width="29.6" height="29.6" rx="7" stroke="#7C3AED" strokeWidth="2.4" />
-            <path
-              d="M9 21.5 16 9l7 12.5"
-              stroke="#7C3AED"
-              strokeWidth="2.4"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M12.2 17h7.6"
-              stroke="#7C3AED"
-              strokeWidth="2.4"
-              strokeLinecap="round"
-              strokeDasharray="2.4 3"
-            />
-          </svg>
-          <span
-            style={{
-              font: "600 19px 'IBM Plex Sans', sans-serif",
-              letterSpacing: "-0.01em",
-              color: "#F4F3F0",
-            }}
-          >
-            PCUT
-          </span>
+        {/* Brand Logo & Language Switcher */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
+            <svg width="30" height="30" viewBox="0 0 32 32" fill="none">
+              <rect x="1.2" y="1.2" width="29.6" height="29.6" rx="7" stroke="#7C3AED" strokeWidth="2.4" />
+              <path
+                d="M9 21.5 16 9l7 12.5"
+                stroke="#7C3AED"
+                strokeWidth="2.4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M12.2 17h7.6"
+                stroke="#7C3AED"
+                strokeWidth="2.4"
+                strokeLinecap="round"
+                strokeDasharray="2.4 3"
+              />
+            </svg>
+            <span
+              style={{
+                font: "600 19px 'IBM Plex Sans', sans-serif",
+                letterSpacing: "-0.01em",
+                color: "#F4F3F0",
+              }}
+            >
+              PCUT
+            </span>
+          </div>
+          <LanguageSwitcher theme="dark" />
         </div>
 
         {/* Title */}
@@ -250,45 +255,57 @@ export const LoginForm: React.FC = () => {
             color: "#F4F3F0",
           }}
         >
-          Đăng nhập
+          {t('login.title', { ns: 'auth' })}
         </div>
         <div
           style={{
-            marginTop: 7,
-            font: "400 12.5px 'IBM Plex Sans', sans-serif",
+            marginTop: 6,
+            font: "400 13px 'IBM Plex Sans', sans-serif",
             color: "#8A8894",
           }}
         >
-          Dùng tài khoản xưởng được cấp để vào Design Center.
+          {t('login.subtitle', { ns: 'auth' })}
         </div>
 
-        {/* Error Alert */}
+        {/* Error Alert Box */}
         {errorMessage && (
           <div
             style={{
-              marginTop: 18,
+              marginTop: 20,
               padding: "10px 14px",
-              borderRadius: 6,
               background: "rgba(239, 68, 68, 0.12)",
-              border: "1px solid rgba(239, 68, 68, 0.35)",
+              border: "1px solid #EF4444",
+              borderRadius: 6,
               color: "#FCA5A5",
-              fontSize: "12.5px",
-              lineHeight: 1.4,
+              fontSize: "12px",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
             }}
           >
-            {errorMessage}
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#EF4444"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{ flexShrink: 0 }}
+            >
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            <span>{errorMessage}</span>
           </div>
         )}
 
-        {/* Form Container */}
+        {/* Form Fields */}
         <form
           onSubmit={handleSubmit(onSubmit)}
-          style={{
-            marginTop: 26,
-            display: "flex",
-            flexDirection: "column",
-            gap: 14,
-          }}
+          style={{ marginTop: 24, display: "flex", flexDirection: "column", gap: 16 }}
         >
           {/* Tên đăng nhập */}
           <label style={{ display: "flex", flexDirection: "column", gap: 7 }}>
@@ -298,7 +315,7 @@ export const LoginForm: React.FC = () => {
                 color: "#A9A7B2",
               }}
             >
-              Tên đăng nhập
+              {t('login.username', { ns: 'auth' })}
             </span>
             <span
               style={{
@@ -327,7 +344,7 @@ export const LoginForm: React.FC = () => {
                 strokeLinejoin="round"
                 style={{ flexShrink: 0 }}
               >
-                <circle cx="12" cy="8.5" r="3.5" />
+                <circle cx="12" cy="8" r="4" />
                 <path d="M5 20c0-3.6 3.1-5.5 7-5.5s7 1.9 7 5.5" />
               </svg>
               <Controller
@@ -336,7 +353,7 @@ export const LoginForm: React.FC = () => {
                 render={({ field }) => (
                   <input
                     {...field}
-                    placeholder="ten.dang.nhap"
+                    placeholder={t('login.usernamePlaceholder', { ns: 'auth' })}
                     autoComplete="username"
                     onFocus={() => setFocusedField("username")}
                     onBlur={() => {
@@ -372,7 +389,7 @@ export const LoginForm: React.FC = () => {
                 color: "#A9A7B2",
               }}
             >
-              Mật khẩu
+              {t('login.password', { ns: 'auth' })}
             </span>
             <span
               style={{
@@ -411,7 +428,7 @@ export const LoginForm: React.FC = () => {
                   <input
                     {...field}
                     type={showPassword ? "text" : "password"}
-                    placeholder="••••••••"
+                    placeholder={t('login.passwordPlaceholder', { ns: 'auth' })}
                     autoComplete="current-password"
                     onFocus={() => setFocusedField("password")}
                     onBlur={() => {
@@ -444,16 +461,8 @@ export const LoginForm: React.FC = () => {
                   transition: "color 0.15s",
                   flexShrink: 0,
                 }}
-                onMouseOver={(e) => {
-                  ;(e.currentTarget as HTMLButtonElement).style.color = "#B79CF5"
-                }}
-                onMouseOut={(e) => {
-                  if (!showPassword) {
-                    ;(e.currentTarget as HTMLButtonElement).style.color = "#8A8894"
-                  }
-                }}
               >
-                {showPassword ? "Ẩn" : "Hiện"}
+                {showPassword ? t('login.hide', { ns: 'auth' }) : t('login.show', { ns: 'auth' })}
               </button>
             </span>
             {errors.password && (
@@ -493,7 +502,7 @@ export const LoginForm: React.FC = () => {
                   cursor: "pointer",
                 }}
               />
-              <span>Ghi nhớ máy này</span>
+              <span>{t('login.rememberMe', { ns: 'auth' })}</span>
             </label>
             <a
               href="#"
@@ -504,7 +513,7 @@ export const LoginForm: React.FC = () => {
                 textDecoration: "none",
               }}
             >
-              Quên mật khẩu?
+              {t('login.forgotPassword', { ns: 'auth' })}
             </a>
           </div>
 
@@ -526,14 +535,8 @@ export const LoginForm: React.FC = () => {
               justifyContent: "center",
               transition: "background 0.15s ease",
             }}
-            onMouseOver={(e) => {
-              if (!isLoading) (e.currentTarget as HTMLButtonElement).style.background = "#8B4CF0"
-            }}
-            onMouseOut={(e) => {
-              if (!isLoading) (e.currentTarget as HTMLButtonElement).style.background = "#7C3AED"
-            }}
           >
-            {isLoading ? "Đang xác thực..." : "Đăng nhập"}
+            {isLoading ? t('login.submitting', { ns: 'auth' }) : t('login.submit', { ns: 'auth' })}
           </button>
         </form>
 
@@ -562,7 +565,7 @@ export const LoginForm: React.FC = () => {
               color: "#6B6975",
             }}
           >
-            Chưa có tài khoản? Liên hệ quản trị xưởng.
+            {t('login.noAccount', { ns: 'auth' })}
           </span>
         </div>
       </div>

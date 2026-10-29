@@ -1,36 +1,38 @@
 import React, { useState } from 'react'
 import { PageHeader } from '@/components/common/PageHeader'
 import { message } from 'antd'
-
-const batches = [
-  { code: "LO-2608-04", label: "VinFast bổ sung năm 2026 — ngoại thất", count: "412", errors: "0", errColor: "#2E7D5B", progress: "100%", status: "Hoàn tất", stBg: "#E6F1EB", stColor: "#2E7D5B" },
-  { code: "LO-2608-03", label: "Hyundai Santa Fe / Tucson — nội thất", count: "186", errors: "4", errColor: "#B4741E", progress: "100%", status: "Có cảnh báo", stBg: "#FBF0DF", stColor: "#8A5A12" },
-  { code: "LO-2608-02", label: "Mazda 2024 — window film", count: "94", errors: "0", errColor: "#2E7D5B", progress: "100%", status: "Hoàn tất", stBg: "#E6F1EB", stColor: "#2E7D5B" },
-  { code: "LO-2608-01", label: "Ford Ranger biến thể độ — ngoại thất", count: "1 240", errors: "0", errColor: "#8A8983", progress: "62%", status: "Đang chạy", stBg: "#F1EDFC", stColor: "#5B2BB0" },
-  { code: "LO-2607-11", label: "Kia dòng cũ 2018–2021", count: "608", errors: "37", errColor: "#C2452D", progress: "100%", status: "Cần xem lại", stBg: "#FAE7E3", stColor: "#A93823" }
-]
+import { useTranslation } from 'react-i18next'
 
 export const BulkUploadPage: React.FC = () => {
+  const { t } = useTranslation(['bulkUpload', 'common'])
   const [dragOver, setDragOver] = useState(false)
+
+  const batches = [
+    { code: "LO-2608-04", label: "VinFast bổ sung năm 2026 — ngoại thất", count: "412", errors: "0", errColor: "#2E7D5B", progress: "100%", status: t('batches.completed'), stBg: "#E6F1EB", stColor: "#2E7D5B" },
+    { code: "LO-2608-03", label: "Hyundai Santa Fe / Tucson — nội thất", count: "186", errors: "4", errColor: "#B4741E", progress: "100%", status: t('batches.warning'), stBg: "#FBF0DF", stColor: "#8A5A12" },
+    { code: "LO-2608-02", label: "Mazda 2024 — window film", count: "94", errors: "0", errColor: "#2E7D5B", progress: "100%", status: t('batches.completed'), stBg: "#E6F1EB", stColor: "#2E7D5B" },
+    { code: "LO-2608-01", label: "Ford Ranger biến thể độ — ngoại thất", count: "1 240", errors: "0", errColor: "#8A8983", progress: "62%", status: t('batches.running'), stBg: "#F1EDFC", stColor: "#5B2BB0" },
+    { code: "LO-2607-11", label: "Kia dòng cũ 2018–2021", count: "608", errors: "37", errColor: "#C2452D", progress: "100%", status: t('batches.needsReview'), stBg: "#FAE7E3", stColor: "#A93823" }
+  ]
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
     setDragOver(false)
-    message.info('Đã nhận diện tệp tải lên. Hệ thống đang xác thực cấu trúc...')
+    message.info(t('messages.dropRecognized'))
   }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
       <PageHeader
-        title="Nạp mẫu hàng loạt"
-        subtitle="Import theo lô và gắn nhãn nhiều mẫu cùng lúc"
+        title={t('title')}
+        subtitle={t('subtitle')}
       />
       <div style={{ padding: '16px 24px', display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 296px', gap: 20, alignItems: 'start' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div style={{ padding: 18, background: '#FBFBFA', border: '1px solid #E4E3DE', borderRadius: 6 }}>
-            <div style={{ font: "600 12.5px 'IBM Plex Sans', sans-serif" }}>Lô nạp mới</div>
+            <div style={{ font: "600 12.5px 'IBM Plex Sans', sans-serif" }}>{t('newBatch.title')}</div>
             <div style={{ marginTop: 4, font: "400 11.5px 'IBM Plex Sans', sans-serif", color: '#8A8983' }}>
-              Kéo thư mục SVG kèm file mô tả CSV. Hệ thống khớp theo cột mã mẫu.
+              {t('newBatch.desc')}
             </div>
             <div
               onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
@@ -56,39 +58,39 @@ export const BulkUploadPage: React.FC = () => {
                 <path d="M4.5 19.5h15" />
               </svg>
               <span style={{ font: "500 12px 'IBM Plex Sans', sans-serif", color: '#5B2BB0' }}>
-                Thả thư mục hoặc file .zip vào đây
+                {t('newBatch.dropTitle')}
               </span>
               <span style={{ font: "400 11px 'IBM Plex Sans', sans-serif", color: '#8A8983' }}>
-                Tối đa 5 000 mẫu mỗi lô
+                {t('newBatch.maxPatterns')}
               </span>
             </div>
             <div style={{ marginTop: 14, display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 12 }}>
               <label style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                <span style={{ font: "500 11px 'IBM Plex Sans', sans-serif", color: '#6E6D68' }}>Nhóm ứng dụng</span>
-                <input defaultValue="Ngoại thất" style={{ padding: '7px 9px', border: '1px solid #D8D7D2', borderRadius: 4, background: '#FFF', outline: 'none', font: "400 12px 'IBM Plex Sans', sans-serif", color: '#1B1B19', width: '100%' }} />
+                <span style={{ font: "500 11px 'IBM Plex Sans', sans-serif", color: '#6E6D68' }}>{t('newBatch.appGroup')}</span>
+                <input defaultValue={t('newBatch.defaultExterior')} style={{ padding: '7px 9px', border: '1px solid #D8D7D2', borderRadius: 4, background: '#FFF', outline: 'none', font: "400 12px 'IBM Plex Sans', sans-serif", color: '#1B1B19', width: '100%' }} />
               </label>
               <label style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                <span style={{ font: "500 11px 'IBM Plex Sans', sans-serif", color: '#6E6D68' }}>Phạm vi phân phối</span>
-                <input defaultValue="Toàn hệ thống" style={{ padding: '7px 9px', border: '1px solid #D8D7D2', borderRadius: 4, background: '#FFF', outline: 'none', font: "400 12px 'IBM Plex Sans', sans-serif", color: '#1B1B19', width: '100%' }} />
+                <span style={{ font: "500 11px 'IBM Plex Sans', sans-serif", color: '#6E6D68' }}>{t('newBatch.scope')}</span>
+                <input defaultValue={t('newBatch.defaultSystem')} style={{ padding: '7px 9px', border: '1px solid #D8D7D2', borderRadius: 4, background: '#FFF', outline: 'none', font: "400 12px 'IBM Plex Sans', sans-serif", color: '#1B1B19', width: '100%' }} />
               </label>
               <label style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                <span style={{ font: "500 11px 'IBM Plex Sans', sans-serif", color: '#6E6D68' }}>Trạng thái sau khi nạp</span>
-                <input defaultValue="Chờ duyệt" style={{ padding: '7px 9px', border: '1px solid #D8D7D2', borderRadius: 4, background: '#FFF', outline: 'none', font: "400 12px 'IBM Plex Sans', sans-serif", color: '#1B1B19', width: '100%' }} />
+                <span style={{ font: "500 11px 'IBM Plex Sans', sans-serif", color: '#6E6D68' }}>{t('newBatch.statusAfter')}</span>
+                <input defaultValue={t('newBatch.defaultPending')} style={{ padding: '7px 9px', border: '1px solid #D8D7D2', borderRadius: 4, background: '#FFF', outline: 'none', font: "400 12px 'IBM Plex Sans', sans-serif", color: '#1B1B19', width: '100%' }} />
               </label>
             </div>
           </div>
 
           <div style={{ background: '#FBFBFA', border: '1px solid #E4E3DE', borderRadius: 6, overflow: 'hidden' }}>
             <div style={{ padding: '12px 16px', borderBottom: '1px solid #E4E3DE', font: "600 12.5px 'IBM Plex Sans', sans-serif" }}>
-              Lô đã nạp gần đây
+              {t('table.title')}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '104px 1fr 84px 76px 84px 112px', padding: '9px 16px', background: '#F1F0EC', borderBottom: '1px solid #E4E3DE', font: "600 10.5px 'IBM Plex Sans', sans-serif", letterSpacing: '0.04em', color: '#6E6D68' }}>
-              <span>Mã lô</span>
-              <span>Nội dung</span>
-              <span style={{ textAlign: 'right' }}>Mẫu</span>
-              <span style={{ textAlign: 'right' }}>Lỗi</span>
-              <span style={{ textAlign: 'right' }}>Tiến độ</span>
-              <span style={{ textAlign: 'right' }}>Trạng thái</span>
+              <span>{t('table.code')}</span>
+              <span>{t('table.content')}</span>
+              <span style={{ textAlign: 'right' }}>{t('table.patterns')}</span>
+              <span style={{ textAlign: 'right' }}>{t('table.errors')}</span>
+              <span style={{ textAlign: 'right' }}>{t('table.progress')}</span>
+              <span style={{ textAlign: 'right' }}>{t('table.status')}</span>
             </div>
             {batches.map((b) => (
               <div key={b.code} className="pcut-table-row" style={{ display: 'grid', gridTemplateColumns: '104px 1fr 84px 76px 84px 112px', alignItems: 'center', padding: '10px 16px', borderBottom: '1px solid #EFEEEA', font: "400 12px 'IBM Plex Sans', sans-serif" }}>
@@ -108,25 +110,25 @@ export const BulkUploadPage: React.FC = () => {
         </div>
 
         <div style={{ padding: '16px 18px', background: '#FBFBFA', border: '1px solid #E4E3DE', borderRadius: 6 }}>
-          <div style={{ font: "600 12.5px 'IBM Plex Sans', sans-serif" }}>Gắn nhãn hàng loạt</div>
+          <div style={{ font: "600 12.5px 'IBM Plex Sans', sans-serif" }}>{t('bulkTag.title')}</div>
           <div style={{ marginTop: 4, font: "400 11.5px 'IBM Plex Sans', sans-serif", color: '#8A8983' }}>
-            Sửa dữ liệu mô tả cho nhiều mẫu cùng lúc.
+            {t('bulkTag.desc')}
           </div>
           <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
             <label style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-              <span style={{ font: "500 11px 'IBM Plex Sans', sans-serif", color: '#6E6D68' }}>Chọn mẫu theo bộ lọc</span>
-              <input defaultValue="Hãng = Ford · Năm ≥ 2022" style={{ padding: '7px 9px', border: '1px solid #D8D7D2', borderRadius: 4, background: '#FFF', outline: 'none', font: "400 12px 'IBM Plex Sans', sans-serif", color: '#1B1B19', width: '100%' }} />
+              <span style={{ font: "500 11px 'IBM Plex Sans', sans-serif", color: '#6E6D68' }}>{t('bulkTag.selectByFilter')}</span>
+              <input defaultValue={t('bulkTag.defaultFilter')} style={{ padding: '7px 9px', border: '1px solid #D8D7D2', borderRadius: 4, background: '#FFF', outline: 'none', font: "400 12px 'IBM Plex Sans', sans-serif", color: '#1B1B19', width: '100%' }} />
             </label>
             <label style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-              <span style={{ font: "500 11px 'IBM Plex Sans', sans-serif", color: '#6E6D68' }}>Trường cần sửa</span>
-              <input defaultValue="Nhóm chi tiết → Thân xe" style={{ padding: '7px 9px', border: '1px solid #D8D7D2', borderRadius: 4, background: '#FFF', outline: 'none', font: "400 12px 'IBM Plex Sans', sans-serif", color: '#1B1B19', width: '100%' }} />
+              <span style={{ font: "500 11px 'IBM Plex Sans', sans-serif", color: '#6E6D68' }}>{t('bulkTag.fieldToEdit')}</span>
+              <input defaultValue={t('bulkTag.defaultField')} style={{ padding: '7px 9px', border: '1px solid #D8D7D2', borderRadius: 4, background: '#FFF', outline: 'none', font: "400 12px 'IBM Plex Sans', sans-serif", color: '#1B1B19', width: '100%' }} />
             </label>
           </div>
           <div style={{ marginTop: 14, padding: '10px 12px', background: '#F1F0EC', borderRadius: 5, font: "400 11.5px 'IBM Plex Sans', sans-serif", color: '#35342F' }}>
-            Sẽ áp dụng cho <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 600 }}>218</span> mẫu
+            {t('bulkTag.willApply')} <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 600 }}>218</span> {t('bulkTag.patternsUnit')}
           </div>
           <button style={{ marginTop: 12, width: '100%', padding: 8, border: 0, borderRadius: 5, background: '#7C3AED', cursor: 'pointer', font: "500 12px 'IBM Plex Sans', sans-serif", color: '#FFF' }}>
-            Gắn nhãn
+            {t('bulkTag.submit')}
           </button>
         </div>
       </div>

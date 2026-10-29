@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Modal, Form, Input, Select, message, Alert } from 'antd'
+import { useTranslation } from 'react-i18next'
 import { PartLibraryCategory, PartLibraryCategoryCreateRequest, PartLibraryCategoryUpdateRequest } from '@/types/partLibraryCategory'
 import { partLibraryCategoryService } from '@/services/admin/partLibraryCategoryService'
 import { extractErrorMessage } from '@/utils/error'
@@ -17,6 +18,7 @@ export const PartLibraryCategoryModal: React.FC<PartLibraryCategoryModalProps> =
   onClose,
   onSuccess,
 }) => {
+  const { t } = useTranslation(['partLibraryCategories', 'common'])
   const [form] = Form.useForm()
   const [submitting, setSubmitting] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
@@ -54,7 +56,7 @@ export const PartLibraryCategoryModal: React.FC<PartLibraryCategoryModalProps> =
           status: values.status,
         }
         await partLibraryCategoryService.updateCategory(editing.id, payload)
-        message.success('Cập nhật danh mục kho mẫu & part thành công!')
+        message.success(t('messages.saveSuccess'))
       } else {
         const payload: PartLibraryCategoryCreateRequest = {
           code: values.code.trim().toUpperCase(),
@@ -62,7 +64,7 @@ export const PartLibraryCategoryModal: React.FC<PartLibraryCategoryModalProps> =
           status: values.status || 'ACTIVE',
         }
         await partLibraryCategoryService.createCategory(payload)
-        message.success('Tạo danh mục kho mẫu & part thành công!')
+        message.success(t('messages.createSuccess'))
       }
 
       onSuccess()
@@ -71,7 +73,8 @@ export const PartLibraryCategoryModal: React.FC<PartLibraryCategoryModalProps> =
       if (err && typeof err === 'object' && 'errorFields' in err) {
         return // Validation error in form
       }
-      const msg = extractErrorMessage(err, isEdit ? 'Không thể cập nhật danh mục' : 'Không thể tạo danh mục')
+      const defaultErr = isEdit ? t('messages.statusError') : t('common.messages.error', { ns: 'common' })
+      const msg = extractErrorMessage(err, defaultErr)
       setErrorMsg(msg)
     } finally {
       setSubmitting(false)
@@ -80,13 +83,13 @@ export const PartLibraryCategoryModal: React.FC<PartLibraryCategoryModalProps> =
 
   return (
     <Modal
-      title={isEdit ? 'Chỉnh sửa Danh mục kho mẫu & part' : 'Thêm mới Danh mục kho mẫu & part'}
+      title={isEdit ? t('modal.editTitle') : t('modal.addTitle')}
       open={open}
       onOk={handleSubmit}
       onCancel={onClose}
       confirmLoading={submitting}
-      okText={isEdit ? 'Lưu thay đổi' : 'Tạo mới'}
-      cancelText="Hủy"
+      okText={isEdit ? t('actions.save', { ns: 'common' }) : t('actions.create', { ns: 'common' })}
+      cancelText={t('actions.cancel', { ns: 'common' })}
       destroyOnClose
       width={520}
     >
@@ -94,8 +97,8 @@ export const PartLibraryCategoryModal: React.FC<PartLibraryCategoryModalProps> =
         <Alert
           type="info"
           showIcon
-          message="Phân biệt với Danh mục xe"
-          description="Đây là danh mục dùng để phân loại Kho mẫu & Part file (Nội thất, Ngoại thất, Phim cách nhiệt...). Không nhầm lẫn với Danh mục xe (Hãng › Dòng › Model)."
+          message={t('modal.distinctionTitle')}
+          description={t('modal.distinctionDesc')}
           style={{ marginBottom: 16 }}
         />
 
@@ -113,18 +116,18 @@ export const PartLibraryCategoryModal: React.FC<PartLibraryCategoryModalProps> =
         <Form form={form} layout="vertical" requiredMark="optional">
           <Form.Item
             name="code"
-            label="Mã danh mục"
+            label={t('modal.code')}
             rules={[
-              { required: true, message: 'Vui lòng nhập mã danh mục' },
+              { required: true, message: t('modal.codeRequired') },
               {
                 pattern: /^[A-Za-z0-9_-]+$/,
-                message: 'Mã danh mục chỉ chứa chữ cái, số, gạch dưới hoặc gạch ngang',
+                message: t('modal.codePattern'),
               },
             ]}
-            extra="Ví dụ: INTERIOR, EXTERIOR, WINDOW_FILM, LIGHTS_GLASS"
+            extra={t('modal.codeHelp')}
           >
             <Input
-              placeholder="Nhập mã (ví dụ: INTERIOR)"
+              placeholder={t('modal.codePlaceholder')}
               style={{ textTransform: 'uppercase' }}
               onChange={e => {
                 form.setFieldsValue({ code: e.target.value.toUpperCase() })
@@ -134,21 +137,21 @@ export const PartLibraryCategoryModal: React.FC<PartLibraryCategoryModalProps> =
 
           <Form.Item
             name="name"
-            label="Tên danh mục"
-            rules={[{ required: true, message: 'Vui lòng nhập tên danh mục' }]}
-            extra="Ví dụ: Nội thất, Ngoại thất, Phim cách nhiệt, Đèn & kính"
+            label={t('modal.name')}
+            rules={[{ required: true, message: t('modal.nameRequired') }]}
+            extra={t('modal.nameHelp')}
           >
-            <Input placeholder="Nhập tên hiển thị" />
+            <Input placeholder={t('modal.namePlaceholder')} />
           </Form.Item>
 
           <Form.Item
             name="status"
-            label="Trạng thái"
-            rules={[{ required: true, message: 'Vui lòng chọn trạng thái' }]}
+            label={t('modal.status')}
+            rules={[{ required: true, message: t('modal.statusRequired') }]}
           >
             <Select>
-              <Select.Option value="ACTIVE">Hoạt động (ACTIVE)</Select.Option>
-              <Select.Option value="INACTIVE">Tạm dừng (INACTIVE)</Select.Option>
+              <Select.Option value="ACTIVE">{t('modal.active')} (ACTIVE)</Select.Option>
+              <Select.Option value="INACTIVE">{t('modal.inactive')} (INACTIVE)</Select.Option>
             </Select>
           </Form.Item>
         </Form>

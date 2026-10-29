@@ -1,0 +1,62 @@
+{
+  "title": "Danh mục kho mẫu & part",
+  "subtitle": "Quản lý danh mục phân loại kho mẫu và part file (Nội thất, Ngoại thất, Phim cách nhiệt...) — Tách biệt hoàn toàn với Danh mục xe",
+  "addCategory": "Thêm danh mục mới",
+  "editCategory": "Chỉnh sửa danh mục",
+  "searchPlaceholder": "Tìm kiếm danh mục...",
+  "columns": {
+    "code": "Mã danh mục",
+    "name": "Tên danh mục",
+    "status": "Trạng thái",
+    "actions": "Thao tác",
+    "usageCount": "Số file sử dụng",
+    "createdBy": "Người tạo",
+    "createdAt": "Ngày tạo",
+    "action": "Hành động",
+    "filesUnit": "{{count}} file"
+  },
+  "modal": {
+    "addTitle": "Thêm mới danh mục kho mẫu",
+    "editTitle": "Cập nhật danh mục kho mẫu",
+    "code": "Mã danh mục",
+    "codePlaceholder": "Nhập mã (ví dụ: INTERIOR)",
+    "name": "Tên danh mục",
+    "namePlaceholder": "Nhập tên hiển thị",
+    "status": "Trạng thái",
+    "active": "Hoạt động",
+    "inactive": "Tạm dừng",
+    "saveSuccess": "Đã lưu danh mục thành công!",
+    "distinctionTitle": "Phân biệt với Danh mục xe",
+    "distinctionDesc": "Đây là danh mục dùng để phân loại Kho mẫu & Part file (Nội thất, Ngoại thất, Phim cách nhiệt...). Không nhầm lẫn với Danh mục xe (Hãng › Dòng › Model).",
+    "codeHelp": "Ví dụ: INTERIOR, EXTERIOR, WINDOW_FILM, LIGHTS_GLASS",
+    "nameHelp": "Ví dụ: Nội thất, Ngoại thất, Phim cách nhiệt, Đèn & kính",
+    "codeRequired": "Vui lòng nhập mã danh mục",
+    "codePattern": "Mã danh mục chỉ chứa chữ cái, số, gạch dưới hoặc gạch ngang",
+    "nameRequired": "Vui lòng nhập tên danh mục",
+    "statusRequired": "Vui lòng chọn trạng thái"
+  },
+  "filters": {
+    "searchPlaceholder": "Tìm theo mã hoặc tên...",
+    "allStatuses": "Tất cả trạng thái",
+    "refresh": "Làm mới",
+    "totalCategories": "Tổng cộng {{total}} danh mục"
+  },
+  "tooltips": {
+    "edit": "Chỉnh sửa",
+    "pause": "Tạm dừng danh mục",
+    "activate": "Kích hoạt danh mục",
+    "cannotDelete": "Không thể xóa vì đang có part file sử dụng. Vui lòng chuyển trạng thái sang Tạm dừng (INACTIVE).",
+    "delete": "Xóa danh mục"
+  },
+  "messages": {
+    "statusUpdated": "Đã cập nhật trạng thái danh mục",
+    "statusError": "Không thể thay đổi trạng thái danh mục",
+    "deleteSuccess": "Đã xóa danh mục thành công",
+    "deleteError": "Không thể xóa danh mục",
+    "deleteConfirmTitle": "Xóa danh mục",
+    "deleteConfirmDesc": "Bạn có chắc chắn muốn xóa danh mục \"{{name}}\"?",
+    "loadError": "Không thể tải danh sách danh mục kho mẫu & part",
+    "saveSuccess": "Cập nhật danh mục kho mẫu & part thành công!",
+    "createSuccess": "Tạo danh mục kho mẫu & part thành công!"
+  }
+}

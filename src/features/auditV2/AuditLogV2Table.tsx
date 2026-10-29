@@ -1,4 +1,5 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import { Table, Tag, Tooltip, Typography, Button, Badge } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import dayjs from 'dayjs'
@@ -25,6 +26,7 @@ export const AuditLogV2Table: React.FC<AuditLogV2TableProps> = ({
   onChange,
   onSelectRecord,
 }) => {
+  const { t } = useTranslation('audit')
   const getMethodColor = (method: string) => {
     switch (method.toUpperCase()) {
       case 'GET':
@@ -74,7 +76,7 @@ export const AuditLogV2Table: React.FC<AuditLogV2TableProps> = ({
 
   const columns: ColumnsType<AuditLogV2Record> = [
     {
-      title: 'Thời gian',
+      title: t('columns.timestamp'),
       dataIndex: 'createdAt',
       key: 'createdAt',
       width: 150,
@@ -151,7 +153,7 @@ export const AuditLogV2Table: React.FC<AuditLogV2TableProps> = ({
       ),
     },
     {
-      title: 'Đại lý',
+      title: t('v2.colDealer'),
       dataIndex: 'dealerName',
       key: 'dealerName',
       width: 140,
@@ -270,7 +272,7 @@ export const AuditLogV2Table: React.FC<AuditLogV2TableProps> = ({
       ),
     },
     {
-      title: 'Thao tác',
+      title: t('v2.colActions'),
       key: 'action',
       width: 80,
       align: 'center',

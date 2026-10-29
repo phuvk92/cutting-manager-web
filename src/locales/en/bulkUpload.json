@@ -1,0 +1,51 @@
+{
+  "title": "Bulk Upload Patterns",
+  "subtitle": "Batch import and tag multiple patterns at once",
+  "dropzone": {
+    "title": "Drag and drop SVG or ZIP archive files here",
+    "hint": "Direct drag & drop of multiple SVG files or structured vehicle directory ZIPs supported",
+    "select": "Browse Files"
+  },
+  "batches": {
+    "title": "Recent Upload Batches",
+    "completed": "Completed",
+    "warning": "Has Warnings",
+    "running": "Running",
+    "needsReview": "Needs Review"
+  },
+  "newBatch": {
+    "title": "New Upload Batch",
+    "desc": "Drag SVG directory with CSV manifest file. System matches by pattern code column.",
+    "dropTitle": "Drop folder or .zip file here",
+    "maxPatterns": "Max 5,000 patterns per batch",
+    "appGroup": "Application Group",
+    "scope": "Distribution Scope",
+    "statusAfter": "Status After Import",
+    "defaultExterior": "Exterior",
+    "defaultSystem": "System-wide",
+    "defaultPending": "Pending Review"
+  },
+  "table": {
+    "title": "Recently Uploaded Batches",
+    "code": "Batch Code",
+    "content": "Description",
+    "patterns": "Patterns",
+    "errors": "Errors",
+    "progress": "Progress",
+    "status": "Status"
+  },
+  "bulkTag": {
+    "title": "Bulk Tagging",
+    "desc": "Modify metadata for multiple patterns simultaneously.",
+    "selectByFilter": "Select patterns by filter",
+    "defaultFilter": "Brand = Ford · Year ≥ 2022",
+    "fieldToEdit": "Field to update",
+    "defaultField": "Detail Group → Body",
+    "willApply": "Will apply to",
+    "patternsUnit": "patterns",
+    "submit": "Apply Tags"
+  },
+  "messages": {
+    "dropRecognized": "Detected uploaded file. Validating directory structure..."
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "title": "Danh mục xe",
+  "subtitle": "Quản lý cây phân cấp hãng, dòng, đời xe và phiên bản mẫu cắt",
+  "searchPlaceholder": "Tìm kiếm theo tên hãng, dòng, đời xe...",
+  "expandAll": "Mở rộng tất cả",
+  "collapseAll": "Thu gọn tất cả",
+  "addBrand": "Thêm hãng xe",
+  "levels": {
+    "BRAND": "Hãng xe",
+    "SERIES": "Dòng xe",
+    "MODEL": "Đời xe (Năm)",
+    "SUBTYPE": "Phiên bản / Chi tiết"
+  },
+  "dialog": {
+    "addTitle": "Thêm mới {level}",
+    "editTitle": "Chỉnh sửa {level}",
+    "parentPath": "Phân cấp cha",
+    "rootBrand": "Cấp gốc (Hãng xe mới)",
+    "name": "Tên hiển thị",
+    "slug": "Mã định danh (Slug)",
+    "sortOrder": "Thứ tự sắp xếp",
+    "active": "Đang áp dụng",
+    "saveSuccess": "Đã lưu thành công!",
+    "deleteSuccess": "Đã xóa thành công!",
+    "level": "Cấp",
+    "belongTo": "Thuộc",
+    "root": "— (gốc)",
+    "nameLabel": "Tên",
+    "nameTaken": "Đã có {{level}} tên \"{{name}}\" trong cùng mục cha."
+  },
+  "deleteConfirm": "Bạn có chắc chắn muốn xóa mục này và tất cả các mục con?",
+  "columns": {
+    "stt": "STT",
+    "name": "TÊN",
+    "children": "MỤC CON",
+    "actions": "THAO TÁC"
+  },
+  "hint": "Cây 4 cấp Brand › Series › Model › SubType. Danh mục và Năm chọn khi upload file mẫu.",
+  "table": {
+    "totalBrands": "Tổng {{total}} hãng",
+    "noMatch": "Không có mục nào khớp \"{{query}}\".",
+    "noBrands": "Chưa có hãng nào.",
+    "addSubLevel": "Thêm {{level}} dưới {{name}}",
+    "editTooltip": "Sửa",
+    "deleteTooltip": "Xoá (xoá luôn mục con)",
+    "deleteTitle": "Xoá {{level}}?",
+    "deleteImpactDesc": "Xoá «{{name}}»{{nodes}}.",
+    "impactNodes": " và {{count}} mục con",
+    "impactFiles": "{{count}} file sẽ mất liên kết mẫu xe (file vẫn còn trong kho).",
+    "impactNoFiles": "Không có file nào gắn nhánh này.",
+    "deleteSuccessMsg": "Đã xoá {{deleted}} mục{{unlinked}}",
+    "unlinkedMsg": " · {{count}} file mất liên kết"
+  }
+}

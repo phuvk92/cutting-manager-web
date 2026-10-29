@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { Table, Button, Input, Select, Tag, Popconfirm, message, Space, Tooltip, Typography } from 'antd'
 import { PlusOutlined, EditOutlined, DeleteOutlined, ReloadOutlined, CheckCircleOutlined, StopOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
+import { useTranslation } from 'react-i18next'
 import { PartLibraryCategory, PartLibraryCategoryFilterParams } from '@/types/partLibraryCategory'
 import { partLibraryCategoryService } from '@/services/admin/partLibraryCategoryService'
 import { PartLibraryCategoryModal } from './PartLibraryCategoryModal'
@@ -11,6 +12,7 @@ import { formatDateTime } from '@/utils/formatters'
 const { Text } = Typography
 
 export const PartLibraryCategoryList: React.FC = () => {
+  const { t } = useTranslation(['partLibraryCategories', 'common'])
   const [data, setData] = useState<PartLibraryCategory[]>([])
   const [loading, setLoading] = useState(false)
   const [totalElements, setTotalElements] = useState(0)
@@ -41,11 +43,11 @@ export const PartLibraryCategoryList: React.FC = () => {
       setData(res.content || [])
       setTotalElements(res.totalElements || 0)
     } catch (err) {
-      message.error(extractErrorMessage(err, 'Không thể tải danh sách danh mục kho mẫu & part'))
+      message.error(extractErrorMessage(err, t('messages.loadError')))
     } finally {
       setLoading(false)
     }
-  }, [page, pageSize, search, status])
+  }, [page, pageSize, search, status, t])
 
   useEffect(() => {
     fetchCategories()
@@ -76,26 +78,26 @@ export const PartLibraryCategoryList: React.FC = () => {
     const newStatus = record.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE'
     try {
       await partLibraryCategoryService.updateCategory(record.id, { status: newStatus })
-      message.success('Đã cập nhật trạng thái danh mục')
+      message.success(t('messages.statusUpdated'))
       fetchCategories()
     } catch (err) {
-      message.error(extractErrorMessage(err, 'Không thể thay đổi trạng thái danh mục'))
+      message.error(extractErrorMessage(err, t('messages.statusError')))
     }
   }
 
   const handleDelete = async (record: PartLibraryCategory) => {
     try {
       await partLibraryCategoryService.deleteCategory(record.id)
-      message.success('Đã xóa danh mục thành công')
+      message.success(t('messages.deleteSuccess'))
       fetchCategories()
     } catch (err) {
-      message.error(extractErrorMessage(err, 'Không thể xóa danh mục'))
+      message.error(extractErrorMessage(err, t('messages.deleteError')))
     }
   }
 
   const columns: ColumnsType<PartLibraryCategory> = [
     {
-      title: 'Mã danh mục',
+      title: t('columns.code'),
       dataIndex: 'code',
       key: 'code',
       width: 160,
@@ -106,7 +108,7 @@ export const PartLibraryCategoryList: React.FC = () => {
       ),
     },
     {
-      title: 'Tên danh mục',
+      title: t('columns.name'),
       dataIndex: 'name',
       key: 'name',
       render: (name: string) => (
@@ -116,46 +118,46 @@ export const PartLibraryCategoryList: React.FC = () => {
       ),
     },
     {
-      title: 'Trạng thái',
+      title: t('columns.status'),
       dataIndex: 'status',
       key: 'status',
       width: 140,
       render: (st: string) => (
         st === 'ACTIVE' ? (
-          <Tag color="success" icon={<CheckCircleOutlined />}>Hoạt động</Tag>
+          <Tag color="success" icon={<CheckCircleOutlined />}>{t('status.active', { ns: 'common' })}</Tag>
         ) : (
-          <Tag color="default" icon={<StopOutlined />}>Tạm dừng</Tag>
+          <Tag color="default" icon={<StopOutlined />}>{t('status.inactive', { ns: 'common' })}</Tag>
         )
       ),
     },
     {
-      title: 'Số file sử dụng',
+      title: t('columns.usageCount'),
       dataIndex: 'usageCount',
       key: 'usageCount',
       width: 140,
       align: 'center',
       render: (count: number) => (
         <Tag color={count > 0 ? 'processing' : 'default'}>
-          {count ?? 0} file
+          {t('columns.filesUnit', { count: count ?? 0 })}
         </Tag>
       ),
     },
     {
-      title: 'Người tạo',
+      title: t('columns.createdBy'),
       dataIndex: 'createdBy',
       key: 'createdBy',
       width: 130,
       render: (user: string | null) => user || '—',
     },
     {
-      title: 'Ngày tạo',
+      title: t('columns.createdAt'),
       dataIndex: 'createdAt',
       key: 'createdAt',
       width: 160,
       render: (dateStr: string) => (dateStr ? formatDateTime(dateStr) : '—'),
     },
     {
-      title: 'Hành động',
+      title: t('columns.action'),
       key: 'action',
       width: 180,
       align: 'right',
@@ -163,7 +165,7 @@ export const PartLibraryCategoryList: React.FC = () => {
         const inUse = (record.usageCount ?? 0) > 0
         return (
           <Space size="middle">
-            <Tooltip title="Chỉnh sửa">
+            <Tooltip title={t('tooltips.edit')}>
               <Button
                 type="text"
                 size="small"
@@ -172,7 +174,7 @@ export const PartLibraryCategoryList: React.FC = () => {
               />
             </Tooltip>
 
-            <Tooltip title={record.status === 'ACTIVE' ? 'Tạm dừng danh mục' : 'Kích hoạt danh mục'}>
+            <Tooltip title={record.status === 'ACTIVE' ? t('tooltips.pause') : t('tooltips.activate')}>
               <Button
                 type="text"
                 size="small"
@@ -188,7 +190,7 @@ export const PartLibraryCategoryList: React.FC = () => {
             </Tooltip>
 
             {inUse ? (
-              <Tooltip title="Không thể xóa vì đang có part file sử dụng. Vui lòng chuyển trạng thái sang Tạm dừng (INACTIVE).">
+              <Tooltip title={t('tooltips.cannotDelete')}>
                 <Button
                   type="text"
                   size="small"
@@ -198,14 +200,14 @@ export const PartLibraryCategoryList: React.FC = () => {
               </Tooltip>
             ) : (
               <Popconfirm
-                title="Xóa danh mục"
-                description={'Bạn có chắc chắn muốn xóa danh mục "' + record.name + '"?'}
+                title={t('messages.deleteConfirmTitle')}
+                description={t('messages.deleteConfirmDesc', { name: record.name })}
                 onConfirm={() => handleDelete(record)}
-                okText="Xóa"
-                cancelText="Hủy"
+                okText={t('actions.delete', { ns: 'common' })}
+                cancelText={t('actions.cancel', { ns: 'common' })}
                 okButtonProps={{ danger: true }}
               >
-                <Tooltip title="Xóa danh mục">
+                <Tooltip title={t('tooltips.delete')}>
                   <Button
                     type="text"
                     size="small"
@@ -239,7 +241,7 @@ export const PartLibraryCategoryList: React.FC = () => {
       >
         <Space size="middle" wrap>
           <Input.Search
-            placeholder="Tìm theo mã hoặc tên..."
+            placeholder={t('filters.searchPlaceholder')}
             value={search}
             onChange={e => setSearch(e.target.value)}
             onSearch={handleSearch}
@@ -255,13 +257,13 @@ export const PartLibraryCategoryList: React.FC = () => {
             }}
             style={{ width: 160 }}
           >
-            <Select.Option value="ALL">Tất cả trạng thái</Select.Option>
-            <Select.Option value="ACTIVE">Hoạt động</Select.Option>
-            <Select.Option value="INACTIVE">Tạm dừng</Select.Option>
+            <Select.Option value="ALL">{t('filters.allStatuses')}</Select.Option>
+            <Select.Option value="ACTIVE">{t('status.active', { ns: 'common' })}</Select.Option>
+            <Select.Option value="INACTIVE">{t('status.inactive', { ns: 'common' })}</Select.Option>
           </Select>
 
           <Button icon={<ReloadOutlined />} onClick={handleReset}>
-            Làm mới
+            {t('filters.refresh')}
           </Button>
         </Space>
 
@@ -271,7 +273,7 @@ export const PartLibraryCategoryList: React.FC = () => {
           onClick={handleOpenCreate}
           style={{ background: '#2E7D5B', borderColor: '#2E7D5B' }}
         >
-          Thêm danh mục
+          {t('addCategory')}
         </Button>
       </div>
 
@@ -292,7 +294,7 @@ export const PartLibraryCategoryList: React.FC = () => {
               setPage(p - 1)
               setPageSize(s)
             },
-            showTotal: total => 'Tổng cộng ' + total + ' danh mục',
+            showTotal: total => t('filters.totalCategories', { total }),
           }}
         />
       </div>

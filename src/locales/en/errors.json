@@ -1,0 +1,17 @@
+{
+  "403": {
+    "title": "403 - Access Denied",
+    "subtitle": "Sorry, you do not have permission to access this page.",
+    "backHome": "Back to Dashboard"
+  },
+  "404": {
+    "title": "404 - Page Not Found",
+    "subtitle": "Sorry, the page you visited does not exist.",
+    "backHome": "Back to Dashboard"
+  },
+  "generic": {
+    "title": "An Error Occurred",
+    "description": "Failed to load data from server. Please try again.",
+    "retry": "Retry"
+  }
+}

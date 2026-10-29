@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Button,
   Card,
@@ -42,6 +43,7 @@ export const AuditLogV2FilterBar: React.FC<AuditLogV2FilterBarProps> = ({
   onRefresh,
   onExportCsv,
 }) => {
+  const { t } = useTranslation('audit')
   const [form] = Form.useForm()
   const [expanded, setExpanded] = useState(false)
 
@@ -161,9 +163,7 @@ export const AuditLogV2FilterBar: React.FC<AuditLogV2FilterBarProps> = ({
               <Button type="primary" htmlType="submit" icon={<SearchOutlined />} loading={loading}>
                 Lọc
               </Button>
-              <Button icon={<ReloadOutlined />} onClick={handleResetClick} disabled={loading}>
-                Đặt lại
-              </Button>
+              <Button icon={<ReloadOutlined />} onClick={handleResetClick} disabled={loading}>{t("v2.resetBtn")}</Button>
               {onRefresh && (
                 <Button icon={<SyncOutlined />} onClick={onRefresh} loading={loading}>
                   Làm mới

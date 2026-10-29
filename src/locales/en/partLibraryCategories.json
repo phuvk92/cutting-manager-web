@@ -1,0 +1,62 @@
+{
+  "title": "Pattern Categories",
+  "subtitle": "Manage pattern & part classifications (Interior, Exterior, Window Film...) — Completely separate from Vehicle Catalog",
+  "addCategory": "Add New Category",
+  "editCategory": "Edit Category",
+  "searchPlaceholder": "Search categories...",
+  "columns": {
+    "code": "Category Code",
+    "name": "Category Name",
+    "status": "Status",
+    "actions": "Actions",
+    "usageCount": "Files in Use",
+    "createdBy": "Created By",
+    "createdAt": "Created Date",
+    "action": "Actions",
+    "filesUnit": "{{count}} files"
+  },
+  "modal": {
+    "addTitle": "Add New Pattern Category",
+    "editTitle": "Update Pattern Category",
+    "code": "Category Code",
+    "codePlaceholder": "Enter code (e.g. INTERIOR)",
+    "name": "Category Name",
+    "namePlaceholder": "Enter display name",
+    "status": "Status",
+    "active": "Active",
+    "inactive": "Inactive",
+    "saveSuccess": "Category saved successfully!",
+    "distinctionTitle": "Distinct from Vehicle Catalog",
+    "distinctionDesc": "This category classifies Pattern & Part files (Interior, Exterior, Window Film...). Not to be confused with Vehicle Catalog (Brand › Series › Model).",
+    "codeHelp": "Example: INTERIOR, EXTERIOR, WINDOW_FILM, LIGHTS_GLASS",
+    "nameHelp": "Example: Interior, Exterior, Window Film, Lights & Glass",
+    "codeRequired": "Please enter category code",
+    "codePattern": "Category code can only contain letters, numbers, underscores, or hyphens",
+    "nameRequired": "Please enter category name",
+    "statusRequired": "Please select a status"
+  },
+  "filters": {
+    "searchPlaceholder": "Search by code or name...",
+    "allStatuses": "All Statuses",
+    "refresh": "Refresh",
+    "totalCategories": "Total {{total}} categories"
+  },
+  "tooltips": {
+    "edit": "Edit",
+    "pause": "Pause category",
+    "activate": "Activate category",
+    "cannotDelete": "Cannot delete because part files are using it. Please switch status to Paused (INACTIVE).",
+    "delete": "Delete category"
+  },
+  "messages": {
+    "statusUpdated": "Category status updated successfully",
+    "statusError": "Failed to change category status",
+    "deleteSuccess": "Category deleted successfully",
+    "deleteError": "Failed to delete category",
+    "deleteConfirmTitle": "Delete Category",
+    "deleteConfirmDesc": "Are you sure you want to delete category \"{{name}}\"?",
+    "loadError": "Failed to load pattern & part categories",
+    "saveSuccess": "Updated pattern category successfully!",
+    "createSuccess": "Created pattern category successfully!"
+  }
+}

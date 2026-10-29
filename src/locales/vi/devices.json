@@ -1,0 +1,72 @@
+{
+  "title": "Phiên & thiết bị",
+  "subtitle": "Giám sát thiết bị máy cắt, phiên đăng nhập đang hoạt động và quản lý phiên",
+  "stats": {
+    "activeNow": "Đang hoạt động",
+    "registered": "Máy đã đăng ký",
+    "usersAtLimit": "User chạm giới hạn máy",
+    "staleDevices": "Thiết bị không hoạt động",
+    "active15m": "Đang dùng (15 phút)",
+    "atLimit": "Tài khoản đã đủ máy",
+    "stale30d": "Máy lâu không dùng > 30 ngày"
+  },
+  "searchPlaceholder": "Tìm theo Device ID, IP, tên máy, người dùng...",
+  "allDealers": "Tất cả đại lý",
+  "allStatuses": "Tất cả trạng thái thiết bị",
+  "columns": {
+    "deviceId": "Mã thiết bị / Tên máy",
+    "user": "Người dùng",
+    "dealer": "Đại lý",
+    "ip": "Địa chỉ IP",
+    "appVersion": "Phiên bản App",
+    "lastActive": "Hoạt động cuối",
+    "status": "Trạng thái",
+    "actions": "Thao tác",
+    "device": "Thiết bị",
+    "lastIp": "IP cuối",
+    "firstSeen": "Lần đầu",
+    "lastSeen": "Lần cuối thấy",
+    "revokedBy": "Đã gỡ bởi {{by}}",
+    "revoked": "Đã gỡ",
+    "usable": "Đang dùng được",
+    "unknownUser": "Người dùng không tên",
+    "unknownDevice": "Máy không tên",
+    "unknownPlatform": "Nền tảng chưa rõ"
+  },
+  "revoke": {
+    "button": "Thu hồi phiên",
+    "confirm": "Bạn có chắc chắn muốn ngắt kết nối thiết bị này? Thiết bị sẽ bị đăng xuất ngay lập tức.",
+    "success": "Đã thu hồi phiên thiết bị thành công!"
+  },
+  "dot": {
+    "revoked": "Đã gỡ",
+    "activeRecent": "Đang dùng — thấy trong {{minutes}} phút gần nhất",
+    "stale": "Đang đăng ký nhưng đã lâu không thấy"
+  },
+  "messages": {
+    "revokeSuccess": "Đã gỡ máy \"{{name}}\" khỏi tài khoản {{user}}",
+    "revokeError": "Không gỡ được máy",
+    "loadError": "Không tải được danh sách thiết bị",
+    "openUserError": "Không mở được thông tin người dùng",
+    "dealersError": "Không tải được danh sách đại lý",
+    "statsError": "Không tải được thống kê thiết bị"
+  },
+  "revokeModal": {
+    "title": "Gỡ máy này khỏi tài khoản?",
+    "description": "Phần mềm cắt trên máy này sẽ bị đăng xuất trong vài phút. Thợ đăng nhập lại được trên máy khác.",
+    "okText": "Gỡ máy",
+    "cancelText": "Hủy"
+  },
+  "filters": {
+    "searchPlaceholder": "Tìm người dùng, máy hoặc IP...",
+    "allDealers": "Tất cả đại lý",
+    "activeOnly": "Đang dùng được",
+    "revokedOnly": "Đã gỡ",
+    "all": "Tất cả",
+    "reset": "Đặt lại",
+    "refresh": "Làm mới",
+    "totalDevices": "Tổng số: {{total}} thiết bị",
+    "emptyFiltered": "Không có thiết bị nào khớp bộ lọc hiện tại.",
+    "emptyInitial": "Chưa có máy nào đăng ký. Máy sẽ xuất hiện khi thợ đăng nhập phần mềm cắt."
+  }
+}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Table,
   Select,
@@ -125,6 +126,7 @@ const getInitials = (name?: string, username?: string) => {
 }
 
 export const UserSavedFileList: React.FC = () => {
+  const { t } = useTranslation('savedFiles')
   // Data state
   const [data, setData] = useState<UserSavedFile[]>([])
   const [loading, setLoading] = useState(false)
@@ -358,7 +360,7 @@ export const UserSavedFileList: React.FC = () => {
 
   const columns: ColumnsType<UserSavedFile> = [
     {
-      title: 'STT',
+      title: t('table.stt'),
       width: 50,
       align: 'center',
       render: (_, __, index) => (
@@ -368,7 +370,7 @@ export const UserSavedFileList: React.FC = () => {
       ),
     },
     {
-      title: 'Bản vẽ & Tên file',
+      title: t('table.fileName'),
       dataIndex: 'fileName',
       key: 'fileName',
       width: 250,
@@ -415,7 +417,7 @@ export const UserSavedFileList: React.FC = () => {
       ),
     },
     {
-      title: 'Nguồn file',
+      title: t('table.source'),
       key: 'fileSource',
       width: 175,
       render: (_, record: UserSavedFile) => {
@@ -423,26 +425,26 @@ export const UserSavedFileList: React.FC = () => {
         if (isLibrary) {
           return (
             <Tag color="purple" icon={<AppstoreOutlined />}>
-              Thư viện kho mẫu & part
+              {t("table.sourceLibrary")}
             </Tag>
           )
         }
         if (record.accessType === 'SHARED') {
           return (
             <Tag color="cyan" icon={<ShareAltOutlined />}>
-              Được chia sẻ
+              {t("table.sourceShared")}
             </Tag>
           )
         }
         return (
           <Tag color="blue" icon={<UserOutlined />}>
-            File cá nhân
+            {t("table.sourcePersonal")}
           </Tag>
         )
       },
     },
     {
-      title: 'Danh mục',
+      title: t('table.category'),
       key: 'category',
       width: 125,
       render: (_, record) =>
@@ -470,7 +472,7 @@ export const UserSavedFileList: React.FC = () => {
         ),
     },
     {
-      title: 'Mẫu xe',
+      title: t('table.vehicle'),
       key: 'vehicle',
       width: 175,
       render: (_, record) => {
@@ -494,7 +496,7 @@ export const UserSavedFileList: React.FC = () => {
       },
     },
     {
-      title: 'Khổ cắt (Y × X)',
+      title: t('table.dimensions'),
       key: 'cutSize',
       width: 135,
       render: (_, record) => {
@@ -509,7 +511,7 @@ export const UserSavedFileList: React.FC = () => {
       },
     },
     {
-      title: 'Người tạo',
+      title: t('table.createdBy'),
       key: 'createdBy',
       width: 145,
       render: (_, record) => (
@@ -555,7 +557,7 @@ export const UserSavedFileList: React.FC = () => {
       ),
     },
     {
-      title: 'Đại lý',
+      title: t('table.dealer'),
       key: 'dealer',
       width: 135,
       render: (_, record) =>
@@ -580,7 +582,7 @@ export const UserSavedFileList: React.FC = () => {
         ),
     },
     {
-      title: 'Thời gian lưu',
+      title: t('table.createdAt'),
       dataIndex: 'createdAt',
       key: 'createdAt',
       width: 130,
@@ -596,7 +598,7 @@ export const UserSavedFileList: React.FC = () => {
       },
     },
     {
-      title: 'Trạng thái',
+      title: t('table.status'),
       dataIndex: 'status',
       key: 'status',
       width: 95,
@@ -613,19 +615,19 @@ export const UserSavedFileList: React.FC = () => {
             color: status === 'ACTIVE' ? '#1E7E34' : '#6E6D68',
           }}
         >
-          {status === 'ACTIVE' ? 'Hoạt động' : 'Đã xoá'}
+          {status === 'ACTIVE' ? t('table.active') : t('table.deleted')}
         </span>
       ),
     },
     {
-      title: 'Thao tác',
+      title: t('table.actions'),
       key: 'action',
       width: 175,
       fixed: 'right',
       align: 'center',
       render: (_, record) => (
         <Space size={2} wrap>
-          <Tooltip title="Xem chi tiết">
+          <Tooltip title={t("table.tooltipView")}>
             <Button
               type="link"
               size="small"
@@ -635,25 +637,21 @@ export const UserSavedFileList: React.FC = () => {
                 setDetailOpen(true)
               }}
               style={{ padding: '0 4px', color: '#4A4945' }}
-            >
-              Xem
-            </Button>
+            >{t("table.viewBtn")}</Button>
           </Tooltip>
           {isAdmin && (
-            <Tooltip title="Tải xuống tệp SVG">
+            <Tooltip title={t("table.tooltipDownload")}>
               <Button
                 type="link"
                 size="small"
                 icon={<DownloadOutlined />}
                 onClick={() => handleDownload(record)}
                 style={{ padding: '0 4px', color: '#1B1B19' }}
-              >
-                Tải
-              </Button>
+              >{t("table.downloadBtn")}</Button>
             </Tooltip>
           )}
           {isAdmin && (
-            <Tooltip title="Chia sẻ file cho người dùng khác">
+            <Tooltip title={t("table.tooltipShare")}>
               <Button
                 type="link"
                 size="small"
@@ -663,9 +661,7 @@ export const UserSavedFileList: React.FC = () => {
                   setShareModalOpen(true)
                 }}
                 style={{ padding: '0 4px', color: '#7C3AED', fontWeight: 500 }}
-              >
-                Chia sẻ
-              </Button>
+              >{t("table.shareBtn")}</Button>
             </Tooltip>
           )}
         </Space>
@@ -679,7 +675,7 @@ export const UserSavedFileList: React.FC = () => {
       <div className="saved-files-stats-grid">
         <div className="saved-files-stat-card">
           <div className="saved-files-stat-info">
-            <div className="saved-files-stat-label">Tổng số bản đã lưu</div>
+            <div className="saved-files-stat-label">{t("stats.total")}</div>
             <div className="saved-files-stat-value" style={{ color: '#1B1B19' }}>
               {stats.total.toLocaleString('vi-VN')}
             </div>
@@ -691,7 +687,7 @@ export const UserSavedFileList: React.FC = () => {
 
         <div className="saved-files-stat-card">
           <div className="saved-files-stat-info">
-            <div className="saved-files-stat-label">Bản lưu hoạt động</div>
+            <div className="saved-files-stat-label">{t("stats.active")}</div>
             <div className="saved-files-stat-value" style={{ color: '#1E7E34' }}>
               {stats.activeCount.toLocaleString('vi-VN')}
             </div>
@@ -703,7 +699,7 @@ export const UserSavedFileList: React.FC = () => {
 
         <div className="saved-files-stat-card">
           <div className="saved-files-stat-info">
-            <div className="saved-files-stat-label">Đại lý có bản lưu</div>
+            <div className="saved-files-stat-label">{t("stats.dealers")}</div>
             <div className="saved-files-stat-value" style={{ color: '#6C3BD6' }}>
               {stats.dealerCount.toLocaleString('vi-VN')}
             </div>
@@ -715,7 +711,7 @@ export const UserSavedFileList: React.FC = () => {
 
         <div className="saved-files-stat-card">
           <div className="saved-files-stat-info">
-            <div className="saved-files-stat-label">Dung lượng trang này</div>
+            <div className="saved-files-stat-label">{t("stats.storagePage")}</div>
             <div className="saved-files-stat-value" style={{ color: '#4A4945' }}>
               {formatBytes(stats.totalBytes)}
             </div>
@@ -736,7 +732,7 @@ export const UserSavedFileList: React.FC = () => {
               className="saved-files-search-input"
               value={keyword}
               onChange={e => setKeyword(e.target.value)}
-              placeholder="Tìm kiếm theo tên bản vẽ..."
+              placeholder={t("filters.searchPlaceholder")}
             />
             {keyword && (
               <span
@@ -751,7 +747,7 @@ export const UserSavedFileList: React.FC = () => {
 
           <div className="saved-files-toolbar-actions">
             <span style={{ font: `500 11.5px ${FONT}`, color: '#6E6D68', marginRight: 4 }}>
-              Tổng <strong style={{ color: '#1B1B19', fontFamily: MONO }}>{total.toLocaleString('vi-VN')}</strong> bản lưu
+              {t("table.totalCount", { count: total.toLocaleString() })}
             </span>
 
             {hasFilter && (
@@ -771,11 +767,11 @@ export const UserSavedFileList: React.FC = () => {
                   transition: 'all 0.15s ease',
                 }}
               >
-                <ClearOutlined /> Xoá lọc ({activeFilterCount})
+                <ClearOutlined /> {t("table.clearFilterCount", { count: activeFilterCount })}
               </button>
             )}
 
-            <Tooltip title="Làm mới danh sách">
+            <Tooltip title={t("table.refreshTooltip")}>
               <Button
                 icon={<ReloadOutlined />}
                 onClick={() => fetchList()}
@@ -804,8 +800,8 @@ export const UserSavedFileList: React.FC = () => {
               allowClear
               options={[
                 { value: 'ALL', label: 'Tất cả nguồn' },
-                { value: 'ADMIN_LIBRARY', label: 'Thư viện kho mẫu & part' },
-                { value: 'USER_SAVED', label: 'File cá nhân' },
+                { value: 'ADMIN_LIBRARY', label: '{t("table.sourceLibrary")}' },
+                { value: 'USER_SAVED', label: '{t("table.sourcePersonal")}' },
               ]}
             />
           </div>

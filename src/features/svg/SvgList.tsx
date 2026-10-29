@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Popconfirm, Spin, message, Tooltip } from 'antd'
 import { AdminFile, AdminFileStats, VehicleNode } from '@/types/adminFile'
 import { CatalogOption } from '@/types/category'
@@ -32,7 +33,7 @@ const fmtDate = (s?: string | null) => {
   return `${dd}/${mm}/${d.getFullYear()}`
 }
 
-const SOURCE_LABEL: Record<string, string> = { SYSTEM: 'Hệ thống', DEALER: 'Đại lý' }
+
 
 interface FileThumbProps {
   fileId: number
@@ -153,6 +154,7 @@ interface FilterDef {
 }
 
 export const SvgList: React.FC = () => {
+  const { t } = useTranslation('parts')
   const [stats, setStats] = useState<AdminFileStats | null>(null)
   const [files, setFiles] = useState<AdminFile[]>([])
   const [totalElements, setTotalElements] = useState(0)
@@ -259,17 +261,17 @@ export const SvgList: React.FC = () => {
 
   const filters: FilterDef[] = [
     {
-      label: 'Danh mục kho mẫu & part',
+      label: t('filters.category'),
       value: fCategory,
       options: categories.map(c => ({ value: c.value, label: c.label })),
-      allLabel: 'Tất cả danh mục',
+      allLabel: t('filters.allCategories'),
       onChange: v => {
         setFCategory(v)
         setPage(0)
       },
     },
     {
-      label: 'Năm',
+      label: t('filters.year'),
       value: fYear,
       options: YEAR_OPTIONS.map(y => ({ value: String(y), label: String(y) })),
       allLabel: 'Tất cả',
@@ -279,7 +281,7 @@ export const SvgList: React.FC = () => {
       },
     },
     {
-      label: 'Hãng',
+      label: t('filters.brand'),
       value: fBrand,
       options: tree.map(b => ({ value: String(b.id), label: b.name })),
       allLabel: 'Tất cả',
@@ -291,10 +293,10 @@ export const SvgList: React.FC = () => {
       },
     },
     {
-      label: 'Dòng xe',
+      label: t('filters.series'),
       value: fSeries,
       options: seriesOptions.map(s => ({ value: String(s.id), label: s.name })),
-      allLabel: fBrand ? 'Tất cả' : 'Chọn hãng trước',
+      allLabel: fBrand ? t('filters.all') : t('filters.selectBrandFirst'),
       disabled: !fBrand,
       onChange: v => {
         setFSeries(v)
@@ -303,10 +305,10 @@ export const SvgList: React.FC = () => {
       },
     },
     {
-      label: 'Model',
+      label: t('filters.model'),
       value: fModel,
       options: modelOptions.map(m => ({ value: String(m.id), label: m.name })),
-      allLabel: fSeries ? 'Tất cả' : 'Chọn dòng trước',
+      allLabel: fSeries ? t('filters.all') : t('filters.selectSeriesFirst'),
       disabled: !fSeries,
       onChange: v => {
         setFModel(v)
@@ -316,10 +318,10 @@ export const SvgList: React.FC = () => {
   ]
 
   const statCards = [
-    { label: 'Part file trong kho', value: stats?.total, color: '#1B1B19' },
-    { label: 'Model đã có file', value: stats?.modelsWithFiles, color: '#1B1B19' },
-    { label: 'Do đại lý nạp', value: stats?.fromDealers, color: '#1B1B19' },
-    { label: 'Chưa gắn mẫu xe', value: stats?.unlinked, color: '#B4741E' },
+    { label: t('stats.total'), value: stats?.total, color: '#1B1B19' },
+    { label: t('stats.modelsWithFiles'), value: stats?.modelsWithFiles, color: '#1B1B19' },
+    { label: t('stats.fromDealers'), value: stats?.fromDealers, color: '#1B1B19' },
+    { label: t('stats.unlinked'), value: stats?.unlinked, color: '#B4741E' },
   ]
 
   const gridCols = '44px 56px minmax(0, 1.2fr) 100px minmax(0, 1.6fr) 56px 92px 88px 64px'
@@ -375,7 +377,7 @@ export const SvgList: React.FC = () => {
             onClick={clearFilters}
             style={{ padding: '6px 9px', border: 0, background: 'transparent', cursor: 'pointer', font: `500 11px ${FONT}`, color: '#6C3BD6' }}
           >
-            Xoá lọc
+            {t('filters.clear')}
           </button>
         )}
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, padding: '0 10px', height: 32, width: 220, border: '1px solid #D8D7D2', borderRadius: 5, background: '#FFF' }}>
@@ -392,7 +394,7 @@ export const SvgList: React.FC = () => {
                 setKeyword(query.trim())
               }
             }}
-            placeholder="Tìm theo tên file…"
+            placeholder={t("filters.searchPlaceholder")}
             style={{ flex: 1, minWidth: 0, border: 0, outline: 'none', background: 'transparent', font: `400 12px ${FONT}`, color: '#1B1B19' }}
           />
         </div>
@@ -408,21 +410,21 @@ export const SvgList: React.FC = () => {
             <path d="M7.5 9.5 12 5l4.5 4.5" />
             <path d="M5 19h14" />
           </svg>
-          Upload part file
+          {t("filters.uploadBtn")}
         </button>
       </div>
 
       {/* bảng file */}
       <div style={{ background: '#FBFBFA', border: '1px solid #E4E3DE', borderRadius: 6, overflow: 'hidden' }}>
         <div style={{ display: 'grid', gridTemplateColumns: gridCols, gap: 10, padding: '9px 16px', background: '#F1F0EC', borderBottom: '1px solid #E4E3DE', font: `600 10.5px ${FONT}`, letterSpacing: '0.04em', color: '#6E6D68' }}>
-          <span>STT</span>
-          <span>Ảnh</span>
-          <span>Tên file</span>
-          <span>Danh mục</span>
-          <span>Mẫu xe</span>
-          <span>Năm</span>
-          <span>Nguồn</span>
-          <span>Cập nhật</span>
+          <span>{t("table.stt")}</span>
+          <span>{t("table.thumb")}</span>
+          <span>{t("table.name")}</span>
+          <span>{t("table.category")}</span>
+          <span>{t("table.vehicle")}</span>
+          <span>{t("table.year")}</span>
+          <span>{t("table.source")}</span>
+          <span>{t("table.updatedAt")}</span>
           <span />
         </div>
 
@@ -432,7 +434,7 @@ export const SvgList: React.FC = () => {
           </div>
         ) : files.length === 0 ? (
           <div style={{ padding: '30px 16px', textAlign: 'center', font: `400 12px ${FONT}`, color: '#8A8983' }}>
-            Không có file nào khớp bộ lọc.
+            {t("table.empty")}
           </div>
         ) : (
           files.map((f, i) => {
@@ -488,7 +490,7 @@ export const SvgList: React.FC = () => {
                 <span style={{ color: '#4A4945' }}>{f.category || '—'}</span>
                 <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#35342F' }}>
                   {vehicles.length === 0 ? (
-                    <span style={{ color: '#A5A49E' }}>Chưa gắn mẫu xe</span>
+                    <span style={{ color: '#A5A49E' }}>{t("table.unlinkedBadge")}</span>
                   ) : (
                     <Tooltip title={vehicles.map(v => v.path).join('\n')}>
                       {vehicles[0].path}
@@ -498,7 +500,7 @@ export const SvgList: React.FC = () => {
                 <span style={{ fontFamily: MONO, color: '#35342F' }}>{f.year ?? '—'}</span>
                 <span>
                   <span style={{ padding: '3px 8px', borderRadius: 4, background: isDealer ? '#F1EDFC' : '#EDEBE6', font: `500 10.5px ${FONT}`, color: isDealer ? '#5B2BB0' : '#4A4945' }}>
-                    {SOURCE_LABEL[f.source] || f.source || 'Hệ thống'}
+                    {t('sources.' + f.source, { defaultValue: f.source })}
                   </span>
                 </span>
                 <span style={{ font: `400 11.5px ${MONO}`, color: '#6E6D68' }}>{fmtDate(f.updatedAt)}</span>
@@ -508,7 +510,7 @@ export const SvgList: React.FC = () => {
                       setEditing(f)
                       setFormOpen(true)
                     }}
-                    title="Sửa"
+                    title={t("table.tooltipEdit")}
                     style={{ width: 26, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #D8D7D2', borderRadius: 4, background: '#FFF', cursor: 'pointer' }}
                   >
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4A4945" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
@@ -517,15 +519,15 @@ export const SvgList: React.FC = () => {
                     </svg>
                   </button>
                   <Popconfirm
-                    title="Xoá part file"
+                    title={t("table.tooltipDelete")}
                     description={`Xoá "${f.name || f.originalFilename}"? File chuyển sang trạng thái DELETED.`}
                     onConfirm={() => handleDelete(f)}
-                    okText="Xoá"
+                    okText={t("table.tooltipDelete")}
                     cancelText="Huỷ"
                     okButtonProps={{ danger: true }}
                   >
                     <button
-                      title="Xoá"
+                      title={t("table.tooltipDelete")}
                       style={{ width: 26, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #E9C9C9', borderRadius: 4, background: '#FFF', cursor: 'pointer' }}
                     >
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#A93823" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">

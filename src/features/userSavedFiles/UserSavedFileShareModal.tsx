@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import React, { useState, useEffect, useCallback, useMemo } from "react"
 import {
   Modal,
@@ -41,6 +42,7 @@ export const UserSavedFileShareModal: React.FC<UserSavedFileShareModalProps> = (
   file,
   onClose,
 }) => {
+  const { t } = useTranslation('savedFiles')
   const [shares, setShares] = useState<UserSvgFileShareItem[]>([])
   const [loadingShares, setLoadingShares] = useState(false)
 
@@ -349,7 +351,7 @@ export const UserSavedFileShareModal: React.FC<UserSavedFileShareModalProps> = (
                                 <span>{item.dealerName}</span>
                               </>
                             ) : (
-                              <span>Không có đại lý</span>
+                              <span>{t("shareModal.noDealer")}</span>
                             )}
                             {item.sharedAt && (
                               <span style={{ color: "#8A8983", fontFamily: MONO, marginLeft: 6 }}>
@@ -362,7 +364,7 @@ export const UserSavedFileShareModal: React.FC<UserSavedFileShareModalProps> = (
 
                       <Popconfirm
                         title={`Bạn có chắc chắn muốn thu hồi quyền truy cập file này của ${targetName}?`}
-                        okText="Thu hồi"
+                        okText={t("shareModal.revokeBtn")}
                         cancelText="Hủy"
                         okButtonProps={{ danger: true, size: "small" }}
                         cancelButtonProps={{ size: "small" }}
@@ -374,9 +376,7 @@ export const UserSavedFileShareModal: React.FC<UserSavedFileShareModalProps> = (
                           size="small"
                           loading={revokingUserId === item.userId}
                           icon={<CloseCircleOutlined />}
-                        >
-                          Thu hồi
-                        </Button>
+                        >{t("shareModal.revokeBtn")}</Button>
                       </Popconfirm>
                     </List.Item>
                   )
@@ -402,7 +402,7 @@ export const UserSavedFileShareModal: React.FC<UserSavedFileShareModalProps> = (
 
           <Input
             prefix={<SearchOutlined style={{ color: "#8A8983" }} />}
-            placeholder="Tìm theo username hoặc tên người dùng..."
+            placeholder={t("shareModal.searchUserPlaceholder")}
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             allowClear
@@ -432,7 +432,7 @@ export const UserSavedFileShareModal: React.FC<UserSavedFileShareModalProps> = (
                 <div style={{ padding: "16px 0" }}>
                   <Empty
                     image={Empty.PRESENTED_IMAGE_SIMPLE}
-                    description="Không tìm thấy người dùng phù hợp (ROLE_USER)"
+                    description={t("shareModal.noUserFound")}
                   />
                 </div>
               ) : (
@@ -506,7 +506,7 @@ export const UserSavedFileShareModal: React.FC<UserSavedFileShareModalProps> = (
                             icon={<CheckCircleOutlined />}
                             style={{ margin: 0, padding: "2px 8px" }}
                           >
-                            ✓ Đã được chia sẻ
+                            {t("shareModal.alreadyShared")}
                           </Tag>
                         ) : (
                           <Button
@@ -521,7 +521,7 @@ export const UserSavedFileShareModal: React.FC<UserSavedFileShareModalProps> = (
                               borderRadius: 4,
                             }}
                           >
-                            {isSharing ? "Đang chia sẻ..." : "Chia sẻ"}
+                            {isSharing ? t("shareModal.sharing") : t("shareModal.shareBtn")}
                           </Button>
                         )}
                       </List.Item>

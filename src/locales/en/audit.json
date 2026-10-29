@@ -1,0 +1,78 @@
+{
+  "title": "Audit Log",
+  "subtitle": "System operation audit log and Cutter Internal API activity",
+  "tabs": {
+    "v2": "Internal API V2 Audit (Cutter Client / Integrations)",
+    "v1": "System Operations Log (V1)"
+  },
+  "filter": {
+    "searchPlaceholder": "Search by action, API endpoint, user, IP...",
+    "allUsers": "All Users",
+    "allActions": "All Actions",
+    "allStatuses": "All HTTP Statuses",
+    "dateRange": "Date Range"
+  },
+  "columns": {
+    "timestamp": "Timestamp",
+    "user": "Performed By",
+    "action": "Action",
+    "endpoint": "Path / Endpoint",
+    "ip": "IP Address",
+    "status": "Status Code",
+    "duration": "Duration",
+    "details": "Details"
+  },
+  "drawer": {
+    "title": "Audit Log Record Details",
+    "request": "Request Payload",
+    "response": "Response Data",
+    "headers": "Request Headers"
+  },
+  "v1": {
+    "healthTitle": "Backend Health Status",
+    "systemHealth": "System Health",
+    "apiGateway": "API Gateway / Service",
+    "actuatorEndpoint": "Actuator Endpoint",
+    "securityTitle": "Security & Authorization Info",
+    "auditTrailLogging": "Audit Trail Logging",
+    "auditTrailLoggingDesc": "Active — Automatically logs all APIs from Users & Dealers",
+    "authScheme": "Authentication Scheme",
+    "authSchemeDesc": "JWT Bearer (Keycloak) + UUID Refresh Token",
+    "encryption": "Data Encryption",
+    "encryptionDesc": "AES-256-GCM Envelope Encryption (Internal V2)",
+    "activityTitle": "Audit Trail & Activity Log (V1)",
+    "activityDesc": "System activity log automatically recording all API calls made by cutter users (USER) and dealers (AGENT) chronologically.",
+    "searchPlaceholder": "Search actor, action, details...",
+    "roleFilterPlaceholder": "Filter Role",
+    "allRoles": "All Roles",
+    "roleUser": "USER (Cutter)",
+    "roleAgent": "AGENT (Dealer)",
+    "roleAdmin": "ADMIN (Administrator)",
+    "refresh": "Refresh",
+    "colTimestamp": "Timestamp",
+    "colActor": "Actor / Role",
+    "colAction": "Action",
+    "colResource": "Resource Affected",
+    "colDetails": "Operation Details",
+    "emptyLogs": "No matching audit logs found."
+  },
+  "v2": {
+    "searchBtn": "Search",
+    "resetBtn": "Reset",
+    "advancedBtn": "Advanced",
+    "collapseBtn": "Collapse",
+    "exportCsv": "Export CSV",
+    "refresh": "Refresh",
+    "colClient": "Client / Application",
+    "colAccount": "Account",
+    "colDealer": "Dealer",
+    "colMethodApi": "Method & API",
+    "colStatus": "HTTP Status",
+    "colDuration": "Duration",
+    "colIpDevice": "IP & Device",
+    "colActions": "Actions",
+    "viewDetails": "Details",
+    "success": "Success",
+    "failure": "Failure"
+  }
+}

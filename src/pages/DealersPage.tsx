@@ -3,7 +3,6 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { PageHeader } from '@/components/common/PageHeader'
 import {
   PlusOutlined,
-  InfoCircleOutlined,
   EditOutlined,
   DeleteOutlined,
   LockOutlined,
@@ -11,19 +10,18 @@ import {
   SearchOutlined,
   ReloadOutlined,
   EyeOutlined,
+  InfoCircleOutlined,
 } from '@ant-design/icons'
 import { Popconfirm, message, Tooltip, Input, Spin, Empty } from 'antd'
+import { useTranslation } from 'react-i18next'
 import { Dealer, DealerStats } from '@/types/dealer'
 import { dealerService } from '@/services/dealers/dealerService'
 import { DealerModal } from '@/features/dealers/DealerModal'
 import { DealerDetailDrawer } from '@/features/dealers/DealerDetailDrawer'
 import { extractErrorMessage } from '@/utils/error'
 
-const OK = { stBg: '#E6F1EB', stColor: '#2E7D5B', label: 'Hoạt động' }
-const WARN = { stBg: '#FBF0DF', stColor: '#8A5A12', label: 'Sắp hết hạn' }
-const BAD = { stBg: '#FAE7E3', stColor: '#A93823', label: 'Tạm khoá' }
-
 export const DealersPage: React.FC = () => {
+  const { t } = useTranslation(['dealers', 'common'])
   const [filter, setFilter] = useState<'all' | 'ACTIVE' | 'EXPIRING' | 'LOCKED'>('all')
   const [searchTerm, setSearchTerm] = useState('')
   const [dealers, setDealers] = useState<Dealer[]>([])
@@ -38,6 +36,10 @@ export const DealersPage: React.FC = () => {
   const [selectedDealer, setSelectedDealer] = useState<Dealer | null>(null)
   const [detailDrawerOpen, setDetailDrawerOpen] = useState(false)
   const [detailDealer, setDetailDealer] = useState<Dealer | null>(null)
+
+  const OK = { stBg: '#E6F1EB', stColor: '#2E7D5B', label: t('status.active', { ns: 'common' }) }
+  const WARN = { stBg: '#FBF0DF', stColor: '#8A5A12', label: t('status.expiringSoon', { ns: 'common' }) }
+  const BAD = { stBg: '#FAE7E3', stColor: '#A93823', label: t('status.disabled', { ns: 'common' }) }
 
   const fetchStats = useCallback(async () => {
     try {
@@ -105,8 +107,8 @@ export const DealersPage: React.FC = () => {
       await dealerService.updateStatus(dealer.id, nextStatus)
       message.success(
         nextStatus === 'LOCKED'
-          ? `Đã tạm khoá đại lý ${dealer.name}`
-          : `Đã kích hoạt lại đại lý ${dealer.name}`
+          ? t('messages.lockedSuccess', { name: dealer.name })
+          : t('messages.unlockedSuccess', { name: dealer.name })
       )
       fetchDealers()
       fetchStats()
@@ -118,7 +120,7 @@ export const DealersPage: React.FC = () => {
   const handleDelete = async (id: number) => {
     try {
       await dealerService.deleteDealer(id)
-      message.success('Đã xóa đại lý thành công!')
+      message.success(t('messages.deleteSuccess'))
       fetchDealers()
       fetchStats()
     } catch (err: unknown) {
@@ -142,8 +144,8 @@ export const DealersPage: React.FC = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
       <PageHeader
-        title="Đại lý & chi nhánh"
-        subtitle={`Hồ sơ, khu vực và trạng thái hoạt động của ${stats.total || dealers.length} đại lý`}
+        title={t('title')}
+        subtitle={t('pageSubtitle', { total: stats.total || dealers.length })}
       />
 
       <div style={{ padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -167,7 +169,7 @@ export const DealersPage: React.FC = () => {
                 transition: 'all 0.15s ease',
               }}
             >
-              Tất cả {stats.total}
+              {t('filters.all', { count: stats.total })}
             </span>
             <span
               onClick={() => {
@@ -185,7 +187,7 @@ export const DealersPage: React.FC = () => {
                 transition: 'all 0.15s ease',
               }}
             >
-              Đang hoạt động {stats.active}
+              {t('filters.active', { count: stats.active })}
             </span>
             <span
               onClick={() => {
@@ -203,7 +205,7 @@ export const DealersPage: React.FC = () => {
                 transition: 'all 0.15s ease',
               }}
             >
-              Sắp hết hạn {stats.expiring}
+              {t('filters.expiring', { count: stats.expiring })}
             </span>
             <span
               onClick={() => {
@@ -221,14 +223,14 @@ export const DealersPage: React.FC = () => {
                 transition: 'all 0.15s ease',
               }}
             >
-              Tạm khoá {stats.locked}
+              {t('filters.locked', { count: stats.locked })}
             </span>
           </div>
 
           {/* Search Box */}
           <div style={{ minWidth: 220, marginLeft: 6 }}>
             <Input
-              placeholder="Tìm kiếm mã, tên, SĐT..."
+              placeholder={t('filters.searchPlaceholder')}
               prefix={<SearchOutlined style={{ color: '#8A8983' }} />}
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
@@ -244,7 +246,7 @@ export const DealersPage: React.FC = () => {
               fetchDealers()
               fetchStats()
             }}
-            title="Làm mới"
+            title={t('filters.refresh')}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -280,7 +282,7 @@ export const DealersPage: React.FC = () => {
             onMouseEnter={e => (e.currentTarget.style.background = '#6A2FD1')}
             onMouseLeave={e => (e.currentTarget.style.background = '#7C3AED')}
           >
-            <PlusOutlined /> Thêm đại lý
+            <PlusOutlined /> {t('addDealer')}
           </button>
         </div>
 
@@ -306,15 +308,15 @@ export const DealersPage: React.FC = () => {
               color: '#6E6D68',
             }}
           >
-            <span>Mã</span>
-            <span>Tên đại lý</span>
-            <span>Tài khoản AGENT</span>
-            <span>Khu vực</span>
-            <span style={{ textAlign: 'center' }}>Thợ cắt (USER)</span>
-            <span style={{ textAlign: 'center' }}>Quỹ ngày</span>
-            <span>Hạn gói</span>
-            <span style={{ textAlign: 'center' }}>Trạng thái</span>
-            <span style={{ textAlign: 'right' }}>Thao tác</span>
+            <span>{t('table.code')}</span>
+            <span>{t('table.name')}</span>
+            <span>{t('table.agentAccount')}</span>
+            <span>{t('table.region')}</span>
+            <span style={{ textAlign: 'center' }}>{t('table.cutters')}</span>
+            <span style={{ textAlign: 'center' }}>{t('table.daysPool')}</span>
+            <span>{t('table.expiry')}</span>
+            <span style={{ textAlign: 'center' }}>{t('table.status')}</span>
+            <span style={{ textAlign: 'right' }}>{t('table.actions')}</span>
           </div>
 
           {/* Table Body */}
@@ -324,7 +326,7 @@ export const DealersPage: React.FC = () => {
             </div>
           ) : dealers.length === 0 ? (
             <div style={{ padding: '32px 0' }}>
-              <Empty description="Không tìm thấy đại lý nào" />
+              <Empty description={t('filters.empty')} />
             </div>
           ) : (
             dealers.map(d => {
@@ -378,13 +380,15 @@ export const DealersPage: React.FC = () => {
                         <span style={{ fontWeight: 600, color: '#5B21B6', fontFamily: "'IBM Plex Mono', monospace", fontSize: 11.5 }}>
                           {d.agentUsername}
                         </span>
-                        <span style={{ fontSize: 10.5, color: '#8A8983' }}>
-                          {d.agentEmail || '—'}
-                        </span>
+                        {d.agentEmail && (
+                          <span style={{ fontSize: 10.5, color: '#8A8983' }}>
+                            {d.agentEmail}
+                          </span>
+                        )}
                       </>
                     ) : (
-                      <span style={{ color: '#B4741E', fontSize: 11, fontStyle: 'italic' }}>
-                        Chưa có AGENT
+                      <span style={{ color: '#B4741E', fontStyle: 'italic', fontSize: 11 }}>
+                        Chưa cấp
                       </span>
                     )}
                   </div>
@@ -392,9 +396,11 @@ export const DealersPage: React.FC = () => {
                   {/* Khu vực */}
                   <span style={{ color: '#6E6D68' }}>{d.region || '—'}</span>
 
-                  {/* Account Quota (chỉ tính USER) */}
-                  <div style={{ textAlign: 'center', fontFamily: "'IBM Plex Mono', monospace", fontSize: 11.5 }}>
-                    <strong style={{ color: '#1B1B19' }}>{createdAcc}</strong>
+                  {/* Cutter Accounts Quota */}
+                  <div style={{ textAlign: 'center', fontFamily: "'IBM Plex Mono', monospace", fontSize: 11 }}>
+                    <span style={{ color: createdAcc >= maxAcc ? '#DC2626' : '#2E7D5B', fontWeight: 600 }}>
+                      {createdAcc}
+                    </span>
                     <span style={{ color: '#8A8983' }}>/{maxAcc}</span>
                   </div>
 
@@ -409,7 +415,7 @@ export const DealersPage: React.FC = () => {
                       </span>
                     </div>
                     <div style={{ fontSize: 10, color: remainingDays > 0 ? '#16A34A' : '#DC2626', marginTop: 1 }}>
-                      còn {remainingDays.toLocaleString()}d
+                      {t('table.daysRemaining', { days: remainingDays.toLocaleString() })}
                     </div>
                   </div>
 
@@ -435,7 +441,7 @@ export const DealersPage: React.FC = () => {
 
                   {/* Thao tác */}
                   <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6 }}>
-                    <Tooltip title="Xem chi tiết đại lý & thợ cắt">
+                    <Tooltip title={t('table.tooltipDetail')}>
                       <button
                         onClick={() => handleOpenDetail(d)}
                         style={{
@@ -452,7 +458,7 @@ export const DealersPage: React.FC = () => {
                       </button>
                     </Tooltip>
 
-                    <Tooltip title="Chỉnh sửa thông tin">
+                    <Tooltip title={t('table.tooltipEdit')}>
                       <button
                         onClick={() => handleOpenEdit(d)}
                         style={{
@@ -469,7 +475,7 @@ export const DealersPage: React.FC = () => {
                       </button>
                     </Tooltip>
 
-                    <Tooltip title={isLocked ? 'Kích hoạt lại' : 'Tạm khóa đại lý'}>
+                    <Tooltip title={isLocked ? t('table.tooltipUnlock') : t('table.tooltipLock')}>
                       <button
                         onClick={() => handleToggleStatus(d)}
                         style={{
@@ -491,11 +497,11 @@ export const DealersPage: React.FC = () => {
                     </Tooltip>
 
                     <Popconfirm
-                      title="Xóa đại lý"
-                      description={`Bạn có chắc muốn xóa đại lý "${d.name}"? Tất cả tài khoản thuộc đại lý sẽ bị vô hiệu hóa.`}
+                      title={t('table.tooltipDelete')}
+                      description={t('deleteConfirmDesc', { name: d.name })}
                       onConfirm={() => handleDelete(d.id)}
-                      okText="Xóa"
-                      cancelText="Hủy"
+                      okText={t('actions.delete', { ns: 'common' })}
+                      cancelText={t('actions.cancel', { ns: 'common' })}
                       okButtonProps={{ danger: true }}
                     >
                       <button
@@ -528,7 +534,7 @@ export const DealersPage: React.FC = () => {
               color: '#6E6D68',
             }}
           >
-            Hiển thị {dealers.length} / {totalElements} đại lý
+            {t('showingDealers', { count: dealers.length, total: totalElements })}
             {totalPages > 1 && (
               <span style={{ marginLeft: 'auto', display: 'flex', gap: 6 }}>
                 {Array.from({ length: totalPages }).map((_, idx) => (
@@ -566,7 +572,7 @@ export const DealersPage: React.FC = () => {
         >
           <InfoCircleOutlined style={{ color: '#6C3BD6', marginTop: 2 }} />
           <div style={{ font: "400 11.5px/1.6 'IBM Plex Sans', sans-serif", color: '#4A3A6B' }}>
-            Mỗi đại lý có duy nhất 1 tài khoản quản lý với vai trò <strong>AGENT</strong>. Gói account và Quỹ ngày phân bổ chỉ tính cho các tài khoản Thợ cắt (<strong>USER</strong>) thuộc đại lý. Tài khoản AGENT không tiêu thụ hạn ngạch account hay Quỹ ngày.
+            {t('infoCallout')}
           </div>
         </div>
       </div>

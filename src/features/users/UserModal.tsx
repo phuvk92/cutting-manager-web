@@ -34,19 +34,20 @@ import { partLibraryCategoryService } from '@/services/admin/partLibraryCategory
 import { userService } from '@/services/users/userService'
 import { dealerService } from '@/services/dealers/dealerService'
 import { useAuthStore } from '@/stores/authStore'
+import { useTranslation } from 'react-i18next'
 import { extractErrorMessage } from '@/utils/error'
 import { UserDevicesPanel } from './UserDevicesPanel'
 
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#^()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/
 
-const DURATION_PRESETS = [
-  { label: '1 tháng (30 ngày)', days: 30 },
-  { label: '3 tháng (90 ngày)', days: 90 },
-  { label: '6 tháng (180 ngày)', days: 180 },
-  { label: '12 tháng (360 ngày)', days: 360 },
-  { label: '18 tháng (540 ngày)', days: 540 },
-  { label: '24 tháng (720 ngày)', days: 720 },
-  { label: 'Tùy chỉnh', days: -1 },
+const DURATION_PRESET_CONFIG = [
+  { key: 'preset_1m', days: 30 },
+  { key: 'preset_3m', days: 90 },
+  { key: 'preset_6m', days: 180 },
+  { key: 'preset_12m', days: 360 },
+  { key: 'preset_18m', days: 540 },
+  { key: 'preset_24m', days: 720 },
+  { key: 'preset_custom', days: -1 },
 ]
 
 const createSchema = z.object({
@@ -109,6 +110,7 @@ export const UserModal: React.FC<UserModalProps> = ({
   onSuccess,
   onResetPassword,
 }) => {
+  const { t } = useTranslation('users')
   const { user: currentUser } = useAuthStore()
   const isAdmin = currentUser?.role === 'ADMIN'
   const isAgent = currentUser?.role === 'AGENT'
@@ -221,7 +223,7 @@ export const UserModal: React.FC<UserModalProps> = ({
       setErrorMessage(null)
       if (user) {
         const existingDays = user.allocatedDays && user.allocatedDays > 0 ? user.allocatedDays : 360
-        const isPreset = DURATION_PRESETS.some(p => p.days === existingDays)
+        const isPreset = DURATION_PRESET_CONFIG.some(p => p.days === existingDays)
         setSelectedPreset(isPreset ? existingDays : -1)
         setCustomDays(existingDays)
 
@@ -399,7 +401,7 @@ export const UserModal: React.FC<UserModalProps> = ({
           </Button>
         ),
         <Button key="cancel" onClick={onClose} disabled={submitting}>
-          Hủy
+          {t('modal.cancel')}
         </Button>,
         <Button
           key="submit"
@@ -409,7 +411,7 @@ export const UserModal: React.FC<UserModalProps> = ({
           disabled={isFormBlocked}
           style={{ background: '#6C3BD6', borderColor: '#6C3BD6' }}
         >
-          {isEdit ? 'Lưu thay đổi' : 'Tạo người dùng'}
+          {isEdit ? t('modal.saveChanges') : t('modal.createUser')}
         </Button>,
       ].filter(Boolean)}
       destroyOnClose
@@ -420,7 +422,7 @@ export const UserModal: React.FC<UserModalProps> = ({
           <Alert
             type="error"
             showIcon
-            message={isEdit ? 'Cập nhật thất bại' : 'Tạo mới thất bại'}
+            message={isEdit ? t('modal.updateFailed') : t('modal.createFailed')}
             description={errorMessage}
             style={{ marginBottom: 16 }}
             closable
@@ -434,7 +436,7 @@ export const UserModal: React.FC<UserModalProps> = ({
             type="error"
             showIcon
             icon={<ExclamationCircleOutlined />}
-            message="Không thể thực hiện do hạn mức gói"
+            message={t("modal.quotaExceededTitle")}
             description={quotaCalculations.quotaError}
             style={{ marginBottom: 16 }}
           />
@@ -443,7 +445,7 @@ export const UserModal: React.FC<UserModalProps> = ({
         <Form layout="vertical">
           {!isEdit && (
             <Form.Item
-              label="Tên đăng nhập"
+              label={t("modal.username")}
               validateStatus={'username' in errors && errors.username ? 'error' : ''}
               help={'username' in errors ? errors.username?.message : undefined}
               required
@@ -452,14 +454,14 @@ export const UserModal: React.FC<UserModalProps> = ({
                 name="username"
                 control={control}
                 render={({ field }) => (
-                  <Input {...field} placeholder="VD: thocattphcm01" />
+                  <Input {...field} placeholder={t("modal.usernamePlaceholder")} />
                 )}
               />
             </Form.Item>
           )}
 
           <Form.Item
-            label="Họ và tên"
+            label={t("modal.fullName")}
             validateStatus={errors.fullName ? 'error' : ''}
             help={errors.fullName?.message}
           >
@@ -467,17 +469,17 @@ export const UserModal: React.FC<UserModalProps> = ({
               name="fullName"
               control={control}
               render={({ field }) => (
-                <Input {...field} value={field.value ?? ""} placeholder="VD: Nguyễn Văn Thắng" />
+                <Input {...field} value={field.value ?? ""} placeholder={t("modal.fullNamePlaceholder")} />
               )}
             />
           </Form.Item>
 
           {!isAdmin ? (
             <Form.Item
-              label="Đại lý & Chi nhánh trực thuộc"
+              label={t("modal.dealer")}
               extra={
                 <span style={{ fontSize: 11, color: '#6C3BD6' }}>
-                  Tài khoản tự động trực thuộc đại lý của bạn và được phân bổ từ gói đại lý.
+                  {t('modal.agentDealerAffiliationNotice')}
                 </span>
               }
             >
@@ -493,12 +495,12 @@ export const UserModal: React.FC<UserModalProps> = ({
             </Form.Item>
           ) : (
             <Form.Item
-              label="Đại lý & Chi nhánh trực thuộc"
+              label={t("modal.dealer")}
               validateStatus={errors.dealerId ? 'error' : ''}
               help={errors.dealerId?.message}
               extra={
                 <span style={{ fontSize: 11, color: '#8A8983' }}>
-                  Danh sách đại lý đang hoạt động (Active). Chọn đại lý để liên kết thợ cắt / nhân viên.
+                  {t('modal.activeDealersHelp')}
                 </span>
               }
             >
@@ -509,7 +511,7 @@ export const UserModal: React.FC<UserModalProps> = ({
                   <Select
                     {...field}
                     loading={loadingDealers}
-                    placeholder="Chọn đại lý trực thuộc (hoặc để trống nếu độc lập)"
+                    placeholder={t("modal.dealerPlaceholder")}
                     allowClear
                     showSearch
                     optionFilterProp="children"
@@ -527,10 +529,10 @@ export const UserModal: React.FC<UserModalProps> = ({
           )}
 
           <Form.Item
-            label="Địa chỉ Gmail / Email đăng nhập"
+            label={t("modal.email")}
             validateStatus={errors.email ? 'error' : ''}
             help={errors.email?.message}
-            extra={!isEdit && <span style={{ fontSize: 11, color: '#8A8983' }}>Địa chỉ email này cũng sẽ được sử dụng làm tài khoản đăng nhập máy cắt.</span>}
+            extra={!isEdit && <span style={{ fontSize: 11, color: '#8A8983' }}>{t('modal.loginEmailHelp')}</span>}
             required
           >
             <Controller
@@ -539,7 +541,7 @@ export const UserModal: React.FC<UserModalProps> = ({
               render={({ field }) => (
                 <Input
                   {...field}
-                  placeholder="VD: thang.nguyen@gmail.com"
+                  placeholder={t("modal.emailPlaceholder")}
                   onChange={e => {
                     field.onChange(e)
                     if (!isEdit) {
@@ -552,7 +554,7 @@ export const UserModal: React.FC<UserModalProps> = ({
           </Form.Item>
 
           <Form.Item
-            label="Số điện thoại"
+            label={t("modal.phone")}
             validateStatus={errors.phone ? 'error' : ''}
             help={errors.phone?.message}
           >
@@ -560,14 +562,14 @@ export const UserModal: React.FC<UserModalProps> = ({
               name="phone"
               control={control}
               render={({ field }) => (
-                <Input {...field} value={field.value ?? ""} placeholder="VD: 0903123456" />
+                <Input {...field} value={field.value ?? ""} placeholder={t("modal.phonePlaceholder")} />
               )}
             />
           </Form.Item>
 
           {!isEdit && (
             <Form.Item
-              label="Mật khẩu khởi tạo"
+              label={t("modal.initialPassword")}
               validateStatus={'password' in errors && errors.password ? 'error' : ''}
               help={'password' in errors ? errors.password?.message : undefined}
               required
@@ -578,7 +580,7 @@ export const UserModal: React.FC<UserModalProps> = ({
                 render={({ field }) => (
                   <Input.Password
                     {...field}
-                    placeholder="Tối thiểu 8 ký tự (chữ hoa, chữ thường, số, ký tự đặc biệt)"
+                    placeholder={t("modal.passwordHelp")}
                   />
                 )}
               />
@@ -586,7 +588,7 @@ export const UserModal: React.FC<UserModalProps> = ({
           )}
 
           <Form.Item
-            label="Vai trò tài khoản"
+            label={t("modal.role")}
             validateStatus={errors.role ? 'error' : ''}
             help={errors.role?.message}
             required
@@ -595,10 +597,10 @@ export const UserModal: React.FC<UserModalProps> = ({
               name="role"
               control={control}
               render={({ field }) => (
-                <Select {...field} placeholder="Chọn vai trò người dùng" disabled={!isAdmin}>
-                  {isAdmin && <Select.Option value="ADMIN">Quản trị viên (ADMIN)</Select.Option>}
-                  {isAdmin && <Select.Option value="AGENT">Quản lý đại lý (AGENT)</Select.Option>}
-                  <Select.Option value="USER">Thợ cắt / Người dùng (USER)</Select.Option>
+                <Select {...field} placeholder={t("modal.rolePlaceholder")} disabled={!isAdmin}>
+                  {isAdmin && <Select.Option value="ADMIN">{t("modal.adminRole")}</Select.Option>}
+                  {isAdmin && <Select.Option value="AGENT">{t("modal.agentRole")}</Select.Option>}
+                  <Select.Option value="USER">{t("modal.userRole")}</Select.Option>
                 </Select>
               )}
             />
@@ -617,26 +619,26 @@ export const UserModal: React.FC<UserModalProps> = ({
               title={
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#4A2A94' }}>
                   <ClockCircleOutlined />
-                  <span>Thời hạn tài khoản (Phân bổ từ quỹ đại lý)</span>
+                  <span>{t("modal.durationTitle")}</span>
                 </div>
               }
             >
               <div style={{ marginBottom: 12 }}>
                 <div style={{ fontSize: 12, color: '#6E6D68', marginBottom: 8 }}>
-                  Chọn gói thời hạn (quy ước chuẩn: 1 tháng = 30 ngày, 1 năm = 360 ngày):
+                  {t("modal.durationHint")}
                 </div>
                 <Radio.Group
                   value={selectedPreset}
                   onChange={e => setSelectedPreset(e.target.value)}
                   style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}
                 >
-                  {DURATION_PRESETS.map(preset => (
+                  {DURATION_PRESET_CONFIG.map(preset => (
                     <Radio.Button
                       key={preset.days}
                       value={preset.days}
                       style={{ borderRadius: 4, fontSize: 12 }}
                     >
-                      {preset.label}
+                      {t('modal.' + preset.key)}
                     </Radio.Button>
                   ))}
                 </Radio.Group>
@@ -644,17 +646,17 @@ export const UserModal: React.FC<UserModalProps> = ({
 
               {selectedPreset === -1 && (
                 <div style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ fontSize: 12, color: '#35342F' }}>Nhập số ngày cụ thể:</span>
+                  <span style={{ fontSize: 12, color: '#35342F' }}>{t("modal.customDaysLabel")}</span>
                   <InputNumber
                     min={1}
                     max={10000}
                     value={customDays}
                     onChange={val => setCustomDays(val || 30)}
                     style={{ width: 140 }}
-                    suffix="ngày"
+                    suffix={t("modal.daysSuffix")}
                   />
                   <span style={{ fontSize: 11, color: '#6E6D68' }}>
-                    (~{(customDays / 30).toFixed(1)} tháng)
+                    {t("modal.customMonthsApprox", { months: (customDays / 30).toFixed(1) })}
                   </span>
                 </div>
               )}
@@ -673,14 +675,14 @@ export const UserModal: React.FC<UserModalProps> = ({
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: '#6E6D68' }}>Số ngày phân bổ chuẩn:</span>
+                  <span style={{ color: '#6E6D68' }}>{t("modal.allocatedDaysStandard")}</span>
                   <strong style={{ color: '#6C3BD6', fontFamily: "'IBM Plex Mono', monospace" }}>
-                    {effectiveAllocatedDays} ngày ({Math.round(effectiveAllocatedDays / 30)} tháng)
+                    {t("modal.daysUnit", { days: effectiveAllocatedDays, months: Math.round(effectiveAllocatedDays / 30) })}
                   </strong>
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: '#6E6D68' }}>Ngày hết hạn dự kiến:</span>
+                  <span style={{ color: '#6E6D68' }}>{t("modal.projectedExpiry")}</span>
                   <strong style={{ color: '#1B1B19', fontFamily: "'IBM Plex Mono', monospace" }}>
                     {quotaCalculations.projectedExp.format('DD/MM/YYYY')}
                   </strong>
@@ -690,14 +692,14 @@ export const UserModal: React.FC<UserModalProps> = ({
                   <>
                     <div style={{ borderTop: '1px dashed #E4E3DE', marginTop: 4, paddingTop: 4 }} />
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span style={{ color: '#6E6D68' }}>Quỹ ngày đại lý hiện có:</span>
+                      <span style={{ color: '#6E6D68' }}>{t("modal.dealerPoolAvailable")}</span>
                       <span style={{ fontFamily: "'IBM Plex Mono', monospace" }}>
                         {agentPackage.remainingAllocatedDays.toLocaleString()} ngày
                       </span>
                     </div>
 
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span style={{ color: '#6E6D68' }}>Chênh lệch quỹ yêu cầu:</span>
+                      <span style={{ color: '#6E6D68' }}>{t("modal.requiredDelta")}</span>
                       <span
                         style={{
                           fontFamily: "'IBM Plex Mono', monospace",
@@ -709,7 +711,7 @@ export const UserModal: React.FC<UserModalProps> = ({
                     </div>
 
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span style={{ color: '#6E6D68' }}>Quỹ còn lại sau thao tác:</span>
+                      <span style={{ color: '#6E6D68' }}>{t("modal.remainingAfter")}</span>
                       <strong
                         style={{
                           fontFamily: "'IBM Plex Mono', monospace",
@@ -722,7 +724,7 @@ export const UserModal: React.FC<UserModalProps> = ({
 
                     {agentPackage.packageExpiryDate && (
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#8A8983' }}>
-                        <span>Hạn cuối gói đại lý:</span>
+                        <span>{t("modal.dealerPackageDeadline")}</span>
                         <span>{dayjs(agentPackage.packageExpiryDate).format('DD/MM/YYYY')}</span>
                       </div>
                     )}
@@ -735,17 +737,17 @@ export const UserModal: React.FC<UserModalProps> = ({
           {/* ADMIN DIRECT DATE PICKER (ONLY FOR ADMIN IF NOT USING ALLOCATION) */}
           {isAdmin && (
             <Form.Item
-              label="Ngày hết hạn tài khoản trực tiếp (Admin tùy chỉnh)"
+              label={t("modal.expirationDate")}
               validateStatus={errors.expirationDate ? "error" : ""}
               help={errors.expirationDate?.message}
               extra={
                 watchedRole === "ADMIN" ? (
                   <span style={{ fontSize: 11, color: "#D97706" }}>
-                    Ngày hết hạn không áp dụng cho tài khoản ADMIN.
+                    {t("modal.notApplicableForAdmin")}
                   </span>
                 ) : (
                   <span style={{ fontSize: 11, color: "#8A8983" }}>
-                    Không bắt buộc. Để trống = không hết hạn. Quá ngày này tài khoản sẽ không thể đăng nhập.
+                    {t("modal.expirationHelp")}
                   </span>
                 )
               }
@@ -782,14 +784,14 @@ export const UserModal: React.FC<UserModalProps> = ({
             title={
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#1E293B', fontWeight: 600 }}>
                 <AppstoreOutlined style={{ color: '#6C3BD6' }} />
-                <span>Danh mục kho mẫu & part được phép sử dụng</span>
+                <span>{t("modal.categoriesTitle")}</span>
               </div>
             }
           >
             {loadingCategories ? (
               <div style={{ textAlign: 'center', padding: '16px 0' }}>
                 <Spin size="small" />
-                <span style={{ marginLeft: 8, fontSize: 12, color: '#64748B' }}>Đang tải danh mục...</span>
+                <span style={{ marginLeft: 8, fontSize: 12, color: '#64748B' }}>{t("modal.loadingCategories")}</span>
               </div>
             ) : categoriesError ? (
               <Alert type="error" showIcon message={categoriesError} style={{ marginBottom: 8 }} />
@@ -803,7 +805,7 @@ export const UserModal: React.FC<UserModalProps> = ({
                     <div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                         <span style={{ fontSize: 12, color: '#64748B' }}>
-                          Chọn các danh mục được phép truy cập ({selected.length}/{partCategories.length}):
+                          {t("modal.selectCategoriesCount", { selected: selected.length, total: partCategories.length })}
                         </span>
                         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                           <Button
@@ -813,7 +815,7 @@ export const UserModal: React.FC<UserModalProps> = ({
                             disabled={partCategories.length === 0}
                             style={{ padding: 0, fontSize: 12 }}
                           >
-                            Chọn tất cả
+                            {t("modal.selectAll")}
                           </Button>
                           <span style={{ color: '#CBD5E1' }}>|</span>
                           <Button
@@ -823,7 +825,7 @@ export const UserModal: React.FC<UserModalProps> = ({
                             disabled={selected.length === 0}
                             style={{ padding: 0, fontSize: 12 }}
                           >
-                            Bỏ chọn tất cả
+                            {t("modal.deselectAll")}
                           </Button>
                         </div>
                       </div>
@@ -832,7 +834,7 @@ export const UserModal: React.FC<UserModalProps> = ({
                         <div style={{ marginBottom: 8 }}>
                           <Input
                             size="small"
-                            placeholder="Tìm nhanh danh mục..."
+                            placeholder={t("modal.searchCategoryQuick")}
                             prefix={<SearchOutlined style={{ color: '#94A3B8' }} />}
                             value={categorySearch}
                             onChange={e => setCategorySearch(e.target.value)}
@@ -843,11 +845,11 @@ export const UserModal: React.FC<UserModalProps> = ({
 
                       {partCategories.length === 0 ? (
                         <div style={{ fontSize: 12, color: '#94A3B8', fontStyle: 'italic', padding: '8px 0' }}>
-                          Chưa có danh mục kho mẫu & part nào đang hoạt động.
+                          {t("modal.emptyCategories")}
                         </div>
                       ) : filteredPartCategories.length === 0 ? (
                         <div style={{ fontSize: 12, color: '#94A3B8', fontStyle: 'italic', padding: '8px 0' }}>
-                          Không tìm thấy danh mục nào khớp với từ khóa tìm kiếm.
+                          {t("modal.noMatchingCategories")}
                         </div>
                       ) : (
                         <div
@@ -877,7 +879,7 @@ export const UserModal: React.FC<UserModalProps> = ({
                       )}
 
                       <div style={{ fontSize: 11, color: '#64748B', marginTop: 10 }}>
-                        Khi tạo mới mặc định không cấp quyền nếu chưa chọn. Khi sửa, bỏ chọn danh mục và lưu sẽ thu hồi quyền tương ứng.
+                        {t("modal.categoryPermissionHint")}
                       </div>
                     </div>
                   )
@@ -886,7 +888,7 @@ export const UserModal: React.FC<UserModalProps> = ({
             )}
           </Card>
 
-          <Form.Item label="Trạng thái tài khoản" valuePropName="checked">
+          <Form.Item label={t("modal.status")} valuePropName="checked">
             <Controller
               name="enabled"
               control={control}
@@ -895,11 +897,11 @@ export const UserModal: React.FC<UserModalProps> = ({
                   <Switch
                     checked={field.value}
                     onChange={field.onChange}
-                    checkedChildren="Hoạt động"
-                    unCheckedChildren="Tạm khóa"
+                    checkedChildren={t("modal.statusActive")}
+                    unCheckedChildren={t("modal.statusLocked")}
                   />
                   <span style={{ fontSize: 13, color: field.value ? '#1E7E34' : '#C2452D' }}>
-                    {field.value ? 'Tài khoản đang được kích hoạt hoạt động' : 'Tài khoản đang bị tạm khóa'}
+                    {field.value ? t('modal.activeStatusText') : t('modal.lockedStatusText')}
                   </span>
                 </div>
               )}
@@ -908,12 +910,12 @@ export const UserModal: React.FC<UserModalProps> = ({
 
           {isEdit && isAdmin && (
             <Form.Item
-              label="Số máy tối đa"
+              label={t("modal.maxDevices")}
               validateStatus={'maxDevices' in errors && errors.maxDevices ? 'error' : ''}
               help={'maxDevices' in errors ? errors.maxDevices?.message : undefined}
               extra={
                 <span style={{ fontSize: 11, color: '#8A8983' }}>
-                  Số máy được đăng nhập phần mềm cắt. Để trống = mặc định hệ thống ({user?.effectiveMaxDevices ?? 1} máy nếu chưa đặt riêng).
+                  {t('modal.maxDevicesExtra', { count: user?.effectiveMaxDevices ?? 1 })}
                 </span>
               }
             >
@@ -927,9 +929,9 @@ export const UserModal: React.FC<UserModalProps> = ({
                     precision={0}
                     value={field.value ?? null}
                     onChange={v => field.onChange(v ?? null)}
-                    placeholder="Mặc định"
+                    placeholder={t("modal.maxDevicesPlaceholder")}
                     style={{ width: 140 }}
-                    suffix="máy"
+                    suffix={t("modal.devicesSuffix")}
                   />
                 )}
               />

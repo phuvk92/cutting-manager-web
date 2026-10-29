@@ -6,13 +6,16 @@ import {
 } from '@ant-design/icons'
 import type { MenuProps } from 'antd'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/stores/authStore'
 import { ChangePasswordModal } from '@/features/auth/ChangePasswordModal'
+import { LanguageSwitcher } from '@/components/common/LanguageSwitcher'
 
 const { Text } = Typography
 
 export const AppHeader: React.FC = () => {
   const navigate = useNavigate()
+  const { t } = useTranslation(['nav', 'common'])
   const { user, logout } = useAuthStore()
   const [changePasswordOpen, setChangePasswordOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -23,12 +26,12 @@ export const AppHeader: React.FC = () => {
   }
 
   const roleNameMap: Record<string, string> = {
-    ADMIN: 'Quản trị viên',
-    AGENT: 'Quản lý đại lý',
-    USER: 'Thợ cắt',
+    ADMIN: t('roles.ADMIN', { ns: 'common' }),
+    AGENT: t('roles.AGENT', { ns: 'common' }),
+    USER: t('roles.USER', { ns: 'common' }),
   }
 
-  const userRoleDisplay = user?.role ? roleNameMap[user.role] || user.role : 'Quản trị viên'
+  const userRoleDisplay = user?.role ? roleNameMap[user.role] || user.role : t('roles.ADMIN', { ns: 'common' })
   const userInitials = (user?.username?.substring(0, 2) || 'QT').toUpperCase()
 
   const userMenuItems: MenuProps['items'] = [
@@ -40,7 +43,7 @@ export const AppHeader: React.FC = () => {
             {user?.username}
           </Text>
           <Text type="secondary" style={{ fontSize: 11 }}>
-            {user?.email || 'Nội bộ'} · {userRoleDisplay}
+            {user?.email || t('userMenu.internal', { ns: 'nav' })} · {userRoleDisplay}
           </Text>
         </div>
       ),
@@ -52,7 +55,7 @@ export const AppHeader: React.FC = () => {
     {
       key: 'change-password',
       icon: <KeyOutlined />,
-      label: 'Đổi mật khẩu',
+      label: t('userMenu.changePassword', { ns: 'nav' }),
       onClick: () => setChangePasswordOpen(true),
     },
     {
@@ -62,7 +65,7 @@ export const AppHeader: React.FC = () => {
       key: 'logout',
       icon: <LogoutOutlined />,
       danger: true,
-      label: 'Đăng xuất',
+      label: t('userMenu.logout', { ns: 'nav' }),
       onClick: handleLogout,
     },
   ]
@@ -99,7 +102,7 @@ export const AppHeader: React.FC = () => {
             <path d="M12.2 17h7.6" stroke="#7C3AED" strokeWidth="2.4" strokeLinecap="round" strokeDasharray="2.4 3" />
           </svg>
           <span style={{ font: "600 15px 'IBM Plex Sans', sans-serif", letterSpacing: '-0.01em', color: '#1B1B19' }}>
-            PCUT
+            {t('brand', { ns: 'nav' })}
           </span>
         </div>
 
@@ -113,10 +116,10 @@ export const AppHeader: React.FC = () => {
             color: '#6E6D68',
           }}
         >
-          QUẢN TRỊ HỆ THỐNG
+          {t('systemAdmin', { ns: 'nav' })}
         </span>
 
-        {/* Search & User Profile */}
+        {/* Search, Language Switcher & User Profile */}
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
           <div
             style={{
@@ -134,7 +137,7 @@ export const AppHeader: React.FC = () => {
               <path d="M15.5 15.5 21 21" />
             </svg>
             <input
-              placeholder="Tìm đại lý, user, mã mẫu"
+              placeholder={t('searchPlaceholder', { ns: 'nav' })}
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               onKeyDown={handleSearchKeyDown}
@@ -148,6 +151,8 @@ export const AppHeader: React.FC = () => {
               }}
             />
           </div>
+
+          <LanguageSwitcher theme="light" />
 
           <Dropdown menu={{ items: userMenuItems }} trigger={['click']} placement="bottomRight">
             <div

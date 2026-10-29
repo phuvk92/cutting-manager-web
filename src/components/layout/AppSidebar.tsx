@@ -1,10 +1,12 @@
 import React from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/stores/authStore'
 
 export const AppSidebar: React.FC = () => {
   const navigate = useNavigate()
   const location = useLocation()
+  const { t } = useTranslation(['nav'])
   const { user } = useAuthStore()
 
   const isAdmin = user?.role === 'ADMIN'
@@ -67,11 +69,11 @@ export const AppSidebar: React.FC = () => {
     >
       {/* ── TỔNG QUAN ── */}
       <div style={{ padding: '14px 16px 6px', font: "600 10px 'IBM Plex Sans', sans-serif", letterSpacing: '0.1em', color: '#A3A29C' }}>
-        TỔNG QUAN
+        {t('sections.overview')}
       </div>
       {renderNavBtn(
         '/dashboard',
-        'Bảng tổng quan',
+        t('items.dashboard'),
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
           <rect x="4" y="4" width="7" height="7" rx="1.5" />
           <rect x="13" y="4" width="7" height="4.5" rx="1.5" />
@@ -82,11 +84,11 @@ export const AppSidebar: React.FC = () => {
 
       {/* ── NỀN TẢNG & TÀI KHOẢN ── */}
       <div style={{ padding: '16px 16px 6px', font: "600 10px 'IBM Plex Sans', sans-serif", letterSpacing: '0.1em', color: '#A3A29C' }}>
-        NỀN TẢNG & TÀI KHOẢN
+        {t('sections.platform')}
       </div>
       {renderNavBtn(
         '/dealers',
-        'Đại lý & chi nhánh',
+        t('items.dealers'),
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="M4 20V9l8-5 8 5v11" />
           <path d="M9.5 20v-6h5v6" />
@@ -95,7 +97,7 @@ export const AppSidebar: React.FC = () => {
       )}
       {renderNavBtn(
         '/users',
-        'Người dùng',
+        t('items.users'),
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="9.5" cy="8.5" r="3.2" />
           <path d="M3.5 19.5c0-3.3 2.7-5 6-5s6 1.7 6 5" />
@@ -106,7 +108,7 @@ export const AppSidebar: React.FC = () => {
       )}
       {renderNavBtn(
         '/sessions',
-        'Phiên & thiết bị',
+        t('items.sessions'),
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
           <rect x="3.5" y="5" width="17" height="11" rx="2" />
           <path d="M8 19.5h8" />
@@ -116,7 +118,7 @@ export const AppSidebar: React.FC = () => {
       )}
       {renderNavBtn(
         '/audit',
-        'Audit Log',
+        t('items.audit'),
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="8.5" />
           <path d="M12 7.5V12l3 2" />
@@ -128,11 +130,11 @@ export const AppSidebar: React.FC = () => {
       {(isAgentOrAdmin || isUser) && (
         <>
           <div style={{ padding: '16px 16px 6px', font: "600 10px 'IBM Plex Sans', sans-serif", letterSpacing: '0.1em', color: '#A3A29C' }}>
-            DATA CENTER
+            {t('sections.dataCenter')}
           </div>
           {isAdmin && renderNavBtn(
             '/categories',
-            'Danh mục xe',
+            t('items.categories'),
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2" />
               <circle cx="7" cy="17" r="2" />
@@ -142,7 +144,7 @@ export const AppSidebar: React.FC = () => {
           )}
           {isAdmin && renderNavBtn(
             '/svg',
-            'Kho mẫu & part file',
+            t('items.svg'),
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <ellipse cx="12" cy="6" rx="7.5" ry="3" />
               <path d="M4.5 6v6c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3V6" />
@@ -151,7 +153,7 @@ export const AppSidebar: React.FC = () => {
           )}
           {isAdmin && renderNavBtn(
             '/admin/part-library/categories',
-            'Danh mục kho mẫu & part',
+            t('items.partLibraryCategories'),
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M4 6h16M4 12h16M4 18h7" />
               <rect x="15" y="15" width="6" height="6" rx="1" />
@@ -159,7 +161,7 @@ export const AppSidebar: React.FC = () => {
           )}
           {(isAdmin || isAgent || isUser) && renderNavBtn(
             '/admin/user-saved-files',
-            'Bản đã lưu',
+            t('items.savedFiles'),
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
               <polyline points="17 21 17 13 7 13 7 21" />
@@ -168,7 +170,7 @@ export const AppSidebar: React.FC = () => {
           )}
           {isAdmin && renderNavBtn(
             '/bulk-upload',
-            'Nạp mẫu hàng loạt',
+            t('items.bulkUpload'),
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 16V5" />
               <path d="M7.5 9.5 12 5l4.5 4.5" />
@@ -180,11 +182,11 @@ export const AppSidebar: React.FC = () => {
 
       {/* ── MÁY CHỦ TRẠNG THÁI (STATUS FOOTER) ── */}
       <div style={{ marginTop: 'auto', padding: '12px 16px', borderTop: '1px solid #E4E3DE' }}>
-        <div style={{ font: "400 10.5px 'IBM Plex Sans', sans-serif", color: '#8A8983' }}>Máy chủ</div>
+        <div style={{ font: "400 10.5px 'IBM Plex Sans', sans-serif", color: '#8A8983' }}>{t('serverStatus.title')}</div>
         <div style={{ marginTop: 3, display: 'flex', alignItems: 'center', gap: 6 }}>
           <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#2E7D5B' }} />
           <span style={{ font: "500 11.5px 'IBM Plex Mono', monospace", color: '#35342F' }}>
-            Hoạt động · 99,8%
+            {t('serverStatus.text')}
           </span>
         </div>
       </div>

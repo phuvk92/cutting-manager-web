@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { Button, Tag, Spin, message } from 'antd'
 import { DesktopOutlined, ReloadOutlined } from '@ant-design/icons'
+import { useTranslation } from 'react-i18next'
 import { UserDevice } from '@/types/user'
 import { userService } from '@/services/users/userService'
 import { extractErrorMessage } from '@/utils/error'
@@ -19,6 +20,7 @@ interface UserDevicesPanelProps {
  * Gỡ máy = nhả chỗ cho máy khác + phần mềm cắt trên máy cũ bị đăng xuất sau vài phút ân hạn.
  */
 export const UserDevicesPanel: React.FC<UserDevicesPanelProps> = ({ userId, username, maxDevices }) => {
+  const { t } = useTranslation(['users'])
   const [devices, setDevices] = useState<UserDevice[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -30,11 +32,11 @@ export const UserDevicesPanel: React.FC<UserDevicesPanelProps> = ({ userId, user
     try {
       setDevices(await userService.getUserDevices(userId))
     } catch (err) {
-      setError(extractErrorMessage(err, 'Không tải được danh sách thiết bị'))
+      setError(extractErrorMessage(err, t('userDevices.loadError')))
     } finally {
       setLoading(false)
     }
-  }, [userId])
+  }, [userId, t])
 
   useEffect(() => {
     load()
@@ -44,10 +46,15 @@ export const UserDevicesPanel: React.FC<UserDevicesPanelProps> = ({ userId, user
     setRevokingId(device.id)
     try {
       await userService.revokeUserDevice(userId, device.id)
-      message.success(`Đã gỡ máy "${device.name || shortId(device.deviceId)}" khỏi tài khoản ${username}`)
+      message.success(
+        t('userDevices.revokeSuccess', {
+          name: device.name || shortId(device.deviceId),
+          user: username,
+        })
+      )
       await load()
     } catch (err) {
-      message.error(extractErrorMessage(err, 'Không gỡ được máy'))
+      message.error(extractErrorMessage(err, t('userDevices.revokeError')))
     } finally {
       setRevokingId(null)
     }
@@ -70,10 +77,10 @@ export const UserDevicesPanel: React.FC<UserDevicesPanelProps> = ({ userId, user
       >
         <span style={{ fontWeight: 600, fontSize: 12.5 }}>
           <DesktopOutlined style={{ marginRight: 6 }} />
-          Thiết bị đã đăng ký
+          {t('userDevices.title')}
           {maxDevices !== undefined && (
             <span style={{ marginLeft: 8, fontWeight: 400, color: activeCount >= maxDevices ? '#C2452D' : '#6E6D68' }}>
-              {activeCount}/{maxDevices} máy
+              {t('userDevices.machines', { count: activeCount, max: maxDevices })}
             </span>
           )}
         </span>
@@ -89,7 +96,7 @@ export const UserDevicesPanel: React.FC<UserDevicesPanelProps> = ({ userId, user
           <div style={{ padding: '10px 0', color: '#C2452D', fontSize: 12.5 }}>{error}</div>
         ) : devices.length === 0 ? (
           <div style={{ padding: '10px 0', color: '#8A8983', fontSize: 12.5 }}>
-            Chưa có máy nào. Máy đầu tiên đăng nhập phần mềm cắt sẽ được đăng ký tự động.
+            {t('userDevices.empty')}
           </div>
         ) : (
           devices.map(d => (
@@ -107,16 +114,16 @@ export const UserDevicesPanel: React.FC<UserDevicesPanelProps> = ({ userId, user
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 500 }}>
                   <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {d.name || 'Máy không tên'}
+                    {d.name || t('userDevices.unnamedDevice')}
                   </span>
                   {d.platform && <span style={{ color: '#8A8983', fontWeight: 400 }}>· {d.platform}</span>}
-                  {d.status === 'ACTIVE' ? <Tag color="green">Đang dùng</Tag> : <Tag>Đã gỡ</Tag>}
+                  {d.status === 'ACTIVE' ? <Tag color="green">{t('userDevices.inUse')}</Tag> : <Tag>{t('userDevices.revoked')}</Tag>}
                 </div>
                 <div style={{ fontSize: 11.5, color: '#6E6D68', marginTop: 2 }}>
                   <span style={{ fontFamily: "'IBM Plex Mono', monospace" }} title={d.deviceId}>
                     {shortId(d.deviceId)}
                   </span>
-                  {' · '}lần cuối {formatDateTime(d.lastSeenAt)}
+                  {' · '}{t('userDevices.lastSeen', { time: formatDateTime(d.lastSeenAt) })}
                   {d.lastIp && (
                     <>
                       {' · IP '}
@@ -125,9 +132,7 @@ export const UserDevicesPanel: React.FC<UserDevicesPanelProps> = ({ userId, user
                   )}
                   {d.status === 'REVOKED' && d.revokedAt && (
                     <>
-                      {' · gỡ '}
-                      {formatDateTime(d.revokedAt)}
-                      {d.revokedBy ? ` bởi ${d.revokedBy}` : ''}
+                      {' · '}{t('userDevices.revokedAt', { time: formatDateTime(d.revokedAt), by: d.revokedBy || '' })}
                     </>
                   )}
                 </div>

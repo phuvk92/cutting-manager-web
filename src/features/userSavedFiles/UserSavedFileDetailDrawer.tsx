@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import React, { useEffect, useState } from 'react'
 import {
   Drawer,
@@ -44,6 +45,7 @@ export const UserSavedFileDetailDrawer: React.FC<UserSavedFileDetailDrawerProps>
   onShare,
   canDownload = true,
 }) => {
+  const { t } = useTranslation('savedFiles')
   const [blobUrl, setBlobUrl] = useState<string | null>(null)
   const [previewLoading, setPreviewLoading] = useState(false)
   const [previewError, setPreviewError] = useState<string | null>(null)
@@ -245,7 +247,7 @@ export const UserSavedFileDetailDrawer: React.FC<UserSavedFileDetailDrawerProps>
             <Descriptions.Item label="Tên file">
               <span style={{ fontWeight: 600, color: '#6C3BD6' }}>{file.fileName}</span>
             </Descriptions.Item>
-            <Descriptions.Item label="Danh mục">
+            <Descriptions.Item label={t("drawer.category")}>
               {file.category?.name ? (
                 <span
                   style={{
@@ -264,10 +266,10 @@ export const UserSavedFileDetailDrawer: React.FC<UserSavedFileDetailDrawerProps>
                 <Text type="secondary">—</Text>
               )}
             </Descriptions.Item>
-            <Descriptions.Item label="Mô tả">
-              {file.description || <Text type="secondary">Chưa có mô tả</Text>}
+            <Descriptions.Item label={t("drawer.description")}>
+              {file.description || <Text type="secondary">{t("drawer.noDescription")}</Text>}
             </Descriptions.Item>
-            <Descriptions.Item label="Trạng thái">
+            <Descriptions.Item label={t("drawer.status")}>
               <span
                 style={{
                   display: 'inline-block',
@@ -279,7 +281,7 @@ export const UserSavedFileDetailDrawer: React.FC<UserSavedFileDetailDrawerProps>
                   color: file.status === 'ACTIVE' ? '#1E7E34' : '#6E6D68',
                 }}
               >
-                {file.status === 'ACTIVE' ? 'Hoạt động' : 'Đã xoá'}
+                {file.status === 'ACTIVE' ? t('drawer.statusActive') : t('drawer.statusDeleted')}
               </span>
             </Descriptions.Item>
           </Descriptions>
@@ -289,24 +291,24 @@ export const UserSavedFileDetailDrawer: React.FC<UserSavedFileDetailDrawerProps>
         <div style={{ background: '#FBFBFA', border: '1px solid #E4E3DE', borderRadius: 6, padding: 12 }}>
           <div style={{ font: `600 12px ${FONT}`, color: '#1B1B19', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
             <CarOutlined style={{ color: '#7C3AED' }} />
-            <span>Mẫu xe & Cấu hình</span>
+            <span>{t("drawer.vehicleConfig")}</span>
           </div>
           <Descriptions size="small" column={{ xs: 1, sm: 2 }} bordered>
-            <Descriptions.Item label="Hãng xe">
+            <Descriptions.Item label={t("drawer.brand")}>
               {file.vehicleConfiguration?.brandName ? (
                 <span style={{ fontWeight: 500 }}>{file.vehicleConfiguration.brandName}</span>
               ) : (
                 <Text type="secondary">—</Text>
               )}
             </Descriptions.Item>
-            <Descriptions.Item label="Dòng xe">
+            <Descriptions.Item label={t("drawer.model")}>
               {file.vehicleConfiguration?.modelName ? (
                 <span style={{ fontWeight: 500 }}>{file.vehicleConfiguration.modelName}</span>
               ) : (
                 <Text type="secondary">—</Text>
               )}
             </Descriptions.Item>
-            <Descriptions.Item label="Năm áp dụng">
+            <Descriptions.Item label={t("drawer.appliedYears")}>
               {file.vehicleConfiguration?.yearFrom ? (
                 <span style={{ fontFamily: MONO, fontSize: 12 }}>
                   {file.vehicleConfiguration.yearFrom}
@@ -315,10 +317,10 @@ export const UserSavedFileDetailDrawer: React.FC<UserSavedFileDetailDrawerProps>
                     : ''}
                 </span>
               ) : (
-                <Text type="secondary">Mọi năm</Text>
+                <Text type="secondary">{t("drawer.allYears")}</Text>
               )}
             </Descriptions.Item>
-            <Descriptions.Item label="Mã khung / Đời">
+            <Descriptions.Item label={t("drawer.generationCode")}>
               {file.vehicleConfiguration?.generationCode ? (
                 <span style={{ fontFamily: MONO, fontSize: 12 }}>
                   {file.vehicleConfiguration.generationCode}
@@ -327,7 +329,7 @@ export const UserSavedFileDetailDrawer: React.FC<UserSavedFileDetailDrawerProps>
                 <Text type="secondary">—</Text>
               )}
             </Descriptions.Item>
-            <Descriptions.Item label="Nhóm sản phẩm" span={2}>
+            <Descriptions.Item label={t("drawer.productGroup")} span={2}>
               {file.vehicleConfiguration?.productGroupName ||
                 file.vehicleConfiguration?.productGroup || <Text type="secondary">—</Text>}
             </Descriptions.Item>
@@ -337,10 +339,10 @@ export const UserSavedFileDetailDrawer: React.FC<UserSavedFileDetailDrawerProps>
         {/* Khổ cắt */}
         <div style={{ background: '#FBFBFA', border: '1px solid #E4E3DE', borderRadius: 6, padding: 12 }}>
           <div style={{ font: `600 12px ${FONT}`, color: '#1B1B19', marginBottom: 10 }}>
-            Khổ cắt đã thiết lập
+            {t("drawer.cutDimensions")}
           </div>
           <Descriptions size="small" column={{ xs: 1, sm: 2 }} bordered>
-            <Descriptions.Item label="Khổ phim (Y)">
+            <Descriptions.Item label={t("drawer.filmWidth")}>
               {filmWidth !== null && filmWidth !== undefined ? (
                 <span style={{ fontFamily: MONO, fontWeight: 600, color: '#1B1B19' }}>
                   {filmWidth.toLocaleString('vi-VN')} {widthUnit}
@@ -349,7 +351,7 @@ export const UserSavedFileDetailDrawer: React.FC<UserSavedFileDetailDrawerProps>
                 <Text type="secondary">—</Text>
               )}
             </Descriptions.Item>
-            <Descriptions.Item label="Dài dọc cuộn (X)">
+            <Descriptions.Item label={t("drawer.rollLength")}>
               {rollLength !== null && rollLength !== undefined ? (
                 <span style={{ fontFamily: MONO, fontWeight: 600, color: '#1B1B19' }}>
                   {rollLength.toLocaleString('vi-VN')} {lengthUnit}
@@ -365,10 +367,10 @@ export const UserSavedFileDetailDrawer: React.FC<UserSavedFileDetailDrawerProps>
         <div style={{ background: '#FBFBFA', border: '1px solid #E4E3DE', borderRadius: 6, padding: 12 }}>
           <div style={{ font: `600 12px ${FONT}`, color: '#1B1B19', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
             <ShopOutlined style={{ color: '#7C3AED' }} />
-            <span>Nguồn gốc & Quản trị</span>
+            <span>{t("drawer.originAdmin")}</span>
           </div>
           <Descriptions size="small" column={{ xs: 1, sm: 2 }} bordered>
-            <Descriptions.Item label="Người tạo">
+            <Descriptions.Item label={t("drawer.createdBy")}>
               <span style={{ fontWeight: 500 }}>
                 {file.createdBy?.displayName || file.createdBy?.username || '—'}
               </span>{' '}
@@ -378,27 +380,27 @@ export const UserSavedFileDetailDrawer: React.FC<UserSavedFileDetailDrawerProps>
                 </span>
               )}
             </Descriptions.Item>
-            <Descriptions.Item label="Đại lý">
+            <Descriptions.Item label={t("drawer.dealer")}>
               {file.dealer?.name ? (
                 <span style={{ fontWeight: 500, color: '#6C3BD6' }}>{file.dealer.name}</span>
               ) : (
                 <Text type="secondary">—</Text>
               )}
             </Descriptions.Item>
-            <Descriptions.Item label="Thời gian tạo">
+            <Descriptions.Item label={t("drawer.createdAt")}>
               <span style={{ fontFamily: MONO, fontSize: 11.5, color: '#4A4945' }}>
                 {file.createdAt ? new Date(file.createdAt).toLocaleString('vi-VN') : '—'}
               </span>
             </Descriptions.Item>
-            <Descriptions.Item label="Dung lượng">
+            <Descriptions.Item label={t("drawer.fileSize")}>
               <span style={{ fontFamily: MONO, fontSize: 12 }}>
                 {file.fileSize ? formatBytes(file.fileSize) : '—'}
               </span>
             </Descriptions.Item>
-            <Descriptions.Item label="MIME Type">
+            <Descriptions.Item label={t("drawer.mimeType")}>
               <span style={{ fontFamily: MONO, fontSize: 11.5 }}>{file.mimeType}</span>
             </Descriptions.Item>
-            <Descriptions.Item label="Mã băm (SHA-256)" span={2}>
+            <Descriptions.Item label={t("drawer.checksum")} span={2}>
               <Text
                 copyable
                 style={{
@@ -417,13 +419,13 @@ export const UserSavedFileDetailDrawer: React.FC<UserSavedFileDetailDrawerProps>
         <Divider style={{ margin: '4px 0' }} />
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', flexWrap: 'wrap', gap: 8 }}>
-          <Button onClick={onClose}>Đóng</Button>
+          <Button onClick={onClose}>{t("drawer.closeBtn")}</Button>
           {onShare && (
             <Button
               icon={<ShareAltOutlined />}
               onClick={() => onShare(file)}
             >
-              Chia sẻ
+              {t("drawer.shareBtn")}
             </Button>
           )}
           {canDownload && (
@@ -435,7 +437,7 @@ export const UserSavedFileDetailDrawer: React.FC<UserSavedFileDetailDrawerProps>
                 userSavedFileService.download(file.id, normalizeSvgFilename(file.fileName, file.id))
               }
             >
-              Tải xuống file
+              {t("drawer.downloadBtn")}
             </Button>
           )}
         </div>

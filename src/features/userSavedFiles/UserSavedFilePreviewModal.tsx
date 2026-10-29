@@ -7,6 +7,7 @@ import {
   ZoomOutOutlined,
   RedoOutlined,
 } from '@ant-design/icons'
+import { useTranslation } from 'react-i18next'
 import { userSavedFileService } from '@/services/userSavedFile/userSavedFileService'
 import { normalizeSvgFilename } from '@/utils/formatters'
 
@@ -23,6 +24,7 @@ export const UserSavedFilePreviewModal: React.FC<UserSavedFilePreviewModalProps>
   open,
   onClose,
 }) => {
+  const { t } = useTranslation(['savedFiles', 'common'])
   const [blobUrl, setBlobUrl] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -49,7 +51,7 @@ export const UserSavedFilePreviewModal: React.FC<UserSavedFilePreviewModalProps>
         })
         .catch(err => {
           if (active) {
-            setError(err?.message || 'Không thể hiển thị xem trước SVG')
+            setError(err?.message || t('preview.cannotPreview'))
             setLoading(false)
           }
         })
@@ -66,13 +68,15 @@ export const UserSavedFilePreviewModal: React.FC<UserSavedFilePreviewModalProps>
         URL.revokeObjectURL(currentUrl)
       }
     }
-  }, [open, fileId])
+  }, [open, fileId, t])
 
   if (fileId === null) return null
 
   const handleZoomIn = () => setScale(s => Math.min(s + 0.25, 3))
   const handleZoomOut = () => setScale(s => Math.max(s - 0.25, 0.5))
   const handleResetZoom = () => setScale(1)
+
+  const modalTitle = title || t('preview.defaultTitle', { id: fileId })
 
   return (
     <Modal
@@ -89,22 +93,22 @@ export const UserSavedFilePreviewModal: React.FC<UserSavedFilePreviewModalProps>
                 whiteSpace: 'nowrap',
                 maxWidth: 420,
               }}
-              title={title || `Bản vẽ #${fileId}`}
+              title={modalTitle}
             >
-              {title || `Bản vẽ #${fileId}`}
+              {modalTitle}
             </span>
           </div>
           <Space size={6} style={{ flexShrink: 0 }}>
-            <Tooltip title="Thu nhỏ">
+            <Tooltip title={t('preview.zoomOut')}>
               <Button size="small" icon={<ZoomOutOutlined />} onClick={handleZoomOut} disabled={scale <= 0.5} />
             </Tooltip>
             <span style={{ fontSize: 12, fontFamily: "'IBM Plex Mono', monospace", minWidth: 42, textAlign: 'center' }}>
               {Math.round(scale * 100)}%
             </span>
-            <Tooltip title="Phóng to">
+            <Tooltip title={t('preview.zoomIn')}>
               <Button size="small" icon={<ZoomInOutlined />} onClick={handleZoomIn} disabled={scale >= 3} />
             </Tooltip>
-            <Tooltip title="Đặt lại kích thước">
+            <Tooltip title={t('preview.resetZoom')}>
               <Button size="small" icon={<RedoOutlined />} onClick={handleResetZoom} />
             </Tooltip>
           </Space>
@@ -124,9 +128,9 @@ export const UserSavedFilePreviewModal: React.FC<UserSavedFilePreviewModalProps>
               userSavedFileService.download(fileId, normalizeSvgFilename(title, fileId))
             }
           >
-            Tải xuống file SVG
+            {t('preview.download')}
           </Button>
-          <Button onClick={onClose}>Đóng</Button>
+          <Button onClick={onClose}>{t('preview.close')}</Button>
         </Space>
       }
       destroyOnHidden
@@ -140,12 +144,12 @@ export const UserSavedFilePreviewModal: React.FC<UserSavedFilePreviewModalProps>
           alignItems: 'center',
         }}
       >
-        {loading && <Spin tip="Đang dựng bản vẽ SVG..." />}
+        {loading && <Spin tip={t('preview.rendering')} />}
         {error && (
           <Alert
             type="warning"
             showIcon
-            message="Không thể xem trước"
+            message={t('preview.cannotPreview')}
             description={error}
             style={{ width: '100%' }}
           />
@@ -165,7 +169,7 @@ export const UserSavedFilePreviewModal: React.FC<UserSavedFilePreviewModalProps>
               }}
               aria-label="SVG Preview"
             >
-              <Empty description="Trình duyệt không hỗ trợ hiển thị file SVG này" />
+              <Empty description={t('preview.browserNotSupported')} />
             </object>
           </div>
         )}

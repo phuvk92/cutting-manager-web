@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Modal, Form, Input, message } from 'antd'
 import { LockOutlined } from '@ant-design/icons'
+import { useTranslation } from 'react-i18next'
 import { authService } from '@/services/auth/authService'
 import { ChangePasswordRequest } from '@/types/auth'
 import { extractErrorMessage } from '@/utils/error'
@@ -16,6 +17,7 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({
   onCancel,
   onSuccess,
 }) => {
+  const { t } = useTranslation(['auth', 'common'])
   const [form] = Form.useForm<ChangePasswordRequest>()
   const [loading, setLoading] = useState(false)
 
@@ -23,12 +25,12 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({
     try {
       setLoading(true)
       const res = await authService.changePassword(values)
-      message.success(res?.message || 'Password changed successfully!')
+      message.success(res?.message || t('changePassword.success', { ns: 'auth' }))
       form.resetFields()
       onSuccess?.()
       onCancel()
     } catch (err: unknown) {
-      message.error(extractErrorMessage(err, 'Failed to change password'))
+      message.error(extractErrorMessage(err, t('changePassword.error', { ns: 'auth' })))
     } finally {
       setLoading(false)
     }
@@ -41,13 +43,13 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({
 
   return (
     <Modal
-      title="Change Password"
+      title={t('changePassword.title', { ns: 'auth' })}
       open={open}
       onCancel={handleModalClose}
       onOk={() => form.submit()}
       confirmLoading={loading}
-      okText="Update Password"
-      cancelText="Cancel"
+      okText={t('changePassword.submit', { ns: 'auth' })}
+      cancelText={t('actions.cancel', { ns: 'common' })}
       destroyOnClose
     >
       <Form
@@ -59,54 +61,53 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({
       >
         <Form.Item
           name="currentPassword"
-          label="Current Password"
-          rules={[{ required: true, message: 'Please enter your current password' }]}
+          label={t('changePassword.currentPassword', { ns: 'auth' })}
+          rules={[{ required: true, message: t('changePassword.validation.currentRequired', { ns: 'auth' }) }]}
         >
           <Input.Password
             prefix={<LockOutlined style={{ color: '#bfbfbf' }} />}
-            placeholder="Enter current password"
+            placeholder={t('changePassword.currentPasswordPlaceholder', { ns: 'auth' })}
           />
         </Form.Item>
 
         <Form.Item
           name="newPassword"
-          label="New Password"
+          label={t('changePassword.newPassword', { ns: 'auth' })}
           rules={[
-            { required: true, message: 'Please enter your new password' },
+            { required: true, message: t('changePassword.validation.newRequired', { ns: 'auth' }) },
             {
               pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#^()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/,
-              message:
-                'Password must be at least 8 characters, contain uppercase, lowercase, number, and special character',
+              message: t('changePassword.validation.minLength', { ns: 'auth' }),
             },
           ]}
           hasFeedback
         >
           <Input.Password
             prefix={<LockOutlined style={{ color: '#bfbfbf' }} />}
-            placeholder="Enter new password"
+            placeholder={t('changePassword.newPasswordPlaceholder', { ns: 'auth' })}
           />
         </Form.Item>
 
         <Form.Item
           name="confirmPassword"
-          label="Confirm New Password"
+          label={t('changePassword.confirmPassword', { ns: 'auth' })}
           dependencies={['newPassword']}
           hasFeedback
           rules={[
-            { required: true, message: 'Please confirm your new password' },
+            { required: true, message: t('changePassword.validation.confirmRequired', { ns: 'auth' }) },
             ({ getFieldValue }) => ({
               validator(_, value) {
                 if (!value || getFieldValue('newPassword') === value) {
                   return Promise.resolve()
                 }
-                return Promise.reject(new Error('Confirm password does not match new password'))
+                return Promise.reject(new Error(t('changePassword.validation.mismatch', { ns: 'auth' })))
               },
             }),
           ]}
         >
           <Input.Password
             prefix={<LockOutlined style={{ color: '#bfbfbf' }} />}
-            placeholder="Re-enter new password"
+            placeholder={t('changePassword.confirmPasswordPlaceholder', { ns: 'auth' })}
           />
         </Form.Item>
       </Form>

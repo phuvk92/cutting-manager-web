@@ -7,6 +7,7 @@ import {
   EditOutlined,
   DeleteOutlined,
 } from '@ant-design/icons'
+import { useTranslation } from 'react-i18next'
 import { PageHeader } from '@/components/common/PageHeader'
 import { VehicleNodeDialog } from '@/features/categories/VehicleNodeDialog'
 import { LEVEL_META, nextLevel } from '@/features/categories/vehicleLevels'
@@ -40,6 +41,7 @@ const findPath = (nodes: VehicleNode[], id: number, trail: VehicleNode[] = []): 
 }
 
 export const CategoriesPage: React.FC = () => {
+  const { t } = useTranslation(['vehicles', 'common'])
   const [brands, setBrands] = useState<VehicleNode[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(0)
@@ -61,8 +63,6 @@ export const CategoriesPage: React.FC = () => {
       })
       setBrands(res.content)
       setTotal(res.totalElements)
-      // Mở hết nhánh sau mỗi lần tải: khi tìm kiếm server trả node khớp kèm tổ tiên (đúng design),
-      // khi vừa thêm/sửa/xoá thì giữ ngữ cảnh đang nhìn
       setExpandedRowKeys(collectIds(res.content))
     } catch (err) {
       message.error(extractErrorMessage(err))
@@ -75,13 +75,12 @@ export const CategoriesPage: React.FC = () => {
     fetchTree()
   }, [fetchTree])
 
-  // Gõ tìm → debounce rồi lọc server-side
   useEffect(() => {
-    const t = setTimeout(() => {
+    const timer = setTimeout(() => {
       setPage(0)
       setAppliedQuery(query.trim())
     }, 300)
-    return () => clearTimeout(t)
+    return () => clearTimeout(timer)
   }, [query])
 
   const brandNumbers = useMemo(() => {
@@ -102,34 +101,33 @@ export const CategoriesPage: React.FC = () => {
     setDialog({
       mode: 'edit',
       node,
-      // "Thuộc" là đường dẫn cha, không gồm chính node
       parentPath: path.slice(0, -1).map(n => n.name).join(' › '),
     })
   }
 
   const handleDelete = async (node: VehicleNode) => {
     const meta = LEVEL_META[node.level]
+    const levelLabel = t(`levels.${node.level}`, { defaultValue: meta.vi })
     try {
       const impact = await vehicleNodeService.getImpact(node.id)
+      const nodesPart = impact.nodes > 0 ? t('table.impactNodes', { count: impact.nodes }) : ''
       const parts = [
-        `Xoá «${node.name}»${impact.nodes > 0 ? ` và ${impact.nodes} mục con` : ''}.`,
+        t('table.deleteImpactDesc', { name: node.name, nodes: nodesPart }),
         impact.files > 0
-          ? `${impact.files} file sẽ mất liên kết mẫu xe (file vẫn còn trong kho).`
-          : 'Không có file nào gắn nhánh này.',
+          ? t('table.impactFiles', { count: impact.files })
+          : t('table.impactNoFiles'),
       ]
       const ok = await modal.confirm({
-        title: `Xoá ${meta.vi.toLowerCase()}?`,
+        title: t('table.deleteTitle', { level: levelLabel.toLowerCase() }),
         content: parts.join(' '),
-        okText: 'Xoá',
+        okText: t('actions.delete', { ns: 'common' }),
         okButtonProps: { danger: true },
-        cancelText: 'Huỷ',
+        cancelText: t('actions.cancel', { ns: 'common' }),
       })
       if (!ok) return
       const res = await vehicleNodeService.remove(node.id)
-      message.success(
-        `Đã xoá ${res.deletedNodes} mục` +
-          (res.unlinkedFiles > 0 ? ` · ${res.unlinkedFiles} file mất liên kết` : '')
-      )
+      const unlinkedPart = res.unlinkedFiles > 0 ? t('table.unlinkedMsg', { count: res.unlinkedFiles }) : ''
+      message.success(t('table.deleteSuccessMsg', { deleted: res.deletedNodes, unlinked: unlinkedPart }))
       fetchTree()
     } catch (err) {
       message.error(extractErrorMessage(err))
@@ -138,7 +136,7 @@ export const CategoriesPage: React.FC = () => {
 
   const columns: ColumnsType<VehicleNode> = [
     {
-      title: 'STT',
+      title: t('columns.stt'),
       key: 'stt',
       width: 64,
       render: (_: unknown, record: VehicleNode) =>
@@ -149,7 +147,7 @@ export const CategoriesPage: React.FC = () => {
         ) : null,
     },
     {
-      title: 'TÊN',
+      title: t('columns.name'),
       key: 'name',
       render: (_: unknown, record: VehicleNode) => {
         const meta = LEVEL_META[record.level]
@@ -183,15 +181,16 @@ export const CategoriesPage: React.FC = () => {
       },
     },
     {
-      title: 'MỤC CON',
+      title: t('columns.children'),
       key: 'children',
       width: 160,
       render: (_: unknown, record: VehicleNode) => {
         const next = nextLevel(record.level)
+        const nextLabel = next ? t(`levels.${next.code}`, { defaultValue: next.vi }).toLowerCase() : ''
         return (
           <span style={{ font: "400 11px 'IBM Plex Mono', monospace", color: '#8A8983' }}>
             {record.childCount > 0 && next
-              ? `${record.childCount} ${next.vi.toLowerCase()}`
+              ? `${record.childCount} ${nextLabel}`
               : next
                 ? '—'
                 : ''}
@@ -200,16 +199,17 @@ export const CategoriesPage: React.FC = () => {
       },
     },
     {
-      title: 'THAO TÁC',
+      title: t('columns.actions'),
       key: 'actions',
       width: 220,
       align: 'right',
       render: (_: unknown, record: VehicleNode) => {
         const next = nextLevel(record.level)
+        const nextLabel = next ? t(`levels.${next.code}`, { defaultValue: next.vi }).toLowerCase() : ''
         return (
           <span style={{ display: 'inline-flex', justifyContent: 'flex-end', gap: 4 }}>
             {next && (
-              <Tooltip title={`Thêm ${next.vi.toLowerCase()} dưới ${record.name}`}>
+              <Tooltip title={t('table.addSubLevel', { level: nextLabel, name: record.name })}>
                 <Button
                   size="small"
                   onClick={e => {
@@ -222,7 +222,7 @@ export const CategoriesPage: React.FC = () => {
                 </Button>
               </Tooltip>
             )}
-            <Tooltip title="Sửa">
+            <Tooltip title={t('table.editTooltip')}>
               <Button
                 size="small"
                 icon={<EditOutlined />}
@@ -232,7 +232,7 @@ export const CategoriesPage: React.FC = () => {
                 }}
               />
             </Tooltip>
-            <Tooltip title="Xoá (xoá luôn mục con)">
+            <Tooltip title={t('table.deleteTooltip')}>
               <Button
                 size="small"
                 danger
@@ -261,8 +261,8 @@ export const CategoriesPage: React.FC = () => {
       <style>{`.cat-brand-row > td { background: #FBFBFA !important; }`}</style>
       {contextHolder}
       <PageHeader
-        title="Danh mục xe"
-        subtitle="Cây 4 cấp Brand › Series › Model › SubType — danh mục và năm chọn khi upload file"
+        title={t('title')}
+        subtitle={t('subtitle')}
       />
       <div style={{ padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -272,18 +272,14 @@ export const CategoriesPage: React.FC = () => {
             onClick={() => openAdd(null)}
             style={{ background: '#7C3AED' }}
           >
-            Thêm hãng
+            {t('addBrand')}
           </Button>
           <span style={{ font: "400 11.5px 'IBM Plex Sans', sans-serif", color: '#8A8983' }}>
-            Cây 4 cấp{' '}
-            <span style={{ fontFamily: "'IBM Plex Mono', monospace", color: '#4A4945' }}>
-              Brand › Series › Model › SubType
-            </span>
-            . Danh mục và Năm chọn khi upload file mẫu.
+            {t('hint')}
           </span>
           <Input
             prefix={<SearchOutlined style={{ color: '#8A8983' }} />}
-            placeholder="Tìm hãng, dòng, model…"
+            placeholder={t('searchPlaceholder')}
             value={query}
             onChange={e => setQuery(e.target.value)}
             allowClear
@@ -310,13 +306,13 @@ export const CategoriesPage: React.FC = () => {
             total,
             showSizeChanger: true,
             pageSizeOptions: [10, 20, 50],
-            showTotal: t => `Tổng ${t} hãng`,
+            showTotal: totalCount => t('table.totalBrands', { total: totalCount }),
             onChange: (p, s) => {
               setPage(p - 1)
               setSize(s)
             },
           }}
-          locale={{ emptyText: appliedQuery ? `Không có mục nào khớp "${appliedQuery}".` : 'Chưa có hãng nào.' }}
+          locale={{ emptyText: appliedQuery ? t('table.noMatch', { query: appliedQuery }) : t('table.noBrands') }}
         />
       </div>
 

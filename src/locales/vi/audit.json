@@ -1,0 +1,78 @@
+{
+  "title": "Audit Log",
+  "subtitle": "Nhật ký kiểm toán thao tác hệ thống và Internal API máy cắt",
+  "tabs": {
+    "v2": "Audit Log Internal API V2 (Client máy cắt / tích hợp)",
+    "v1": "Nhật ký hoạt động hệ thống (V1)"
+  },
+  "filter": {
+    "searchPlaceholder": "Tìm theo hành động, đường dẫn API, người dùng, IP...",
+    "allUsers": "Tất cả người dùng",
+    "allActions": "Tất cả hành động",
+    "allStatuses": "Tất cả trạng thái HTTP",
+    "dateRange": "Khoảng thời gian"
+  },
+  "columns": {
+    "timestamp": "Thời gian",
+    "user": "Người thực hiện",
+    "action": "Hành động",
+    "endpoint": "Đường dẫn / Endpoint",
+    "ip": "IP",
+    "status": "Mã phản hồi",
+    "duration": "Thời gian xử lý",
+    "details": "Chi tiết"
+  },
+  "drawer": {
+    "title": "Chi tiết nhật ký kiểm toán",
+    "request": "Dữ liệu yêu cầu (Request Payload)",
+    "response": "Dữ liệu phản hồi (Response Data)",
+    "headers": "Headers"
+  },
+  "v1": {
+    "healthTitle": "Trạng thái hoạt động Backend",
+    "systemHealth": "Trạng thái hệ thống",
+    "apiGateway": "Cổng API / Dịch vụ",
+    "actuatorEndpoint": "Endpoint Actuator",
+    "securityTitle": "Thông tin an toàn & Phân quyền",
+    "auditTrailLogging": "Nhật ký kiểm toán",
+    "auditTrailLoggingDesc": "Hoạt động — Tự động lưu vết toàn bộ API của User & Đại lý",
+    "authScheme": "Cơ chế xác thực",
+    "authSchemeDesc": "JWT Bearer (Keycloak) + UUID Refresh Token",
+    "encryption": "Mã hóa dữ liệu",
+    "encryptionDesc": "AES-256-GCM Envelope Encryption (Internal V2)",
+    "activityTitle": "Nhật ký hoạt động & Kiểm toán (V1)",
+    "activityDesc": "Nhật ký hoạt động hệ thống ghi nhận tự động toàn bộ API gọi từ người dùng máy cắt (USER) và đại lý (AGENT) theo trình tự thời gian.",
+    "searchPlaceholder": "Tìm kiếm actor, action, chi tiết...",
+    "roleFilterPlaceholder": "Lọc vai trò",
+    "allRoles": "Tất cả vai trò",
+    "roleUser": "USER (Thợ cắt)",
+    "roleAgent": "AGENT (Đại lý)",
+    "roleAdmin": "ADMIN (Quản trị)",
+    "refresh": "Làm mới",
+    "colTimestamp": "Thời gian",
+    "colActor": "Người thực hiện / Role",
+    "colAction": "Hành động",
+    "colResource": "Tài nguyên tác động",
+    "colDetails": "Chi tiết thao tác",
+    "emptyLogs": "Không có dữ liệu nhật ký kiểm toán phù hợp."
+  },
+  "v2": {
+    "searchBtn": "Tìm kiếm",
+    "resetBtn": "Đặt lại",
+    "advancedBtn": "Nâng cao",
+    "collapseBtn": "Thu gọn",
+    "exportCsv": "Xuất CSV",
+    "refresh": "Làm mới",
+    "colClient": "Client / Ứng dụng",
+    "colAccount": "Tài khoản",
+    "colDealer": "Đại lý",
+    "colMethodApi": "Phương thức & API",
+    "colStatus": "HTTP Status",
+    "colDuration": "Thời gian xử lý",
+    "colIpDevice": "IP & Thiết bị",
+    "colActions": "Thao tác",
+    "viewDetails": "Chi tiết",
+    "success": "Thành công",
+    "failure": "Thất bại"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "403": {
+    "title": "403 - Không có quyền truy cập",
+    "subtitle": "Rất tiếc, bạn không có quyền truy cập vào trang này.",
+    "backHome": "Trở về Bảng tổng quan"
+  },
+  "404": {
+    "title": "404 - Không tìm thấy trang",
+    "subtitle": "Rất tiếc, trang bạn đang truy cập không tồn tại.",
+    "backHome": "Trở về Bảng tổng quan"
+  },
+  "generic": {
+    "title": "Đã có lỗi xảy ra",
+    "description": "Không thể tải dữ liệu từ máy chủ. Vui lòng thử lại.",
+    "retry": "Thử lại"
+  }
+}

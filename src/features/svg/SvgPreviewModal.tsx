@@ -1,6 +1,7 @@
 import React from 'react'
 import { Modal, Button, Space } from 'antd'
 import { DownloadOutlined } from '@ant-design/icons'
+import { useTranslation } from 'react-i18next'
 import { SafeSvgViewer } from '@/components/svg/SafeSvgViewer'
 import { svgService, normalizeSvgFilename } from '@/services/svg/svgService'
 
@@ -17,6 +18,7 @@ export const SvgPreviewModal: React.FC<SvgPreviewModalProps> = ({
   open,
   onClose,
 }) => {
+  const { t } = useTranslation(['parts', 'common'])
   if (fileId === null) return null
 
   return (
@@ -32,9 +34,9 @@ export const SvgPreviewModal: React.FC<SvgPreviewModalProps> = ({
             icon={<DownloadOutlined />}
             onClick={() => svgService.downloadSvg(fileId, normalizeSvgFilename(title, fileId))}
           >
-            Tải xuống file
+            {t('preview.download')}
           </Button>
-          <Button onClick={onClose}>Đóng</Button>
+          <Button onClick={onClose}>{t('actions.close', { ns: 'common' })}</Button>
         </Space>
       }
       destroyOnHidden

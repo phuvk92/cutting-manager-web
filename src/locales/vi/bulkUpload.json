@@ -1,0 +1,51 @@
+{
+  "title": "Nạp mẫu hàng loạt",
+  "subtitle": "Import theo lô và gắn nhãn nhiều mẫu cùng lúc",
+  "dropzone": {
+    "title": "Kéo thả các tệp SVG hoặc tệp nén ZIP vào đây",
+    "hint": "Hỗ trợ kéo thả trực tiếp nhiều tệp SVG hoặc tệp zip có cấu trúc thư mục hãng/dòng xe",
+    "select": "Chọn tệp từ máy tính"
+  },
+  "batches": {
+    "title": "Lịch sử nạp mẫu gần đây",
+    "completed": "Hoàn tất",
+    "warning": "Có cảnh báo",
+    "running": "Đang chạy",
+    "needsReview": "Cần xem lại"
+  },
+  "newBatch": {
+    "title": "Lô nạp mới",
+    "desc": "Kéo thư mục SVG kèm file mô tả CSV. Hệ thống khớp theo cột mã mẫu.",
+    "dropTitle": "Thả thư mục hoặc file .zip vào đây",
+    "maxPatterns": "Tối đa 5 000 mẫu mỗi lô",
+    "appGroup": "Nhóm ứng dụng",
+    "scope": "Phạm vi phân phối",
+    "statusAfter": "Trạng thái sau khi nạp",
+    "defaultExterior": "Ngoại thất",
+    "defaultSystem": "Toàn hệ thống",
+    "defaultPending": "Chờ duyệt"
+  },
+  "table": {
+    "title": "Lô đã nạp gần đây",
+    "code": "Mã lô",
+    "content": "Nội dung",
+    "patterns": "Mẫu",
+    "errors": "Lỗi",
+    "progress": "Tiến độ",
+    "status": "Trạng thái"
+  },
+  "bulkTag": {
+    "title": "Gắn nhãn hàng loạt",
+    "desc": "Sửa dữ liệu mô tả cho nhiều mẫu cùng lúc.",
+    "selectByFilter": "Chọn mẫu theo bộ lọc",
+    "defaultFilter": "Hãng = Ford · Năm ≥ 2022",
+    "fieldToEdit": "Trường cần sửa",
+    "defaultField": "Nhóm chi tiết → Thân xe",
+    "willApply": "Sẽ áp dụng cho",
+    "patternsUnit": "mẫu",
+    "submit": "Gắn nhãn"
+  },
+  "messages": {
+    "dropRecognized": "Đã nhận diện tệp tải lên. Hệ thống đang xác thực cấu trúc..."
+  }
+}

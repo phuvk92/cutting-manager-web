@@ -1,0 +1,102 @@
+{
+  "title": "Dashboard",
+  "subtitle": "System-wide · real-time live updates",
+  "stats": {
+    "activeDealers": "Active Dealers",
+    "totalUsers": "Total Cutter Accounts",
+    "patternsCount": "Digital Patterns in Library",
+    "cutsToday": "Cuts Made Today",
+    "vsLastMonth": "vs last month",
+    "cutsVsYesterday": "vs yesterday",
+    "dealers30d": "+3 in 30 days",
+    "onlineToday": "286 online today",
+    "cuts30d": "30-Day Cuts",
+    "activeCutters": "Active Cutters Using App"
+  },
+  "warnings": {
+    "title": "ACTIONS REQUIRED",
+    "viewAll": "View All",
+    "licenseExpiring": "Auto Decal Truong Chinh — license expires in 6 days",
+    "devicesExceeded": "3 accounts exceeded device limits",
+    "missingPhotos": "143 vehicle models without real photos"
+  },
+  "activity": {
+    "title": "RECENT ACTIVITY",
+    "newVehicles": "Loaded 62 new models this week",
+    "newVehiclesMeta": "VinFast, Hyundai, Mazda · Exterior",
+    "autoSync": "Automatic pattern sync completed",
+    "autoSyncMeta": "32 files updated from data center",
+    "licenseWarning": "License expiration warning for 2 dealers",
+    "licenseWarningMeta": "District 7 and Thu Duc branches"
+  },
+  "systemHealth": {
+    "title": "SYSTEM STATUS",
+    "backend": "Backend Spring Boot",
+    "database": "PostgreSQL Database",
+    "keycloak": "Keycloak IAM Identity",
+    "storage": "SVG Pattern Storage",
+    "healthy": "Operating Normally"
+  },
+  "shortcuts": {
+    "title": "QUICK SHORTCUTS",
+    "addDealer": "Add New Dealer",
+    "addUser": "Create Cutter Account",
+    "uploadSvg": "Upload Digital Pattern",
+    "viewAudit": "View Audit Log"
+  },
+  "charts": {
+    "cutsByDay": "Cuts by Day",
+    "topVehicles": "Top Cut Vehicle Models",
+    "filmType": "Film Type Distribution",
+    "last30Days": "Last 30 Days"
+  },
+  "tables": {
+    "dealersByVolume": "Dealers by Output",
+    "recentPatterns": "Recently Updated SVG Patterns",
+    "dealer": "Dealer",
+    "region": "Region",
+    "cuts": "Cuts",
+    "errors": "Cut Errors",
+    "filmUsed": "Film Used",
+    "patternName": "Pattern / Part Name",
+    "category": "Category",
+    "vehicle": "Vehicle",
+    "updated": "Updated",
+    "days30": "30 days"
+  },
+  "overview": {
+    "errorRate": "Error Rate",
+    "recutJobs": "228 jobs recut",
+    "vsPreviousPeriod": "+12% vs last period",
+    "cutsByDay": "Cuts by Day",
+    "last14Days": "Last 14 days",
+    "highest": "Highest: {{val}}",
+    "dayCutsTooltip": "Day {{day}}: {{val}} cuts",
+    "average": "Average:",
+    "cutsPerDay": "{{val}} cuts / day",
+    "today": "Today:",
+    "todayCuts": "{{val}} cuts (+14%)",
+    "needsAction": "Actions Required",
+    "tasksCount": "{{count}} tasks",
+    "activeUsers12m": "Active Users",
+    "last12Months": "Past 12 months",
+    "newInMonth": "New this month",
+    "churned": "Churned",
+    "realUsageRate": "Real usage rate",
+    "svgLibrary": "Pattern & SVG Part Library",
+    "uploadSvgBtn": "Upload SVG",
+    "svgInStore": "SVG Patterns in Store",
+    "realPartFiles": "Actual Part Files",
+    "xmlSecurity": "XML Security",
+    "maxFileSize": "Max size / file",
+    "sha256Checksum": "SHA-256 Checksum Verification",
+    "enabled": "Enabled",
+    "storageStructure": "Storage Structure",
+    "recentPatternsTitle": "Recently Updated SVG Patterns",
+    "allLibrary": "Entire Library",
+    "viewAll": "View All",
+    "emptyRecent": "No SVG files found.",
+    "tooltipPreview": "Preview SVG",
+    "tooltipDownload": "Download SVG"
+  }
+}

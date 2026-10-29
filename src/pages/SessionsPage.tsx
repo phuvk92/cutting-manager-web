@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { Button, Card, Col, Input, Row, Select, Space, Table, Tag, Tooltip, message } from 'antd'
 import { ReloadOutlined, SearchOutlined, ShopOutlined, UserOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
+import { useTranslation } from 'react-i18next'
 import { PageHeader } from '@/components/common/PageHeader'
 import { EmptyState } from '@/components/common/EmptyState'
 import { ErrorState } from '@/components/common/ErrorState'
@@ -40,18 +41,8 @@ const statValueStyle: React.CSSProperties = {
   font: "500 22px 'IBM Plex Mono', monospace",
 }
 
-const deviceDot = (device: SystemDevice): { color: string; title: string } => {
-  if (device.status === 'REVOKED') {
-    return { color: '#C2452D', title: 'Đã gỡ' }
-  }
-  const lastSeen = device.lastSeenAt ? Date.parse(device.lastSeenAt) : NaN
-  if (!Number.isNaN(lastSeen) && Date.now() - lastSeen <= ACTIVE_RECENT_MINUTES * 60 * 1000) {
-    return { color: '#2E7D5B', title: `Đang dùng — thấy trong ${ACTIVE_RECENT_MINUTES} phút gần nhất` }
-  }
-  return { color: '#8A8983', title: 'Đang đăng ký nhưng đã lâu không thấy' }
-}
-
 export const SessionsPage: React.FC = () => {
+  const { t } = useTranslation(['devices', 'common'])
   const { user: currentUser } = useAuthStore()
   const isAdmin = currentUser?.role === 'ADMIN'
 
@@ -74,6 +65,17 @@ export const SessionsPage: React.FC = () => {
   const [editingUser, setEditingUser] = useState<User | null>(null)
   const [userModalOpen, setUserModalOpen] = useState(false)
 
+  const getDeviceDot = (device: SystemDevice): { color: string; title: string } => {
+    if (device.status === 'REVOKED') {
+      return { color: '#C2452D', title: t('dot.revoked') }
+    }
+    const lastSeen = device.lastSeenAt ? Date.parse(device.lastSeenAt) : NaN
+    if (!Number.isNaN(lastSeen) && Date.now() - lastSeen <= ACTIVE_RECENT_MINUTES * 60 * 1000) {
+      return { color: '#2E7D5B', title: t('dot.activeRecent', { minutes: ACTIVE_RECENT_MINUTES }) }
+    }
+    return { color: '#8A8983', title: t('dot.stale') }
+  }
+
   useEffect(() => {
     const timer = window.setTimeout(() => {
       setSearch(searchInput.trim())
@@ -87,8 +89,8 @@ export const SessionsPage: React.FC = () => {
     dealerService
       .getAllDealers()
       .then(list => setDealers(list || []))
-      .catch(err => message.error(extractErrorMessage(err, 'Không tải được danh sách đại lý')))
-  }, [isAdmin])
+      .catch(err => message.error(extractErrorMessage(err, t('messages.dealersError'))))
+  }, [isAdmin, t])
 
   const loadDevices = useCallback(async () => {
     setLoading(true)
@@ -106,21 +108,21 @@ export const SessionsPage: React.FC = () => {
       setDevices(res.content || [])
       setTotalElements(res.totalElements || 0)
     } catch (err) {
-      setError(extractErrorMessage(err, 'Không tải được danh sách thiết bị'))
+      setError(extractErrorMessage(err, t('messages.loadError')))
       setDevices([])
       setTotalElements(0)
     } finally {
       setLoading(false)
     }
-  }, [search, dealerId, status, page, pageSize, isAdmin])
+  }, [search, dealerId, status, page, pageSize, isAdmin, t])
 
   const loadStats = useCallback(async () => {
     try {
       setStats(await deviceService.getStats())
     } catch (err) {
-      message.error(extractErrorMessage(err, 'Không tải được thống kê thiết bị'))
+      message.error(extractErrorMessage(err, t('messages.statsError')))
     }
-  }, [])
+  }, [t])
 
   useEffect(() => {
     void Promise.resolve().then(loadDevices)
@@ -141,7 +143,7 @@ export const SessionsPage: React.FC = () => {
       setEditingUser(await userService.getUserById(device.userId))
       setUserModalOpen(true)
     } catch (err) {
-      message.error(extractErrorMessage(err, 'Không mở được thông tin người dùng'))
+      message.error(extractErrorMessage(err, t('messages.openUserError')))
     } finally {
       setLoadingUser(false)
     }
@@ -152,7 +154,12 @@ export const SessionsPage: React.FC = () => {
     setRevokingId(device.deviceRegId)
     try {
       await userService.revokeUserDevice(device.userId, device.deviceRegId)
-      message.success(`Đã gỡ máy "${device.deviceName || 'Máy không tên'}" khỏi tài khoản ${device.username || ''}`.trim())
+      message.success(
+        t('messages.revokeSuccess', {
+          name: device.deviceName || t('columns.unknownDevice'),
+          user: device.username || '',
+        })
+      )
       setDevices(current =>
         current.map(d =>
           d.deviceRegId === device.deviceRegId
@@ -165,7 +172,7 @@ export const SessionsPage: React.FC = () => {
       }
       await loadStats()
     } catch (err) {
-      message.error(extractErrorMessage(err, 'Không gỡ được máy'))
+      message.error(extractErrorMessage(err, t('messages.revokeError')))
     } finally {
       setRevokingId(null)
     }
@@ -181,10 +188,10 @@ export const SessionsPage: React.FC = () => {
 
   const columns: ColumnsType<SystemDevice> = [
     {
-      title: 'Người dùng',
+      title: t('columns.user'),
       key: 'user',
       render: (_: unknown, record: SystemDevice) => {
-        const dot = deviceDot(record)
+        const dot = getDeviceDot(record)
         return (
           <Button
             type="link"
@@ -198,7 +205,7 @@ export const SessionsPage: React.FC = () => {
               </Tooltip>
               <span>
                 <span style={{ display: 'block', fontWeight: 600, color: '#1B1B19' }}>
-                  {record.fullName || record.username || 'Người dùng không tên'}
+                  {record.fullName || record.username || t('columns.unknownUser')}
                 </span>
                 <span style={{ display: 'block', fontFamily: "'IBM Plex Mono', monospace", fontSize: 11.5, color: '#6E6D68' }}>
                   @{record.username || '-'}
@@ -210,7 +217,7 @@ export const SessionsPage: React.FC = () => {
       },
     },
     {
-      title: 'Đại lý',
+      title: t('columns.dealer'),
       key: 'dealer',
       width: 210,
       render: (_: unknown, record: SystemDevice) =>
@@ -224,18 +231,18 @@ export const SessionsPage: React.FC = () => {
         ),
     },
     {
-      title: 'Thiết bị',
+      title: t('columns.device'),
       key: 'device',
       width: 190,
       render: (_: unknown, record: SystemDevice) => (
         <div>
-          <div style={{ fontWeight: 500, color: '#35342F' }}>{record.deviceName || 'Máy không tên'}</div>
-          <div style={{ fontSize: 11.5, color: '#6E6D68' }}>{record.platform || 'Nền tảng chưa rõ'}</div>
+          <div style={{ fontWeight: 500, color: '#35342F' }}>{record.deviceName || t('columns.unknownDevice')}</div>
+          <div style={{ fontSize: 11.5, color: '#6E6D68' }}>{record.platform || t('columns.unknownPlatform')}</div>
         </div>
       ),
     },
     {
-      title: 'IP cuối',
+      title: t('columns.lastIp'),
       dataIndex: 'lastIp',
       key: 'lastIp',
       width: 135,
@@ -244,7 +251,7 @@ export const SessionsPage: React.FC = () => {
       ),
     },
     {
-      title: 'Lần đầu',
+      title: t('columns.firstSeen'),
       dataIndex: 'firstSeenAt',
       key: 'firstSeenAt',
       width: 150,
@@ -255,7 +262,7 @@ export const SessionsPage: React.FC = () => {
       ),
     },
     {
-      title: 'Lần cuối thấy',
+      title: t('columns.lastSeen'),
       dataIndex: 'lastSeenAt',
       key: 'lastSeenAt',
       width: 160,
@@ -267,21 +274,21 @@ export const SessionsPage: React.FC = () => {
           </div>
           {record.status === 'REVOKED' && (
             <div style={{ fontSize: 11, color: '#C2452D' }}>
-              Đã gỡ{record.revokedBy ? ` bởi ${record.revokedBy}` : ''}
+              {t('columns.revokedBy', { by: record.revokedBy || '' })}
             </div>
           )}
         </div>
       ),
     },
     {
-      title: 'Trạng thái',
+      title: t('columns.status'),
       key: 'state',
       width: 120,
       render: (_: unknown, record: SystemDevice) =>
-        record.status === 'REVOKED' ? <Tag>Đã gỡ</Tag> : <Tag color="green">Đang dùng được</Tag>,
+        record.status === 'REVOKED' ? <Tag>{t('columns.revoked')}</Tag> : <Tag color="green">{t('columns.usable')}</Tag>,
     },
     {
-      title: 'Thao tác',
+      title: t('columns.actions'),
       key: 'actions',
       width: 110,
       align: 'center',
@@ -297,32 +304,32 @@ export const SessionsPage: React.FC = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
       <PageHeader
-        title="Phiên & thiết bị"
-        subtitle="Thiết bị đã đăng ký phần mềm cắt và mức độ hoạt động"
+        title={t('title')}
+        subtitle={t('subtitle')}
         extra={
           <Button icon={<ReloadOutlined />} onClick={reloadAll} loading={loading}>
-            Làm mới
+            {t('filters.refresh')}
           </Button>
         }
       />
       <div style={{ padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 14 }}>
           <div style={statCardStyle}>
-            <div style={statLabelStyle}>Đang dùng (15 phút)</div>
+            <div style={statLabelStyle}>{t('stats.active15m')}</div>
             <div style={statValueStyle}>{stats.activeNow}</div>
           </div>
           <div style={statCardStyle}>
-            <div style={statLabelStyle}>Máy đã đăng ký</div>
+            <div style={statLabelStyle}>{t('stats.registered')}</div>
             <div style={statValueStyle}>{stats.registered}</div>
           </div>
           <div style={statCardStyle}>
-            <div style={statLabelStyle}>Tài khoản đã đủ máy</div>
+            <div style={statLabelStyle}>{t('stats.atLimit')}</div>
             <div style={{ ...statValueStyle, color: stats.usersAtLimit > 0 ? '#C2452D' : '#1B1B19' }}>
               {stats.usersAtLimit}
             </div>
           </div>
           <div style={statCardStyle}>
-            <div style={statLabelStyle}>Máy lâu không dùng &gt; 30 ngày</div>
+            <div style={statLabelStyle}>{t('stats.stale30d')}</div>
             <div style={{ ...statValueStyle, color: stats.staleDevices > 0 ? '#B4741E' : '#1B1B19' }}>
               {stats.staleDevices}
             </div>
@@ -333,7 +340,7 @@ export const SessionsPage: React.FC = () => {
           <Row gutter={[12, 12]} align="middle">
             <Col xs={24} md={isAdmin ? 8 : 10}>
               <Input
-                placeholder="Tìm người dùng, máy hoặc IP..."
+                placeholder={t('filters.searchPlaceholder')}
                 value={searchInput}
                 onChange={e => setSearchInput(e.target.value)}
                 prefix={<SearchOutlined style={{ color: '#8A8983' }} />}
@@ -343,7 +350,7 @@ export const SessionsPage: React.FC = () => {
             {isAdmin && (
               <Col xs={24} sm={12} md={6}>
                 <Select
-                  placeholder="Tất cả đại lý"
+                  placeholder={t('filters.allDealers')}
                   value={dealerId}
                   onChange={value => {
                     setDealerId(value)
@@ -366,15 +373,15 @@ export const SessionsPage: React.FC = () => {
                 }}
                 style={{ width: '100%' }}
                 options={[
-                  { value: 'ACTIVE', label: 'Đang dùng được' },
-                  { value: 'REVOKED', label: 'Đã gỡ' },
-                  { value: 'ALL', label: 'Tất cả' },
+                  { value: 'ACTIVE', label: t('filters.activeOnly') },
+                  { value: 'REVOKED', label: t('filters.revokedOnly') },
+                  { value: 'ALL', label: t('filters.all') },
                 ]}
               />
             </Col>
             <Col flex="auto" style={{ textAlign: 'right' }}>
               <Button icon={<UserOutlined />} onClick={resetFilters}>
-                Đặt lại
+                {t('filters.reset')}
               </Button>
             </Col>
           </Row>
@@ -382,7 +389,7 @@ export const SessionsPage: React.FC = () => {
 
         {error && (
           <ErrorState
-            message="Không tải được dữ liệu thiết bị"
+            message={t('messages.loadError')}
             description={error}
             onRetry={reloadAll}
           />
@@ -399,7 +406,7 @@ export const SessionsPage: React.FC = () => {
             total: totalElements,
             showSizeChanger: true,
             pageSizeOptions: PAGE_SIZE_OPTIONS,
-            showTotal: total => `Tổng số: ${total} thiết bị`,
+            showTotal: total => t('filters.totalDevices', { total }),
           }}
           onChange={pagination => {
             setPage((pagination.current || 1) - 1)
@@ -410,8 +417,8 @@ export const SessionsPage: React.FC = () => {
               <EmptyState
                 description={
                   search || dealerId || status !== 'ACTIVE'
-                    ? 'Không có thiết bị nào khớp bộ lọc hiện tại.'
-                    : 'Chưa có máy nào đăng ký. Máy sẽ xuất hiện khi thợ đăng nhập phần mềm cắt.'
+                    ? t('filters.emptyFiltered')
+                    : t('filters.emptyInitial')
                 }
               />
             ),

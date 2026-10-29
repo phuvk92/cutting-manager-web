@@ -1,0 +1,102 @@
+{
+  "title": "Pattern & Part Library",
+  "subtitle": "Shared pattern catalog and dealer-uploaded part files",
+  "searchPlaceholder": "Search by part code, vehicle, position...",
+  "categoryFilter": "Part Category",
+  "allCategories": "All Categories",
+  "brandFilter": "Vehicle Brand",
+  "allBrands": "All Brands",
+  "yearFilter": "Year",
+  "allYears": "All Years",
+  "sourceFilter": "Source",
+  "allSources": "All Sources",
+  "addPart": "Upload New Part File",
+  "editPart": "Edit Part File",
+  "columns": {
+    "preview": "Preview",
+    "code": "Part Code",
+    "name": "Part Name / Description",
+    "vehicle": "Applied Vehicle",
+    "category": "Classification",
+    "dimensions": "Cut Size (mm)",
+    "area": "Area (m²)",
+    "source": "Source",
+    "updatedAt": "Updated At",
+    "actions": "Actions"
+  },
+  "sources": {
+    "SYSTEM": "System",
+    "DEALER": "Dealer"
+  },
+  "preview": {
+    "title": "SVG File Preview",
+    "dimensions": "Dimensions",
+    "zoomIn": "Zoom In",
+    "zoomOut": "Zoom Out",
+    "resetZoom": "Reset Zoom",
+    "download": "Download SVG"
+  },
+  "modal": {
+    "addTitle": "Add New SVG Part File",
+    "editTitle": "Edit SVG Part File",
+    "vehicle": "Vehicle & Model Trim",
+    "selectVehicle": "Select applied vehicle",
+    "category": "Pattern & Part Category",
+    "selectCategory": "Select category",
+    "name": "Part File Name",
+    "namePlaceholder": "e.g. Full PPF Front Bumper",
+    "code": "Part File Code",
+    "codePlaceholder": "e.g. VF9-2024-FRONT-BUMPER",
+    "svgFile": "SVG Design File",
+    "dropzone": "Drag & drop SVG file here or click to browse",
+    "dropzoneHint": "Valid .svg format, visual preview supported",
+    "cutArea": "Dimensions & Cut Area",
+    "filmWidth": "Film Roll Width (mm)",
+    "cutLength": "Cut Length (mm)",
+    "calculatedArea": "Calculated Cut Area",
+    "saveSuccess": "Part file saved successfully!"
+  },
+  "stats": {
+    "total": "Part files in library",
+    "modelsWithFiles": "Models with files",
+    "fromDealers": "Uploaded by dealers",
+    "unlinked": "Unlinked vehicles"
+  },
+  "filters": {
+    "category": "Pattern & part category",
+    "year": "Year",
+    "brand": "Brand",
+    "series": "Series",
+    "model": "Model",
+    "all": "All",
+    "allCategories": "All categories",
+    "selectBrandFirst": "Select brand first",
+    "selectSeriesFirst": "Select series first",
+    "clear": "Clear filters",
+    "searchPlaceholder": "Search by file name…",
+    "uploadBtn": "Upload part file"
+  },
+  "table": {
+    "stt": "No.",
+    "thumb": "Thumb",
+    "name": "File Name",
+    "category": "Category",
+    "vehicle": "Vehicle",
+    "year": "Year",
+    "source": "Source",
+    "updatedAt": "Updated",
+    "empty": "No files match the filters.",
+    "unlinkedBadge": "Unlinked",
+    "allYearsBadge": "All years",
+    "deleteConfirm": "Delete this file from library?",
+    "tooltipEdit": "Edit",
+    "tooltipDelete": "Delete file",
+    "tooltipPreview": "Preview SVG"
+  },
+  "pagination": {
+    "showing": "Showing {{count}} of {{total}} part files",
+    "prev": "Prev",
+    "next": "Next",
+    "perPage": "{{size}} / page"
+  }
+}

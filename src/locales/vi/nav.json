@@ -1,0 +1,31 @@
+{
+  "brand": "PCUT",
+  "systemAdmin": "QUẢN TRỊ HỆ THỐNG",
+  "searchPlaceholder": "Tìm đại lý, user, mã mẫu",
+  "sections": {
+    "overview": "TỔNG QUAN",
+    "platform": "NỀN TẢNG & TÀI KHOẢN",
+    "dataCenter": "DATA CENTER"
+  },
+  "items": {
+    "dashboard": "Bảng tổng quan",
+    "dealers": "Đại lý & chi nhánh",
+    "users": "Người dùng",
+    "sessions": "Phiên & thiết bị",
+    "audit": "Audit Log",
+    "categories": "Danh mục xe",
+    "svg": "Kho mẫu & part file",
+    "partLibraryCategories": "Danh mục kho mẫu & part",
+    "savedFiles": "Bản đã lưu",
+    "bulkUpload": "Nạp mẫu hàng loạt"
+  },
+  "serverStatus": {
+    "title": "Máy chủ",
+    "text": "Hoạt động · 99,8%"
+  },
+  "userMenu": {
+    "internal": "Nội bộ",
+    "changePassword": "Đổi mật khẩu",
+    "logout": "Đăng xuất"
+  }
+}

@@ -1,0 +1,102 @@
+{
+  "title": "Bảng tổng quan",
+  "subtitle": "Toàn hệ thống · cập nhật trực tiếp theo thời gian thực",
+  "stats": {
+    "activeDealers": "Đại lý đang hoạt động",
+    "totalUsers": "Tổng tài khoản thợ cắt",
+    "patternsCount": "Mẫu số hoá trong kho",
+    "cutsToday": "Lượt cắt hôm nay",
+    "vsLastMonth": "so với tháng trước",
+    "cutsVsYesterday": "so với hôm qua",
+    "dealers30d": "+3 trong 30 ngày",
+    "onlineToday": "286 online hôm nay",
+    "cuts30d": "Lượt cắt 30 ngày",
+    "activeCutters": "Thợ đang dùng phần mềm"
+  },
+  "warnings": {
+    "title": "CẢNH BÁO CẦN XỬ LÝ",
+    "viewAll": "Xem tất cả",
+    "licenseExpiring": "Auto Decal Trường Chinh — license hết hạn sau 6 ngày",
+    "devicesExceeded": "3 tài khoản vượt giới hạn thiết bị",
+    "missingPhotos": "143 mẫu xe chưa có ảnh thực tế"
+  },
+  "activity": {
+    "title": "HOẠT ĐỘNG GẦN ĐÂY",
+    "newVehicles": "Đã nạp 62 mẫu xe mới trong tuần",
+    "newVehiclesMeta": "VinFast, Hyundai, Mazda · Ngoại thất",
+    "autoSync": "Đồng bộ kho mẫu tự động",
+    "autoSyncMeta": "32 files cập nhật từ trung tâm",
+    "licenseWarning": "Cảnh báo license 2 đại lý",
+    "licenseWarningMeta": "Chi nhánh Q.7 và Thủ Đức"
+  },
+  "systemHealth": {
+    "title": "TRẠNG THÁI HỆ THỐNG",
+    "backend": "Backend Spring Boot",
+    "database": "Cơ sở dữ liệu PostgreSQL",
+    "keycloak": "Xác thực Keycloak IAM",
+    "storage": "Kho lưu trữ mẫu SVG",
+    "healthy": "Hoạt động ổn định"
+  },
+  "shortcuts": {
+    "title": "LỐI TẮT NHANH",
+    "addDealer": "Thêm đại lý mới",
+    "addUser": "Cấp tài khoản thợ",
+    "uploadSvg": "Nạp mẫu số hoá",
+    "viewAudit": "Xem Audit Log"
+  },
+  "charts": {
+    "cutsByDay": "Lượt cắt theo ngày",
+    "topVehicles": "Mẫu xe được cắt nhiều nhất",
+    "filmType": "Tỷ lệ loại phim",
+    "last30Days": "30 ngày gần nhất"
+  },
+  "tables": {
+    "dealersByVolume": "Đại lý theo sản lượng",
+    "recentPatterns": "Mẫu SVG mới cập nhật trong kho",
+    "dealer": "Đại lý",
+    "region": "Khu vực",
+    "cuts": "Lượt cắt",
+    "errors": "Cắt lỗi",
+    "filmUsed": "Phim tiêu hao",
+    "patternName": "Tên mẫu / Part",
+    "category": "Phân loại",
+    "vehicle": "Dòng xe",
+    "updated": "Cập nhật",
+    "days30": "30 ngày"
+  },
+  "overview": {
+    "errorRate": "Tỷ lệ cắt lỗi",
+    "recutJobs": "228 job phải cắt lại",
+    "vsPreviousPeriod": "+12% so với kỳ trước",
+    "cutsByDay": "Lượt cắt theo ngày",
+    "last14Days": "14 ngày gần nhất",
+    "highest": "Cao nhất: {{val}}",
+    "dayCutsTooltip": "Ngày {{day}}: {{val}} lượt",
+    "average": "Trung bình:",
+    "cutsPerDay": "{{val}} lượt / ngày",
+    "today": "Hôm nay:",
+    "todayCuts": "{{val}} lượt (+14%)",
+    "needsAction": "Cần xử lý",
+    "tasksCount": "{{count}} việc",
+    "activeUsers12m": "User đang hoạt động",
+    "last12Months": "12 tháng qua",
+    "newInMonth": "Mới trong tháng",
+    "churned": "Ngưng dùng",
+    "realUsageRate": "Tỷ lệ dùng thật",
+    "svgLibrary": "Kho mẫu & Part file SVG",
+    "uploadSvgBtn": "Tải lên SVG",
+    "svgInStore": "Mẫu SVG trong kho",
+    "realPartFiles": "Part file thực tế",
+    "xmlSecurity": "Bảo mật XML",
+    "maxFileSize": "Dung lượng tối đa / file",
+    "sha256Checksum": "Mã hóa kiểm tra SHA-256",
+    "enabled": "Bật",
+    "storageStructure": "Cấu trúc lưu trữ",
+    "recentPatternsTitle": "Mẫu SVG mới cập nhật trong kho",
+    "allLibrary": "Toàn bộ kho mẫu",
+    "viewAll": "Xem tất cả",
+    "emptyRecent": "Chưa có file SVG nào.",
+    "tooltipPreview": "Xem trước SVG",
+    "tooltipDownload": "Tải file SVG"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "brand": "PCUT",
+  "systemAdmin": "SYSTEM MANAGEMENT",
+  "searchPlaceholder": "Search dealers, users, pattern codes",
+  "sections": {
+    "overview": "OVERVIEW",
+    "platform": "PLATFORM & ACCOUNTS",
+    "dataCenter": "DATA CENTER"
+  },
+  "items": {
+    "dashboard": "Dashboard",
+    "dealers": "Dealers & Branches",
+    "users": "Users",
+    "sessions": "Sessions & Devices",
+    "audit": "Audit Log",
+    "categories": "Vehicle Catalog",
+    "svg": "Pattern & Part Library",
+    "partLibraryCategories": "Pattern Categories",
+    "savedFiles": "Saved Files",
+    "bulkUpload": "Bulk Upload"
+  },
+  "serverStatus": {
+    "title": "Server",
+    "text": "Operational · 99.8%"
+  },
+  "userMenu": {
+    "internal": "Internal",
+    "changePassword": "Change Password",
+    "logout": "Log Out"
+  }
+}
