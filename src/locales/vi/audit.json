@@ -74,5 +74,10 @@
     "viewDetails": "Chi tiết",
     "success": "Thành công",
     "failure": "Thất bại"
+  },
+  "messages": {
+    "loadError": "Không thể tải danh sách Audit Log V2",
+    "exportSuccess": "Xuất dữ liệu CSV thành công",
+    "exportError": "Xuất CSV thất bại"
   }
 }

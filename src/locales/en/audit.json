@@ -74,5 +74,10 @@
     "viewDetails": "Details",
     "success": "Success",
     "failure": "Failure"
+  },
+  "messages": {
+    "loadError": "Failed to load Audit Log V2 records",
+    "exportSuccess": "Exported CSV successfully",
+    "exportError": "Failed to export CSV"
   }
 }

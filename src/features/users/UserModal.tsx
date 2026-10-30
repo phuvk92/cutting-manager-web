@@ -50,50 +50,53 @@ const DURATION_PRESET_CONFIG = [
   { key: 'preset_custom', days: -1 },
 ]
 
-const createSchema = z.object({
+const getCreateSchema = (t: (key: string, options?: any) => string) => z.object({
   username: z
     .string()
-    .min(3, 'Tên đăng nhập phải có ít nhất 3 ký tự')
-    .max(100, 'Tối đa 100 ký tự'),
+    .min(3, t('modal.validation.usernameMin', { defaultValue: 'Tên đăng nhập phải có ít nhất 3 ký tự' }))
+    .max(100, t('modal.validation.usernameMax', { defaultValue: 'Tối đa 100 ký tự' })),
   email: z
     .string()
-    .email('Vui lòng nhập địa chỉ email hợp lệ')
-    .max(255, 'Tối đa 255 ký tự'),
-  fullName: z.string().max(255, 'Tối đa 255 ký tự').nullable().optional().or(z.literal('')),
-  phone: z.string().max(50, 'Tối đa 50 ký tự').nullable().optional().or(z.literal('')),
+    .email(t('modal.validation.emailInvalid', { defaultValue: 'Vui lòng nhập địa chỉ email hợp lệ' }))
+    .max(255, t('modal.validation.emailMax', { defaultValue: 'Tối đa 255 ký tự' })),
+  fullName: z.string().max(255, t('modal.validation.fullNameMax', { defaultValue: 'Tối đa 255 ký tự' })).nullable().optional().or(z.literal('')),
+  phone: z.string().max(50, t('modal.validation.phoneMax', { defaultValue: 'Tối đa 50 ký tự' })).nullable().optional().or(z.literal('')),
   password: z
     .string()
-    .min(8, 'Mật khẩu phải có ít nhất 8 ký tự')
+    .min(8, t('modal.validation.passwordMin', { defaultValue: 'Mật khẩu phải có ít nhất 8 ký tự' }))
     .regex(
       passwordRegex,
-      'Mật khẩu phải chứa chữ hoa, chữ thường, số và ký tự đặc biệt'
+      t('modal.validation.passwordComplexity', { defaultValue: 'Mật khẩu phải chứa chữ hoa, chữ thường, số và ký tự đặc biệt' })
     ),
   role: z.enum(['ADMIN', 'AGENT', 'USER'] as const),
   dealerId: z.number().nullable().optional(),
   enabled: z.boolean(),
-  allocatedDays: z.number().int().min(1, 'Số ngày phân bổ phải lớn hơn 0').nullable().optional(),
+  allocatedDays: z.number().int().min(1, t('modal.validation.allocatedDaysMin', { defaultValue: 'Số ngày phân bổ phải lớn hơn 0' })).nullable().optional(),
   expirationDate: z.string().nullable().optional(),
   partCategoryIds: z.array(z.number()),
 })
 
-const editSchema = z.object({
+const getEditSchema = (t: (key: string, options?: any) => string) => z.object({
   email: z
     .string()
-    .email('Vui lòng nhập địa chỉ email hợp lệ')
-    .max(255, 'Tối đa 255 ký tự'),
-  fullName: z.string().max(255, 'Tối đa 255 ký tự').nullable().optional().or(z.literal('')),
-  phone: z.string().max(50, 'Tối đa 50 ký tự').nullable().optional().or(z.literal('')),
+    .email(t('modal.validation.emailInvalid', { defaultValue: 'Vui lòng nhập địa chỉ email hợp lệ' }))
+    .max(255, t('modal.validation.emailMax', { defaultValue: 'Tối đa 255 ký tự' })),
+  fullName: z.string().max(255, t('modal.validation.fullNameMax', { defaultValue: 'Tối đa 255 ký tự' })).nullable().optional().or(z.literal('')),
+  phone: z.string().max(50, t('modal.validation.phoneMax', { defaultValue: 'Tối đa 50 ký tự' })).nullable().optional().or(z.literal('')),
   role: z.enum(['ADMIN', 'AGENT', 'USER'] as const),
   dealerId: z.number().nullable().optional(),
   enabled: z.boolean(),
-  allocatedDays: z.number().int().min(1, 'Số ngày phân bổ phải lớn hơn 0').nullable().optional(),
+  allocatedDays: z.number().int().min(1, t('modal.validation.allocatedDaysMin', { defaultValue: 'Số ngày phân bổ phải lớn hơn 0' })).nullable().optional(),
   expirationDate: z.string().nullable().optional(),
-  maxDevices: z.number().int().min(1, 'Tối thiểu 1 máy').max(50, 'Tối đa 50 máy').nullable().optional(),
+  maxDevices: z.number().int().min(1, t('modal.validation.maxDevicesMin', { defaultValue: 'Tối thiểu 1 máy' })).max(50, t('modal.validation.maxDevicesMax', { defaultValue: 'Tối đa 50 máy' })).nullable().optional(),
   partCategoryIds: z.array(z.number()),
 })
 
-type CreateFormData = z.infer<typeof createSchema>
-type EditFormData = z.infer<typeof editSchema>
+const defaultCreateSchema = getCreateSchema((_k, opts) => opts?.defaultValue || '')
+const defaultEditSchema = getEditSchema((_k, opts) => opts?.defaultValue || '')
+
+type CreateFormData = z.infer<typeof defaultCreateSchema>
+type EditFormData = z.infer<typeof defaultEditSchema>
 
 interface UserModalProps {
   open: boolean
@@ -139,6 +142,7 @@ export const UserModal: React.FC<UserModalProps> = ({
   const [selectedPreset, setSelectedPreset] = useState<number>(360) // default 12 months (360 days)
   const [customDays, setCustomDays] = useState<number>(360)
 
+  const schema = useMemo(() => isEdit ? getEditSchema(t) : getCreateSchema(t), [isEdit, t])
   const {
     control,
     handleSubmit,
@@ -147,7 +151,7 @@ export const UserModal: React.FC<UserModalProps> = ({
     setValue,
     formState: { errors },
   } = useForm<CreateFormData | EditFormData>({
-    resolver: zodResolver(isEdit ? editSchema : createSchema),
+    resolver: zodResolver(schema),
     defaultValues: {
       username: '',
       email: '',
@@ -177,7 +181,7 @@ export const UserModal: React.FC<UserModalProps> = ({
         })
         .catch(err => {
           console.error('Không thể tải danh mục kho mẫu & part:', err)
-          setCategoriesError('Không thể tải danh mục kho mẫu & part. Vui lòng thử lại.')
+          setCategoriesError(t('modal.categoriesLoadError'))
         })
         .finally(() => {
           setLoadingCategories(false)
@@ -344,7 +348,7 @@ export const UserModal: React.FC<UserModalProps> = ({
           partCategoryIds: editData.partCategoryIds || [],
         }
         await userService.updateUser(user.id, updatePayload)
-        message.success(`Cập nhật người dùng "${user.username}" thành công`)
+        message.success(t('modal.saveSuccess'))
       } else {
         const createData = data as CreateFormData
         const createPayload: CreateUserRequest = {
@@ -363,12 +367,12 @@ export const UserModal: React.FC<UserModalProps> = ({
           partCategoryIds: createData.partCategoryIds || [],
         }
         await userService.createUser(createPayload)
-        message.success(`Tạo người dùng "${createPayload.username}" thành công`)
+        message.success(t('modal.createSuccess'))
       }
       onSuccess()
       onClose()
     } catch (err) {
-      setErrorMessage(extractErrorMessage(err, isEdit ? 'Không thể cập nhật người dùng' : 'Không thể tạo người dùng'))
+      setErrorMessage(extractErrorMessage(err, isEdit ? t('modal.updateFailed') : t('modal.createFailed')))
     } finally {
       setSubmitting(false)
     }
@@ -376,7 +380,7 @@ export const UserModal: React.FC<UserModalProps> = ({
 
   const onInvalid = (formErrors: Record<string, unknown>) => {
     console.warn('Form validation failed:', formErrors)
-    message.error('Vui lòng kiểm tra lại các trường thông tin trên biểu mẫu')
+    message.error(t('modal.validation.formCheck'))
   }
 
   const isFormBlocked = isAgent && Boolean(quotaCalculations.quotaError)

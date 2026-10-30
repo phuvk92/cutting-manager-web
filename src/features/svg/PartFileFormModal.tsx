@@ -1,4 +1,5 @@
 import React, { Fragment, useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Modal, Select, Button, Tooltip, message, Spin } from 'antd'
 import { svgService } from '@/services/svg/svgService'
 import { PlusOutlined } from '@ant-design/icons'
@@ -22,10 +23,10 @@ const FONT = "'IBM Plex Sans', sans-serif"
 const MONO = "'IBM Plex Mono', monospace"
 
 const LEVEL_META = [
-  { code: 'BRAND', vi: 'hãng', label: 'Hãng', bg: '#EEF3FC', color: '#2F5BA8', required: true },
-  { code: 'SERIES', vi: 'dòng xe', label: 'Dòng xe', bg: '#E9F5EE', color: '#2E7D5B', required: true },
-  { code: 'MODEL', vi: 'model', label: 'Model', bg: '#FBF0DF', color: '#8A5A12', required: false },
-  { code: 'SUBTYPE', vi: 'phiên bản', label: 'Phiên bản', bg: '#FAE7E3', color: '#A93823', required: false },
+  { code: 'BRAND', vi: 'hãng', en: 'brand', label: 'Hãng', bg: '#EEF3FC', color: '#2F5BA8', required: true },
+  { code: 'SERIES', vi: 'dòng xe', en: 'series', label: 'Dòng xe', bg: '#E9F5EE', color: '#2E7D5B', required: true },
+  { code: 'MODEL', vi: 'model', en: 'model', label: 'Model', bg: '#FBF0DF', color: '#8A5A12', required: false },
+  { code: 'SUBTYPE', vi: 'phiên bản', en: 'version', label: 'Phiên bản', bg: '#FAE7E3', color: '#A93823', required: false },
 ]
 
 const ADD_TOOLTIPS: Record<string, string> = {
@@ -254,6 +255,8 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
   onSaved,
   onTreeReload,
 }) => {
+  const { t, i18n } = useTranslation(["parts", "common"])
+  const isEn = i18n.language === "en" 
   const isEdit = !!editing
   const { user } = useAuthStore()
   const isAdmin = user?.role === 'ADMIN'
@@ -506,12 +509,12 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
     if (level === 1) {
       // SERIES: Thêm dòng xe
       if (!row.brandId) {
-        message.warning('Vui lòng chọn Hãng xe (BRAND) trước khi thêm dòng xe')
+        message.warning(t('modal.warnings.selectBrandFirstForSeries'))
         return
       }
       const brandNode = nodeMap.get(row.brandId)?.node
       if (!brandNode) {
-        message.warning('Không tìm thấy thông tin hãng xe đã chọn')
+        message.warning(t('modal.warnings.brandNotFound'))
         return
       }
       setNodeDialog({
@@ -529,17 +532,17 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
     if (level === 2) {
       // MODEL: Thêm model xe
       if (!row.brandId) {
-        message.warning('Vui lòng chọn Hãng xe (BRAND) trước khi thêm model xe')
+        message.warning(t('modal.warnings.selectBrandFirstForModel'))
         return
       }
       if (!row.seriesId) {
-        message.warning('Vui lòng chọn Dòng xe (SERIES) trước khi thêm model xe')
+        message.warning(t('modal.warnings.selectSeriesFirstForModel'))
         return
       }
       const brandNode = nodeMap.get(row.brandId)?.node
       const seriesNode = nodeMap.get(row.seriesId)?.node
       if (!seriesNode) {
-        message.warning('Không tìm thấy thông tin dòng xe đã chọn')
+        message.warning(t('modal.warnings.seriesNotFound'))
         return
       }
       const path = [brandNode?.name, seriesNode.name].filter(Boolean).join(' › ')
@@ -558,22 +561,22 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
     if (level === 3) {
       // SUBTYPE: Thêm phiên bản xe
       if (!row.brandId) {
-        message.warning('Vui lòng chọn Hãng xe (BRAND) trước khi thêm phiên bản xe')
+        message.warning(t('modal.warnings.selectBrandFirstForYear'))
         return
       }
       if (!row.seriesId) {
-        message.warning('Vui lòng chọn Dòng xe (SERIES) trước khi thêm phiên bản xe')
+        message.warning(t('modal.warnings.selectSeriesFirstForYear'))
         return
       }
       if (!row.modelId) {
-        message.warning('Vui lòng chọn Model xe trước khi thêm phiên bản xe')
+        message.warning(t('modal.warnings.selectModelFirstForYear'))
         return
       }
       const brandNode = nodeMap.get(row.brandId)?.node
       const seriesNode = nodeMap.get(row.seriesId)?.node
       const modelNode = nodeMap.get(row.modelId)?.node
       if (!modelNode) {
-        message.warning('Không tìm thấy thông tin model xe đã chọn')
+        message.warning(t('modal.warnings.modelNotFound'))
         return
       }
       const path = [brandNode?.name, seriesNode?.name, modelNode.name].filter(Boolean).join(' › ')
@@ -608,9 +611,9 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
 
       // 3. Thông báo thành công
       const levelMeta = LEVEL_META.find(l => l.code === targetLevel)
-      message.success(`Đã thêm ${levelMeta?.vi.toLowerCase() || ''} "${created.name}" thành công`)
+      message.success(t('modal.nodeAddedSuccess', { level: isEn ? (levelMeta?.en || '') : (levelMeta?.vi.toLowerCase() || ''), name: created.name }))
     } catch (err) {
-      message.error(extractErrorMessage(err, 'Lỗi cập nhật danh mục xe'))
+      message.error(extractErrorMessage(err, t('modal.nodeUpdateError')))
     } finally {
       setNodeDialog(null)
     }
@@ -619,8 +622,8 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
   const acceptFile = (kind: 'nested' | 'raw', f: File | undefined | null) => {
     if (!f) return
     if (!f.name.toLowerCase().endsWith('.svg')) {
-      setFileError(`Không nhận "${f.name}" — chỉ hỗ trợ file .svg`)
-      message.warning(`Chỉ nhận file .svg — "${f.name}" bị từ chối`)
+      setFileError(t('modal.warnings.svgOnlyRejected', { name: f.name }))
+      message.warning(t('modal.warnings.svgOnlyRejected', { name: f.name }))
       return
     }
     setFileError(null)
@@ -640,8 +643,8 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
   const cutErrors = validateCutArea(cutLengthMm, widthMm)
 
   const missing: string[] = []
-  if (!name.trim()) missing.push('tên file')
-  if (categoryId === undefined) missing.push('danh mục')
+  if (!name.trim()) missing.push(t('modal.missingFileName'))
+  if (categoryId === undefined) missing.push(t('modal.missingCategory'))
   const ready = missing.length === 0 && !cutErrors.length && !cutErrors.width
 
   const pathLabel = (r: VehicleRow): string => {
@@ -651,7 +654,7 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
     const names = ids
       .map(id => nodeMap.get(id)?.node.name)
       .filter((n): n is string => !!n)
-    return names.length ? names.join(' › ') : 'Chưa chọn'
+    return names.length ? names.join(' › ') : t('modal.notSelected')
   }
 
   const handleSave = async () => {
@@ -675,7 +678,7 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
           cutAreaLengthMm: cutLengthMm,
           cutAreaWidthMm: widthMm,
         })
-        message.success(`Đã cập nhật "${name.trim()}"`)
+        message.success(t('modal.updateSuccess', { name: name.trim() }))
       } else {
         await adminFileService.createFile({
           nestedFile,
@@ -688,12 +691,12 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
           cutAreaLengthMm: cutLengthMm,
           cutAreaWidthMm: widthMm,
         })
-        message.success(`Đã tải lên "${name.trim()}"`)
+        message.success(t('modal.uploadSuccess', { name: name.trim() }))
       }
       onSaved()
       onClose()
     } catch (err) {
-      message.error(extractErrorMessage(err, 'Lưu part file thất bại'))
+      message.error(extractErrorMessage(err, t('modal.saveFailed')))
     } finally {
       setSaving(false)
     }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { Modal, Form, Input, Button, Alert, message } from 'antd'
 import { LockOutlined, UserOutlined } from '@ant-design/icons'
 import { useForm, Controller } from 'react-hook-form'
@@ -9,23 +9,29 @@ import { User, ResetPasswordRequest } from '@/types/user'
 import { userService } from '@/services/users/userService'
 import { extractErrorMessage } from '@/utils/error'
 
-const resetPasswordSchema = z
-  .object({
-    newPassword: z
-      .string()
-      .min(8, 'Mật khẩu phải có ít nhất 8 ký tự')
-      .regex(
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#^()_+\-=[\]{};':"\|,.<>/?]).{8,}$/,
-        'Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt'
-      ),
-    confirmPassword: z.string().min(1, 'Vui lòng xác nhận mật khẩu mới'),
-  })
-  .refine(data => data.newPassword === data.confirmPassword, {
-    message: 'Mật khẩu xác nhận không khớp',
-    path: ['confirmPassword'],
-  })
+const createResetPasswordSchema = (t: (key: string, options?: any) => string) =>
+  z
+    .object({
+      newPassword: z
+        .string()
+        .min(8, t('resetModal.minLength', { defaultValue: 'Mật khẩu phải có ít nhất 8 ký tự' }))
+        .regex(
+          /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#^()_+\-=[\Default;':"\|,.<>/?]).{8,}$/,
+          t('resetModal.complexity', {
+            defaultValue: 'Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt',
+          })
+        ),
+      confirmPassword: z
+        .string()
+        .min(1, t('resetModal.confirmRequired', { defaultValue: 'Vui lòng xác nhận mật khẩu mới' })),
+    })
+    .refine(data => data.newPassword === data.confirmPassword, {
+      message: t('resetModal.mismatch', { defaultValue: 'Mật khẩu xác nhận không khớp' }),
+      path: ['confirmPassword'],
+    })
 
-type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>
+const defaultResetSchema = createResetPasswordSchema((_k, opts) => opts?.defaultValue || '')
+type ResetPasswordFormData = z.infer<typeof defaultResetSchema>
 
 interface ResetPasswordModalProps {
   open: boolean
@@ -42,13 +48,14 @@ export const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
   const [submitting, setSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
+  const schema = useMemo(() => createResetPasswordSchema(t), [t])
   const {
     control,
     handleSubmit,
     reset,
     formState: { errors },
   } = useForm<ResetPasswordFormData>({
-    resolver: zodResolver(resetPasswordSchema),
+    resolver: zodResolver(schema),
     defaultValues: {
       newPassword: '',
       confirmPassword: '',

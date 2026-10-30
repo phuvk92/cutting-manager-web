@@ -129,5 +129,11 @@
     "totalCount": "Tổng {{count}} bản lưu",
     "clearFilterCount": "Xoá lọc ({{count}})",
     "refreshTooltip": "Làm mới danh sách"
+  },
+  "messages": {
+    "loadError": "Không thể tải danh sách bản lưu",
+    "downloading": "Đang tải file...",
+    "downloadSuccess": "Tải file thành công",
+    "downloadError": "Không thể tải file SVG"
   }
 }

@@ -44,12 +44,16 @@ export const forceLogoutAndRedirect = () => {
   }
 }
 
-// Request Interceptor: Attach JWT Access Token
+// Request Interceptor: Attach JWT Access Token & Accept-Language
 axiosClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`
+    }
+    if (config.headers) {
+      const currentLang = (typeof window !== "undefined" ? localStorage.getItem("cutting_language") : null) || "vi"
+      config.headers["Accept-Language"] = currentLang
     }
     return config
   },

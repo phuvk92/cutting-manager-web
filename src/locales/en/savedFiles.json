@@ -129,5 +129,11 @@
     "totalCount": "Total {{count}} drawings",
     "clearFilterCount": "Clear filters ({{count}})",
     "refreshTooltip": "Refresh list"
+  },
+  "messages": {
+    "loadError": "Failed to load saved files",
+    "downloading": "Downloading file...",
+    "downloadSuccess": "File downloaded successfully",
+    "downloadError": "Failed to download SVG file"
   }
 }

@@ -54,7 +54,27 @@
     "filmWidth": "Chiều rộng cuộn phim (mm)",
     "cutLength": "Chiều dài cắt (mm)",
     "calculatedArea": "Diện tích cắt tính toán",
-    "saveSuccess": "Lưu part file thành công!"
+    "saveSuccess": "Lưu part file thành công!",
+    "warnings": {
+      "selectBrandFirstForSeries": "Vui lòng chọn Hãng xe (BRAND) trước khi thêm dòng xe",
+      "brandNotFound": "Không tìm thấy thông tin hãng xe đã chọn",
+      "selectBrandFirstForModel": "Vui lòng chọn Hãng xe (BRAND) trước khi thêm model xe",
+      "selectSeriesFirstForModel": "Vui lòng chọn Dòng xe (SERIES) trước khi thêm model xe",
+      "seriesNotFound": "Không tìm thấy thông tin dòng xe đã chọn",
+      "selectBrandFirstForYear": "Vui lòng chọn Hãng xe (BRAND) trước khi thêm phiên bản xe",
+      "selectSeriesFirstForYear": "Vui lòng chọn Dòng xe (SERIES) trước khi thêm phiên bản xe",
+      "selectModelFirstForYear": "Vui lòng chọn Model xe trước khi thêm phiên bản xe",
+      "modelNotFound": "Không tìm thấy thông tin model xe đã chọn",
+      "svgOnlyRejected": "Chỉ nhận file .svg — \"{{name}}\" bị từ chối"
+    },
+    "nodeAddedSuccess": "Đã thêm {{level}} \"{{name}}\" thành công",
+    "nodeUpdateError": "Lỗi cập nhật danh mục xe",
+    "updateSuccess": "Đã cập nhật \"{{name}}\"",
+    "uploadSuccess": "Đã tải lên \"{{name}}\"",
+    "saveFailed": "Lưu part file thất bại",
+    "missingFileName": "tên file",
+    "missingCategory": "danh mục",
+    "notSelected": "Chưa chọn"
   },
   "stats": {
     "total": "Part file trong kho",
@@ -98,5 +118,11 @@
     "prev": "Trước",
     "next": "Sau",
     "perPage": "{{size}} / trang"
+  },
+  "messages": {
+    "loadError": "Lỗi khi tải kho part file",
+    "deleteSuccess": "Đã xoá \"{{name}}\"",
+    "deleteError": "Xoá file thất bại",
+    "deleteDesc": "Xoá \"{{name}}\"? File chuyển sang trạng thái DELETED."
   }
 }

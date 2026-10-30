@@ -42,7 +42,7 @@ export const UserSavedFileShareModal: React.FC<UserSavedFileShareModalProps> = (
   file,
   onClose,
 }) => {
-  const { t } = useTranslation('savedFiles')
+  const { t } = useTranslation(['savedFiles', 'common'])
   const [shares, setShares] = useState<UserSvgFileShareItem[]>([])
   const [loadingShares, setLoadingShares] = useState(false)
 
@@ -60,7 +60,7 @@ export const UserSavedFileShareModal: React.FC<UserSavedFileShareModalProps> = (
       const data = await userSavedFileService.getShares(file.id)
       setShares(data?.shares || [])
     } catch (err) {
-      message.error(extractErrorMessage(err, "Không thể tải danh sách chia sẻ"))
+      message.error(extractErrorMessage(err, t('shareModal.loadError')))
       setShares([])
     } finally {
       setLoadingShares(false)
@@ -97,7 +97,7 @@ export const UserSavedFileShareModal: React.FC<UserSavedFileShareModalProps> = (
         const filtered = (res.content || []).filter(u => u.id !== file.createdBy?.id)
         setSearchResults(filtered)
       } catch (err) {
-        message.error(extractErrorMessage(err, "Không thể tìm kiếm người dùng"))
+        message.error(extractErrorMessage(err, t('shareModal.searchError')))
         setSearchResults([])
       } finally {
         setSearching(false)
@@ -120,10 +120,10 @@ export const UserSavedFileShareModal: React.FC<UserSavedFileShareModalProps> = (
     setSharingUserId(targetUser.id)
     try {
       await userSavedFileService.share(file.id, targetUser.id)
-      message.success(`Chia sẻ file cho ${targetUser.username} thành công.`)
+      message.success(t('shareModal.shareSuccess', { name: targetUser.username }))
       await fetchShares()
     } catch (err) {
-      message.error(extractErrorMessage(err, "Chia sẻ file thất bại"))
+      message.error(extractErrorMessage(err, t('shareModal.shareError')))
     } finally {
       setSharingUserId(null)
     }
@@ -134,10 +134,10 @@ export const UserSavedFileShareModal: React.FC<UserSavedFileShareModalProps> = (
     setRevokingUserId(targetUserId)
     try {
       await userSavedFileService.revokeShare(file.id, targetUserId)
-      message.success(`Đã thu hồi quyền chia sẻ của ${targetName}.`)
+      message.success(t('shareModal.revokeSuccess', { name: targetName }))
       await fetchShares()
     } catch (err) {
-      message.error(extractErrorMessage(err, "Thu hồi quyền chia sẻ thất bại"))
+      message.error(extractErrorMessage(err, t('shareModal.revokeError')))
     } finally {
       setRevokingUserId(null)
     }
@@ -363,9 +363,9 @@ export const UserSavedFileShareModal: React.FC<UserSavedFileShareModalProps> = (
                       </div>
 
                       <Popconfirm
-                        title={`Bạn có chắc chắn muốn thu hồi quyền truy cập file này của ${targetName}?`}
+                        title={t('shareModal.revokeConfirm', { name: targetName })}
                         okText={t("shareModal.revokeBtn")}
-                        cancelText="Hủy"
+                        cancelText={t('actions.cancel', { ns: 'common' })}
                         okButtonProps={{ danger: true, size: "small" }}
                         cancelButtonProps={{ size: "small" }}
                         onConfirm={() => handleRevoke(item.userId, targetName)}

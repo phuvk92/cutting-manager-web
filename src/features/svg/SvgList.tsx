@@ -154,7 +154,7 @@ interface FilterDef {
 }
 
 export const SvgList: React.FC = () => {
-  const { t } = useTranslation('parts')
+  const { t } = useTranslation(['parts', 'common'])
   const [stats, setStats] = useState<AdminFileStats | null>(null)
   const [files, setFiles] = useState<AdminFile[]>([])
   const [totalElements, setTotalElements] = useState(0)
@@ -219,7 +219,7 @@ export const SvgList: React.FC = () => {
       setTotalElements(res.totalElements || 0)
       setTotalPages(res.totalPages || 0)
     } catch (err) {
-      message.error(extractErrorMessage(err, 'Lỗi khi tải kho part file'))
+      message.error(extractErrorMessage(err, t('messages.loadError')))
     } finally {
       setLoading(false)
     }
@@ -251,11 +251,11 @@ export const SvgList: React.FC = () => {
   const handleDelete = async (f: AdminFile) => {
     try {
       await adminFileService.deleteFile(f.id)
-      message.success(`Đã xoá "${f.name || f.originalFilename}"`)
+      message.success(t('messages.deleteSuccess', { name: f.name || f.originalFilename }))
       fetchFiles()
       fetchStats()
     } catch (err) {
-      message.error(extractErrorMessage(err, 'Xoá file thất bại'))
+      message.error(extractErrorMessage(err, t('messages.deleteError')))
     }
   }
 
@@ -520,10 +520,10 @@ export const SvgList: React.FC = () => {
                   </button>
                   <Popconfirm
                     title={t("table.tooltipDelete")}
-                    description={`Xoá "${f.name || f.originalFilename}"? File chuyển sang trạng thái DELETED.`}
+                    description={t('messages.deleteDesc', { name: f.name || f.originalFilename })}
                     onConfirm={() => handleDelete(f)}
                     okText={t("table.tooltipDelete")}
-                    cancelText="Huỷ"
+                    cancelText={t('actions.cancel', { ns: 'common' })}
                     okButtonProps={{ danger: true }}
                   >
                     <button

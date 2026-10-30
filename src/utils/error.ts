@@ -1,18 +1,16 @@
 import axios, { AxiosError } from 'axios'
 import { ErrorResponse } from '@/types/common'
+import i18n from '@/i18n'
 
-/** Mã lỗi server có ý nghĩa nghiệp vụ → câu tiếng Việt cụ thể, không hiện mã thô. */
-const SERVER_CODE_MESSAGES: Record<string, string> = {
-  CUT_AREA_INCOMPLETE: 'Khổ cắt chưa đủ — cần khai cả dài dọc cuộn lẫn khổ phim (mm).',
-  CUT_AREA_OUT_OF_RANGE: 'Khổ cắt ngoài giới hạn — dài dọc cuộn 100–50.000 mm, khổ phim 100–2.000 mm.',
-}
-
-export const extractErrorMessage = (error: unknown, fallbackMessage = 'An unexpected error occurred'): string => {
+export const extractErrorMessage = (error: unknown, fallbackMessage?: string): string => {
   if (axios.isAxiosError(error)) {
     const axiosError = error as AxiosError<ErrorResponse>
     const code = axiosError.response?.data?.code
-    if (code && SERVER_CODE_MESSAGES[code]) {
-      return SERVER_CODE_MESSAGES[code]
+    if (code) {
+      const codeKey = `codes.${code}`
+      if (i18n.exists(codeKey, { ns: 'errors' })) {
+        return i18n.t(codeKey, { ns: 'errors' })
+      }
     }
     if (axiosError.response?.data?.message) {
       return axiosError.response.data.message
@@ -22,7 +20,10 @@ export const extractErrorMessage = (error: unknown, fallbackMessage = 'An unexpe
     }
     if (axiosError.message) {
       if (axiosError.message === 'Network Error') {
-        return 'Network connection error. Please verify backend server is running.'
+        return i18n.t('network.message', {
+          ns: 'errors',
+          defaultValue: 'Network connection error. Please verify backend server is running.',
+        })
       }
       return axiosError.message
     }
@@ -32,5 +33,12 @@ export const extractErrorMessage = (error: unknown, fallbackMessage = 'An unexpe
     return error.message
   }
 
-  return fallbackMessage
+  if (fallbackMessage) {
+    return fallbackMessage
+  }
+
+  return i18n.t('generic.description', {
+    ns: 'errors',
+    defaultValue: 'An unexpected error occurred',
+  })
 }

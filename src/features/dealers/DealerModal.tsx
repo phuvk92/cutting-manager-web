@@ -234,20 +234,20 @@ export const DealerModal: React.FC<DealerModalProps> = ({
     if (!isEdit) {
       const effEmail = values.agentEmail?.trim() || values.email?.trim()
       if (!effEmail) {
-        setServerError('Vui lòng nhập Email cho tài khoản đại lý (tại ô Email đại lý hoặc Email đăng nhập)')
+        setServerError(t('modal.emailRequired'))
         return
       }
       if (!values.agentPassword?.trim()) {
-        setServerError('Mật khẩu tài khoản đại lý là bắt buộc khi thêm mới đại lý')
+        setServerError(t('modal.passwordRequiredNew'))
         return
       }
       if (!passwordRegex.test(values.agentPassword)) {
-        setServerError('Mật khẩu đại lý phải có ít nhất 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt')
+        setServerError(t('modal.passwordComplexity'))
         return
       }
     } else {
       if (values.agentPassword?.trim() && !passwordRegex.test(values.agentPassword)) {
-        setServerError('Mật khẩu đại lý mới phải có ít nhất 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt')
+        setServerError(t('modal.passwordComplexityEdit'))
         return
       }
     }

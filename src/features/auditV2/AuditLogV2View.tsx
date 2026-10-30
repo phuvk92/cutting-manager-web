@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { message } from 'antd'
+import { useTranslation } from 'react-i18next'
+import { extractErrorMessage } from '@/utils/error'
 import { AuditLogV2Dashboard } from './AuditLogV2Dashboard'
 import { AuditLogV2FilterBar } from './AuditLogV2FilterBar'
 import { AuditLogV2Table } from './AuditLogV2Table'
@@ -8,6 +10,7 @@ import { auditV2Service } from '@/services/audit/auditV2Service'
 import { AuditLogV2Filter, AuditLogV2Record, AuditLogV2Stats } from '@/types/auditV2'
 
 export const AuditLogV2View: React.FC = () => {
+  const { t } = useTranslation(['audit', 'common'])
   const [loading, setLoading] = useState<boolean>(false)
   const [statsLoading, setStatsLoading] = useState<boolean>(false)
   const [exporting, setExporting] = useState<boolean>(false)
@@ -42,7 +45,7 @@ export const AuditLogV2View: React.FC = () => {
         })
       } catch (err: any) {
         console.error('Failed to load audit logs v2:', err)
-        message.error('Không thể tải danh sách Audit Log V2')
+        message.error(extractErrorMessage(err, t('messages.loadError', { ns: 'audit' })))
       } finally {
         setLoading(false)
       }
@@ -99,10 +102,10 @@ export const AuditLogV2View: React.FC = () => {
     setExporting(true)
     try {
       await auditV2Service.exportCsv(filter)
-      message.success('Xuất dữ liệu CSV thành công')
+      message.success(t('messages.exportSuccess', { ns: 'audit' }))
     } catch (err: any) {
       console.error('Export CSV error:', err)
-      message.error('Xuất CSV thất bại')
+      message.error(extractErrorMessage(err, t('messages.exportError', { ns: 'audit' })))
     } finally {
       setExporting(false)
     }

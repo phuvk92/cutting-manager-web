@@ -247,7 +247,7 @@ export const UserSavedFileList: React.FC = () => {
       setData(items)
       setTotal(selectedSource && selectedSource !== 'ALL' ? items.length : (res.totalElements || 0))
     } catch (err) {
-      message.error(extractErrorMessage(err, 'Không thể tải danh sách bản lưu'))
+      message.error(extractErrorMessage(err, t('messages.loadError')))
       setData([])
       setTotal(0)
     } finally {
@@ -334,12 +334,12 @@ export const UserSavedFileList: React.FC = () => {
 
   const handleDownload = async (file: UserSavedFile) => {
     try {
-      message.loading({ content: 'Đang tải file...', key: 'dl' })
+      message.loading({ content: t('messages.downloading'), key: 'dl' })
       await userSavedFileService.download(file.id, normalizeSvgFilename(file.fileName, file.id))
-      message.success({ content: 'Tải file thành công', key: 'dl' })
+      message.success({ content: t('messages.downloadSuccess'), key: 'dl' })
     } catch (err) {
       message.error({
-        content: extractErrorMessage(err, 'Không thể tải file SVG'),
+        content: extractErrorMessage(err, t('messages.downloadError')),
         key: 'dl',
       })
     }

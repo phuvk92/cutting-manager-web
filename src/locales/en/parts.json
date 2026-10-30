@@ -54,7 +54,27 @@
     "filmWidth": "Film Roll Width (mm)",
     "cutLength": "Cut Length (mm)",
     "calculatedArea": "Calculated Cut Area",
-    "saveSuccess": "Part file saved successfully!"
+    "saveSuccess": "Part file saved successfully!",
+    "warnings": {
+      "selectBrandFirstForSeries": "Please select a Brand before adding a Series",
+      "brandNotFound": "Selected brand not found",
+      "selectBrandFirstForModel": "Please select a Brand before adding a Model",
+      "selectSeriesFirstForModel": "Please select a Series before adding a Model",
+      "seriesNotFound": "Selected series not found",
+      "selectBrandFirstForYear": "Please select a Brand before adding a Year version",
+      "selectSeriesFirstForYear": "Please select a Series before adding a Year version",
+      "selectModelFirstForYear": "Please select a Model before adding a Year version",
+      "modelNotFound": "Selected model not found",
+      "svgOnlyRejected": "Only .svg files are accepted — \"{{name}}\" rejected"
+    },
+    "nodeAddedSuccess": "Added {{level}} \"{{name}}\" successfully",
+    "nodeUpdateError": "Failed to update vehicle node",
+    "updateSuccess": "Updated \"{{name}}\"",
+    "uploadSuccess": "Uploaded \"{{name}}\"",
+    "saveFailed": "Failed to save part file",
+    "missingFileName": "file name",
+    "missingCategory": "category",
+    "notSelected": "Not selected"
   },
   "stats": {
     "total": "Part files in library",
@@ -98,5 +118,11 @@
     "prev": "Prev",
     "next": "Next",
     "perPage": "{{size}} / page"
+  },
+  "messages": {
+    "loadError": "Error loading part file library",
+    "deleteSuccess": "Deleted \"{{name}}\"",
+    "deleteError": "Failed to delete file",
+    "deleteDesc": "Delete \"{{name}}\"? File will be marked as DELETED."
   }
 }
