@@ -7,29 +7,34 @@ import { z } from 'zod'
 import { useTranslation } from 'react-i18next'
 import { User, ResetPasswordRequest } from '@/types/user'
 import { userService } from '@/services/users/userService'
-import { extractErrorMessage } from '@/utils/error'
+import { extractApiError } from '@/utils/error'
+import { trimPassword, PASSWORD_REGEX } from "@/utils/passwordRules"
 
 const createResetPasswordSchema = (t: (key: string, options?: any) => string) =>
   z
     .object({
       newPassword: z
         .string()
-        .min(8, t('resetModal.minLength', { defaultValue: 'Mật khẩu phải có ít nhất 8 ký tự' }))
-        .regex(
-          /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#^()_+\-=[\Default;':"\|,.<>/?]).{8,}$/,
-          t('resetModal.complexity', {
-            defaultValue: 'Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt',
-          })
-        ),
+        .transform(trimPassword)
+        .refine(val => val.length >= 8, {
+          message: t("resetModal.minLength", { defaultValue: "Mật khẩu phải có ít nhất 8 ký tự" }),
+        })
+        .refine(val => PASSWORD_REGEX.test(val), {
+          message: t("resetModal.complexity", {
+            defaultValue: "Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt",
+          }),
+        }),
       confirmPassword: z
         .string()
-        .min(1, t('resetModal.confirmRequired', { defaultValue: 'Vui lòng xác nhận mật khẩu mới' })),
+        .transform(trimPassword)
+        .refine(val => val.length > 0, {
+          message: t("resetModal.confirmRequired", { defaultValue: "Vui lòng xác nhận mật khẩu mới" }),
+        }),
     })
     .refine(data => data.newPassword === data.confirmPassword, {
-      message: t('resetModal.mismatch', { defaultValue: 'Mật khẩu xác nhận không khớp' }),
-      path: ['confirmPassword'],
+      message: t("resetModal.mismatch", { defaultValue: "Mật khẩu xác nhận không khớp" }),
+      path: ["confirmPassword"],
     })
-
 const defaultResetSchema = createResetPasswordSchema((_k, opts) => opts?.defaultValue || '')
 type ResetPasswordFormData = z.infer<typeof defaultResetSchema>
 
@@ -53,6 +58,7 @@ export const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
     control,
     handleSubmit,
     reset,
+    setError,
     formState: { errors },
   } = useForm<ResetPasswordFormData>({
     resolver: zodResolver(schema),
@@ -70,13 +76,17 @@ export const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
 
     try {
       const payload: ResetPasswordRequest = {
-        newPassword: data.newPassword,
+        newPassword: trimPassword(data.newPassword),
       }
       await userService.resetPassword(user.id, payload)
       message.success(t('resetModal.success'))
       handleClose()
     } catch (err: unknown) {
-      setErrorMessage(extractErrorMessage(err, t('resetModal.error')))
+      const apiError = extractApiError(err, t('resetModal.error'))
+      if (apiError.field === 'password' || apiError.field === 'newPassword') {
+        setError('newPassword', { type: 'server', message: apiError.message })
+      }
+      setErrorMessage(apiError.message)
     } finally {
       setSubmitting(false)
     }
@@ -92,10 +102,15 @@ export const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
     <Modal
       open={open}
       title={
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <LockOutlined style={{ color: '#D97706' }} />
-          <span>
-            {t('resetModal.title')} <strong>{user?.username}</strong>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', paddingRight: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <LockOutlined style={{ color: '#D97706' }} />
+            <span>
+              {t('resetModal.title')} <strong>{user?.username}</strong>
+            </span>
+          </div>
+          <span style={{ fontSize: 12, color: '#8A8983', fontWeight: 400 }}>
+            {t('labels.requiredLegend', { ns: 'common', defaultValue: '* Trường bắt buộc' })}
           </span>
         </div>
       }

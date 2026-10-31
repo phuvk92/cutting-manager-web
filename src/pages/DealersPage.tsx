@@ -20,6 +20,9 @@ import { DealerModal } from '@/features/dealers/DealerModal'
 import { DealerDetailDrawer } from '@/features/dealers/DealerDetailDrawer'
 import { extractErrorMessage } from '@/utils/error'
 
+const DEALER_TABLE_COLUMNS = '120px minmax(150px, 1.2fr) minmax(130px, 1fr) 85px 95px 145px 90px 90px 110px'
+const DEALER_TABLE_MIN_WIDTH = 1000
+
 export const DealersPage: React.FC = () => {
   const { t } = useTranslation(['dealers', 'common'])
   const [filter, setFilter] = useState<'all' | 'ACTIVE' | 'EXPIRING' | 'LOCKED'>('all')
@@ -292,14 +295,16 @@ export const DealersPage: React.FC = () => {
             background: '#FBFBFA',
             border: '1px solid #E4E3DE',
             borderRadius: 6,
-            overflow: 'hidden',
+            overflowX: 'auto',
+            overflowY: 'hidden',
           }}
         >
           {/* Table Header */}
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: '80px 1.1fr 1fr 85px 95px 145px 90px 90px 110px',
+              gridTemplateColumns: DEALER_TABLE_COLUMNS,
+              minWidth: DEALER_TABLE_MIN_WIDTH,
               padding: '9px 16px',
               background: '#F1F0EC',
               borderBottom: '1px solid #E4E3DE',
@@ -308,9 +313,9 @@ export const DealersPage: React.FC = () => {
               color: '#6E6D68',
             }}
           >
-            <span>{t('table.code')}</span>
-            <span>{t('table.name')}</span>
-            <span>{t('table.agentAccount')}</span>
+            <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t('table.code')}</span>
+            <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t('table.name')}</span>
+            <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t('table.agentAccount')}</span>
             <span>{t('table.region')}</span>
             <span style={{ textAlign: 'center' }}>{t('table.cutters')}</span>
             <span style={{ textAlign: 'center' }}>{t('table.daysPool')}</span>
@@ -345,7 +350,8 @@ export const DealersPage: React.FC = () => {
                   key={d.id}
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: '80px 1.1fr 1fr 85px 95px 145px 90px 90px 110px',
+                    gridTemplateColumns: DEALER_TABLE_COLUMNS,
+                    minWidth: DEALER_TABLE_MIN_WIDTH,
                     padding: '11px 16px',
                     alignItems: 'center',
                     background: '#FFF',
@@ -354,18 +360,58 @@ export const DealersPage: React.FC = () => {
                     transition: 'background 0.15s ease',
                   }}
                 >
-                  {/* Mã */}
-                  <span style={{ fontFamily: "'IBM Plex Mono', monospace", color: '#6E6D68' }}>
-                    {d.code}
-                  </span>
+                  {/* Mã đại lý */}
+                  <div style={{ minWidth: 0, paddingRight: 8 }}>
+                    <Tooltip title={d.code} placement="topLeft">
+                      <span
+                        style={{
+                          display: 'block',
+                          minWidth: 0,
+                          maxWidth: '100%',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          fontFamily: "'IBM Plex Mono', monospace",
+                          color: '#6E6D68',
+                        }}
+                      >
+                        {d.code}
+                      </span>
+                    </Tooltip>
+                  </div>
 
                   {/* Tên & liên hệ */}
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <span style={{ fontWeight: 500, color: isLocked ? '#8A8983' : '#1B1B19' }}>
-                      {d.name}
-                    </span>
+                  <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, paddingRight: 8 }}>
+                    <Tooltip title={d.name} placement="topLeft">
+                      <span
+                        style={{
+                          display: 'block',
+                          minWidth: 0,
+                          maxWidth: '100%',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          fontWeight: 500,
+                          color: isLocked ? '#8A8983' : '#1B1B19',
+                        }}
+                      >
+                        {d.name}
+                      </span>
+                    </Tooltip>
                     {(d.contactPerson || d.phone) && (
-                      <span style={{ fontSize: 11, color: '#8A8983', marginTop: 1 }}>
+                      <span
+                        style={{
+                          display: 'block',
+                          minWidth: 0,
+                          maxWidth: '100%',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          fontSize: 11,
+                          color: '#8A8983',
+                          marginTop: 1,
+                        }}
+                      >
                         {d.contactPerson ? `${d.contactPerson}` : ''}
                         {d.contactPerson && d.phone ? ' · ' : ''}
                         {d.phone || ''}
@@ -374,16 +420,44 @@ export const DealersPage: React.FC = () => {
                   </div>
 
                   {/* Tài khoản AGENT duy nhất */}
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, paddingRight: 8 }}>
                     {d.agentUsername ? (
                       <>
-                        <span style={{ fontWeight: 600, color: '#5B21B6', fontFamily: "'IBM Plex Mono', monospace", fontSize: 11.5 }}>
-                          {d.agentUsername}
-                        </span>
-                        {d.agentEmail && (
-                          <span style={{ fontSize: 10.5, color: '#8A8983' }}>
-                            {d.agentEmail}
+                        <Tooltip title={d.agentUsername} placement="topLeft">
+                          <span
+                            style={{
+                              display: 'block',
+                              minWidth: 0,
+                              maxWidth: '100%',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                              fontWeight: 600,
+                              color: '#5B21B6',
+                              fontFamily: "'IBM Plex Mono', monospace",
+                              fontSize: 11.5,
+                            }}
+                          >
+                            {d.agentUsername}
                           </span>
+                        </Tooltip>
+                        {d.agentEmail && (
+                          <Tooltip title={d.agentEmail} placement="topLeft">
+                            <span
+                              style={{
+                                display: 'block',
+                                minWidth: 0,
+                                maxWidth: '100%',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
+                                fontSize: 10.5,
+                                color: '#8A8983',
+                              }}
+                            >
+                              {d.agentEmail}
+                            </span>
+                          </Tooltip>
                         )}
                       </>
                     ) : (
@@ -532,6 +606,7 @@ export const DealersPage: React.FC = () => {
               padding: '10px 16px',
               font: "400 11.5px 'IBM Plex Sans', sans-serif",
               color: '#6E6D68',
+              minWidth: DEALER_TABLE_MIN_WIDTH,
             }}
           >
             {t('showingDealers', { count: dealers.length, total: totalElements })}

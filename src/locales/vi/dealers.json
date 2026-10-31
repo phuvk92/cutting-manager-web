@@ -115,7 +115,9 @@
     "emailRequired": "Vui lòng nhập Email cho tài khoản đại lý (tại ô Email đại lý hoặc Email đăng nhập)",
     "passwordRequiredNew": "Mật khẩu tài khoản đại lý là bắt buộc khi thêm mới đại lý",
     "passwordComplexity": "Mật khẩu đại lý phải có ít nhất 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt",
-    "passwordComplexityEdit": "Mật khẩu đại lý mới phải có ít nhất 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt"
+    "passwordComplexityEdit": "Mật khẩu đại lý mới phải có ít nhất 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt",
+    "validationPastDateNotAllowed": "Không được chọn ngày trong quá khứ.",
+    "validationExpiryBeforeStart": "Ngày kết thúc không được trước ngày bắt đầu."
   },
   "drawer": {
     "title": "Chi tiết đại lý",

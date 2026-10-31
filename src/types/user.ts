@@ -45,6 +45,7 @@ export interface CreateUserRequest {
 }
 
 export interface UpdateUserRequest {
+  username?: string
   email: string
   fullName?: string
   phone?: string
@@ -102,4 +103,14 @@ export interface UserDevice {
   revokedAt?: string | null
   revokedBy?: string | null
   isCurrent: boolean
+}
+
+export interface UserStats {
+  adminCount: number
+  agentCount: number
+  userCount: number
+  total: number
+  admin?: number
+  agent?: number
+  user?: number
 }

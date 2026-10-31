@@ -136,7 +136,7 @@ export const VehicleNodeDialog: React.FC<VehicleNodeDialogProps> = ({
 
       <label style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
         <span style={{ font: "500 11px 'IBM Plex Sans', sans-serif", color: '#6E6D68' }}>
-          {t('dialog.nameLabel')}
+          {t('dialog.nameLabel')} <span style={{ color: '#EF4444' }}>*</span>
         </span>
         <Input
           value={name}

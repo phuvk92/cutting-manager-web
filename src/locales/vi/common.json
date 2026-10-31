@@ -77,7 +77,8 @@
     "serverStatus": "Máy chủ",
     "serverOnline": "Hoạt động · 99,8%",
     "yes": "Có",
-    "no": "Không"
+    "no": "Không",
+    "requiredLegend": "* Trường bắt buộc"
   },
   "roles": {
     "ADMIN": "Quản trị viên",

@@ -123,7 +123,8 @@
       "passwordComplexity": "Password must contain uppercase, lowercase, numbers, and special characters",
       "allocatedDaysMin": "Allocated days must be greater than 0",
       "maxDevicesMin": "Minimum 1 device",
-      "maxDevicesMax": "Maximum 50 devices"
+      "maxDevicesMax": "Maximum 50 devices",
+      "pastDateNotAllowed": "Past dates are not allowed."
     },
     "categoriesLoadError": "Failed to load part library categories. Please try again."
   },

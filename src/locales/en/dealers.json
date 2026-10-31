@@ -115,7 +115,9 @@
     "emailRequired": "Please enter an Email for the dealer account (dealer email or login email)",
     "passwordRequiredNew": "Dealer account password is required when adding a new dealer",
     "passwordComplexity": "Dealer password must be at least 8 characters, including uppercase, lowercase, number, and special character",
-    "passwordComplexityEdit": "New dealer password must be at least 8 characters, including uppercase, lowercase, number, and special character"
+    "passwordComplexityEdit": "New dealer password must be at least 8 characters, including uppercase, lowercase, number, and special character",
+    "validationPastDateNotAllowed": "Past dates are not allowed.",
+    "validationExpiryBeforeStart": "End date cannot be earlier than start date."
   },
   "drawer": {
     "title": "Dealer Details",

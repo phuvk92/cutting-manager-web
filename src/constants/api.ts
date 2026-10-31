@@ -37,6 +37,7 @@ export const API_ENDPOINTS = {
 
   // Users (ADMIN and AGENT)
   USERS_LIST: '/users',
+  USER_STATS: '/users/stats',
   USER_DETAIL: (id: number | string) => `/users/${id}`,
   USER_CREATE: '/users',
   USER_UPDATE: (id: number | string) => `/users/${id}`,

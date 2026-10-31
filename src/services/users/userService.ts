@@ -9,10 +9,18 @@ import {
   ResetPasswordRequest,
   UserFilterParams,
   UserDevice,
+  UserStats,
 } from '@/types/user'
 import { PageResponse } from '@/types/common'
 
 export const userService = {
+  getUserStats: async (params?: UserFilterParams): Promise<UserStats> => {
+    const response = await axiosClient.get<UserStats>(API_ENDPOINTS.USER_STATS, {
+      params,
+    })
+    return response.data
+  },
+
   getUsers: async (params?: UserFilterParams): Promise<PageResponse<User>> => {
     const response = await axiosClient.get<PageResponse<User>>(API_ENDPOINTS.USERS_LIST, {
       params,

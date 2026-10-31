@@ -27,7 +27,7 @@ import {
 } from '@ant-design/icons'
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table'
 import { useTranslation } from 'react-i18next'
-import { User, UserFilterParams } from '@/types/user'
+import { User, UserFilterParams, UserStats } from '@/types/user'
 import { Dealer } from '@/types/dealer'
 import { dealerService } from '@/services/dealers/dealerService'
 import { Role } from '@/types/auth'
@@ -42,7 +42,12 @@ import { useAuthStore } from '@/stores/authStore'
 import { extractErrorMessage } from '@/utils/error'
 import dayjs from 'dayjs'
 
-export const UserList: React.FC = () => {
+export interface UserListProps {
+  onStatsChange?: (stats: UserStats) => void
+  onStatsLoading?: (loading: boolean) => void
+}
+
+export const UserList: React.FC<UserListProps> = ({ onStatsChange, onStatsLoading }) => {
   const { t } = useTranslation(['users', 'common'])
   const { user: currentUser } = useAuthStore()
   const isAdmin = currentUser?.role === 'ADMIN'
@@ -82,6 +87,7 @@ export const UserList: React.FC = () => {
 
   const fetchUsers = useCallback(async () => {
     setLoading(true)
+    onStatsLoading?.(true)
     try {
       const params: UserFilterParams = {
         page,
@@ -96,15 +102,33 @@ export const UserList: React.FC = () => {
       if (selectedExpiration) params.expirationStatus = selectedExpiration
       if (selectedDealerId !== undefined) params.dealerId = selectedDealerId
 
-      const res = await userService.getUsers(params)
+      const [res, statsRes] = await Promise.all([
+        userService.getUsers(params),
+        userService.getUserStats({
+          username: params.username,
+          email: params.email,
+          dealerId: params.dealerId,
+          enabled: params.enabled,
+          expirationStatus: params.expirationStatus,
+          role: params.role,
+        }).catch(err => {
+          console.warn('Failed to fetch user stats:', err)
+          return null
+        })
+      ])
+
       setData(res.content || [])
       setTotalElements(res.totalElements || 0)
+      if (statsRes && onStatsChange) {
+        onStatsChange(statsRes)
+      }
     } catch (err) {
       message.error(extractErrorMessage(err, t('common.messages.error', { ns: 'common' })))
     } finally {
       setLoading(false)
+      onStatsLoading?.(false)
     }
-  }, [page, pageSize, usernameInput, emailInput, selectedRole, selectedEnabled, selectedExpiration, selectedDealerId, sortBy, sortDirection, t])
+  }, [page, pageSize, usernameInput, emailInput, selectedRole, selectedEnabled, selectedExpiration, selectedDealerId, sortBy, sortDirection, t, onStatsChange, onStatsLoading])
 
   useEffect(() => {
     fetchUsers()

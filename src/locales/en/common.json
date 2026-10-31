@@ -77,7 +77,8 @@
     "serverStatus": "Server",
     "serverOnline": "Operational · 99.8%",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "requiredLegend": "* Required field"
   },
   "roles": {
     "ADMIN": "Administrator",

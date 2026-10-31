@@ -35,10 +35,12 @@ import { userService } from '@/services/users/userService'
 import { dealerService } from '@/services/dealers/dealerService'
 import { useAuthStore } from '@/stores/authStore'
 import { useTranslation } from 'react-i18next'
-import { extractErrorMessage } from '@/utils/error'
+import { extractApiError } from '@/utils/error'
+import { disablePastDates, isNotPastDate } from '@/utils/dateRules'
+import { trimPassword, PASSWORD_REGEX } from '@/utils/passwordRules'
+import { createUsernameZodSchema } from '@/utils/usernameRules'
 import { UserDevicesPanel } from './UserDevicesPanel'
 
-const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#^()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/
 
 const DURATION_PRESET_CONFIG = [
   { key: 'preset_1m', days: 30 },
@@ -51,10 +53,7 @@ const DURATION_PRESET_CONFIG = [
 ]
 
 const getCreateSchema = (t: (key: string, options?: any) => string) => z.object({
-  username: z
-    .string()
-    .min(3, t('modal.validation.usernameMin', { defaultValue: 'Tên đăng nhập phải có ít nhất 3 ký tự' }))
-    .max(100, t('modal.validation.usernameMax', { defaultValue: 'Tối đa 100 ký tự' })),
+  username: createUsernameZodSchema(t, false),
   email: z
     .string()
     .email(t('modal.validation.emailInvalid', { defaultValue: 'Vui lòng nhập địa chỉ email hợp lệ' }))
@@ -63,20 +62,34 @@ const getCreateSchema = (t: (key: string, options?: any) => string) => z.object(
   phone: z.string().max(50, t('modal.validation.phoneMax', { defaultValue: 'Tối đa 50 ký tự' })).nullable().optional().or(z.literal('')),
   password: z
     .string()
-    .min(8, t('modal.validation.passwordMin', { defaultValue: 'Mật khẩu phải có ít nhất 8 ký tự' }))
-    .regex(
-      passwordRegex,
-      t('modal.validation.passwordComplexity', { defaultValue: 'Mật khẩu phải chứa chữ hoa, chữ thường, số và ký tự đặc biệt' })
-    ),
+    .transform(trimPassword)
+    .refine(val => val.length >= 8, {
+      message: t('modal.validation.passwordMin', { defaultValue: 'Mật khẩu phải có ít nhất 8 ký tự' }),
+    })
+    .refine(val => PASSWORD_REGEX.test(val), {
+      message: t('modal.validation.passwordComplexity', {
+        defaultValue: 'Mật khẩu phải chứa chữ hoa, chữ thường, số và ký tự đặc biệt',
+      }),
+    }),
   role: z.enum(['ADMIN', 'AGENT', 'USER'] as const),
   dealerId: z.number().nullable().optional(),
   enabled: z.boolean(),
   allocatedDays: z.number().int().min(1, t('modal.validation.allocatedDaysMin', { defaultValue: 'Số ngày phân bổ phải lớn hơn 0' })).nullable().optional(),
-  expirationDate: z.string().nullable().optional(),
+  expirationDate: z
+    .string()
+    .nullable()
+    .optional()
+    .refine(
+      (val) => isNotPastDate(val),
+      {
+        message: t('modal.validation.pastDateNotAllowed', { defaultValue: 'Không được chọn ngày trong quá khứ.' }),
+      }
+    ),
   partCategoryIds: z.array(z.number()),
 })
 
-const getEditSchema = (t: (key: string, options?: any) => string) => z.object({
+const getEditSchema = (t: (key: string, options?: any) => string, initialExpirationDate?: string | null) => z.object({
+  username: createUsernameZodSchema(t, true),
   email: z
     .string()
     .email(t('modal.validation.emailInvalid', { defaultValue: 'Vui lòng nhập địa chỉ email hợp lệ' }))
@@ -87,7 +100,16 @@ const getEditSchema = (t: (key: string, options?: any) => string) => z.object({
   dealerId: z.number().nullable().optional(),
   enabled: z.boolean(),
   allocatedDays: z.number().int().min(1, t('modal.validation.allocatedDaysMin', { defaultValue: 'Số ngày phân bổ phải lớn hơn 0' })).nullable().optional(),
-  expirationDate: z.string().nullable().optional(),
+  expirationDate: z
+    .string()
+    .nullable()
+    .optional()
+    .refine(
+      (val) => isNotPastDate(val, initialExpirationDate),
+      {
+        message: t('modal.validation.pastDateNotAllowed', { defaultValue: 'Không được chọn ngày trong quá khứ.' }),
+      }
+    ),
   maxDevices: z.number().int().min(1, t('modal.validation.maxDevicesMin', { defaultValue: 'Tối thiểu 1 máy' })).max(50, t('modal.validation.maxDevicesMax', { defaultValue: 'Tối đa 50 máy' })).nullable().optional(),
   partCategoryIds: z.array(z.number()),
 })
@@ -113,7 +135,7 @@ export const UserModal: React.FC<UserModalProps> = ({
   onSuccess,
   onResetPassword,
 }) => {
-  const { t } = useTranslation('users')
+  const { t } = useTranslation(['users', 'common'])
   const { user: currentUser } = useAuthStore()
   const isAdmin = currentUser?.role === 'ADMIN'
   const isAgent = currentUser?.role === 'AGENT'
@@ -142,13 +164,14 @@ export const UserModal: React.FC<UserModalProps> = ({
   const [selectedPreset, setSelectedPreset] = useState<number>(360) // default 12 months (360 days)
   const [customDays, setCustomDays] = useState<number>(360)
 
-  const schema = useMemo(() => isEdit ? getEditSchema(t) : getCreateSchema(t), [isEdit, t])
+  const schema = useMemo(() => isEdit ? getEditSchema(t, user?.expirationDate) : getCreateSchema(t), [isEdit, t, user?.expirationDate])
   const {
     control,
     handleSubmit,
     reset,
     watch,
     setValue,
+    setError,
     formState: { errors },
   } = useForm<CreateFormData | EditFormData>({
     resolver: zodResolver(schema),
@@ -232,6 +255,7 @@ export const UserModal: React.FC<UserModalProps> = ({
         setCustomDays(existingDays)
 
         reset({
+          username: user.username || '',
           email: user.email || '',
           fullName: user.fullName || '',
           phone: user.phone || '',
@@ -334,6 +358,7 @@ export const UserModal: React.FC<UserModalProps> = ({
       if (isEdit && user) {
         const editData = data as EditFormData
         const updatePayload: UpdateUserRequest = {
+          username: editData.username?.trim() || undefined,
           email: editData.email.trim(),
           fullName: editData.fullName?.trim() || undefined,
           phone: editData.phone?.trim() || undefined,
@@ -356,7 +381,7 @@ export const UserModal: React.FC<UserModalProps> = ({
           email: createData.email.trim(),
           fullName: createData.fullName?.trim() || undefined,
           phone: createData.phone?.trim() || undefined,
-          password: createData.password,
+          password: trimPassword(createData.password),
           role: !isAdmin ? 'USER' : (createData.role as Role),
           dealerId: !isAdmin ? currentUser?.dealerId : (createData.dealerId ?? undefined),
           enabled: createData.enabled ?? true,
@@ -372,7 +397,11 @@ export const UserModal: React.FC<UserModalProps> = ({
       onSuccess()
       onClose()
     } catch (err) {
-      setErrorMessage(extractErrorMessage(err, isEdit ? t('modal.updateFailed') : t('modal.createFailed')))
+      const apiError = extractApiError(err, isEdit ? t('modal.updateFailed') : t('modal.createFailed'))
+      if (apiError.field && (apiError.field === 'username' || apiError.field === 'email' || apiError.field === 'password')) {
+        setError(apiError.field as any, { type: 'server', message: apiError.message })
+      }
+      setErrorMessage(apiError.message)
     } finally {
       setSubmitting(false)
     }
@@ -387,7 +416,18 @@ export const UserModal: React.FC<UserModalProps> = ({
 
   return (
     <Modal
-      title={isEdit ? `Chỉnh sửa người dùng: ${user?.username}` : 'Thêm mới tài khoản người dùng'}
+      title={
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', paddingRight: 24 }}>
+          <span style={{ fontSize: 16, fontWeight: 600 }}>
+            {isEdit
+              ? `${t('modal.editTitle', { defaultValue: 'Cập nhật tài khoản người dùng' })}: ${user?.username}`
+              : t('modal.addTitle', { defaultValue: 'Thêm mới tài khoản người dùng' })}
+          </span>
+          <span style={{ fontSize: 12, color: '#8A8983', fontWeight: 400 }}>
+            {t('labels.requiredLegend', { ns: 'common', defaultValue: '* Trường bắt buộc' })}
+          </span>
+        </div>
+      }
       open={open}
       onCancel={onClose}
       footer={[
@@ -447,22 +487,25 @@ export const UserModal: React.FC<UserModalProps> = ({
         )}
 
         <Form layout="vertical">
-          {!isEdit && (
-            <Form.Item
-              label={t("modal.username")}
-              validateStatus={'username' in errors && errors.username ? 'error' : ''}
-              help={'username' in errors ? errors.username?.message : undefined}
-              required
-            >
-              <Controller
-                name="username"
-                control={control}
-                render={({ field }) => (
-                  <Input {...field} placeholder={t("modal.usernamePlaceholder")} />
-                )}
-              />
-            </Form.Item>
-          )}
+          <Form.Item
+            label={t("modal.username")}
+            validateStatus={'username' in errors && errors.username ? 'error' : ''}
+            help={'username' in errors ? (errors as any).username?.message : undefined}
+            required={!isEdit}
+          >
+            <Controller
+              name="username"
+              control={control}
+              render={({ field }) => (
+                <Input
+                  {...field}
+                  value={field.value ?? ""}
+                  placeholder={t("modal.usernamePlaceholder")}
+                  disabled={isEdit && !isAdmin}
+                />
+              )}
+            />
+          </Form.Item>
 
           <Form.Item
             label={t("modal.fullName")}
@@ -548,9 +591,6 @@ export const UserModal: React.FC<UserModalProps> = ({
                   placeholder={t("modal.emailPlaceholder")}
                   onChange={e => {
                     field.onChange(e)
-                    if (!isEdit) {
-                      setValue('username', e.target.value.trim(), { shouldValidate: true })
-                    }
                   }}
                 />
               )}
@@ -769,6 +809,7 @@ export const UserModal: React.FC<UserModalProps> = ({
                       placeholder={isEdit && !user?.expirationDate ? "Chưa thiết lập (Không hết hạn)" : "dd/MM/yyyy"}
                       style={{ width: "100%" }}
                       allowClear
+                      disabledDate={disablePastDates}
                     />
                   )
                 }}

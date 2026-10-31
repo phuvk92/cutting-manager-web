@@ -83,7 +83,14 @@ export const PartLibraryCategoryModal: React.FC<PartLibraryCategoryModalProps> =
 
   return (
     <Modal
-      title={isEdit ? t('modal.editTitle') : t('modal.addTitle')}
+      title={
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', paddingRight: 24 }}>
+          <span>{isEdit ? t('modal.editTitle') : t('modal.addTitle')}</span>
+          <span style={{ fontSize: 12, color: '#8A8983', fontWeight: 400 }}>
+            {t('labels.requiredLegend', { ns: 'common', defaultValue: '* Trường bắt buộc' })}
+          </span>
+        </div>
+      }
       open={open}
       onOk={handleSubmit}
       onCancel={onClose}
@@ -113,7 +120,7 @@ export const PartLibraryCategoryModal: React.FC<PartLibraryCategoryModalProps> =
           />
         )}
 
-        <Form form={form} layout="vertical" requiredMark="optional">
+        <Form form={form} layout="vertical">
           <Form.Item
             name="code"
             label={t('modal.code')}

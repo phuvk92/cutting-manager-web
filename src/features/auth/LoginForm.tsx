@@ -10,10 +10,13 @@ import { extractErrorMessage } from "@/utils/error"
 import { ErrorResponse } from "@/types/common"
 import { message } from "antd"
 import { LanguageSwitcher } from "@/components/common/LanguageSwitcher"
+import { trimPassword } from "@/utils/passwordRules"
 
 const loginSchema = z.object({
-  username: z.string().min(1, "Vui lòng nhập tên đăng nhập"),
-  password: z.string().min(1, "Vui lòng nhập mật khẩu"),
+  username: z.string().trim().min(1, "Vui lòng nhập tên đăng nhập"),
+  password: z.string().transform(trimPassword).refine(val => val.length > 0, {
+    message: "Vui lòng nhập mật khẩu",
+  }),
 })
 
 type LoginFormData = z.infer<typeof loginSchema>
@@ -42,7 +45,10 @@ export const LoginForm: React.FC = () => {
   const onSubmit = async (data: LoginFormData) => {
     setErrorMessage(null)
     try {
-      await login(data)
+      await login({
+        username: data.username.trim(),
+        password: trimPassword(data.password),
+      })
       message.success(t('messages.success', { ns: 'common' }))
       navigate("/dashboard")
     } catch (err) {

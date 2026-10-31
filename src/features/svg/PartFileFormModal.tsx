@@ -748,14 +748,19 @@ export const PartFileFormModal: React.FC<PartFileFormModalProps> = ({
       width={780}
       destroyOnHidden
       title={
-        <span style={{ display: 'flex', alignItems: 'center', gap: 8, font: `600 12.5px ${FONT}` }}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 16V5" />
-            <path d="M7.5 9.5 12 5l4.5 4.5" />
-            <path d="M5 19h14" />
-          </svg>
-          {isEdit ? 'Sửa part file' : 'Upload part file'}
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', paddingRight: 24 }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 8, font: `600 12.5px ${FONT}` }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 16V5" />
+              <path d="M7.5 9.5 12 5l4.5 4.5" />
+              <path d="M5 19h14" />
+            </svg>
+            {isEdit ? 'Sửa part file' : 'Upload part file'}
+          </span>
+          <span style={{ fontSize: 11, color: '#8A8983', fontWeight: 400 }}>
+            {t('labels.requiredLegend', { ns: 'common', defaultValue: '* Trường bắt buộc' })}
+          </span>
+        </div>
       }
       styles={{ body: { background: '#F4F3F0', padding: 16 } }}
     >

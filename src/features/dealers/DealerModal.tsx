@@ -34,39 +34,74 @@ import dayjs from 'dayjs'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
 import { Dealer, CreateDealerRequest, UpdateDealerRequest } from '@/types/dealer'
 import { dealerService, generateDealerCodeLocal } from '@/services/dealers/dealerService'
-import { extractErrorMessage } from '@/utils/error'
+import { extractApiError } from '@/utils/error'
+import { disablePastDates, disableDatesBefore, isNotPastDate, isDateRangeValid } from '@/utils/dateRules'
+import { trimOptionalPassword, PASSWORD_REGEX } from '@/utils/passwordRules'
+import { createUsernameZodSchema } from '@/utils/usernameRules'
 
 dayjs.extend(customParseFormat)
 
-const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@0%*?&#^()_+\-=[\]{};':"\|,.<>/?]).{8,}$/
 
-const dealerFormSchema = z.object({
-  code: z.string().max(50).optional(),
-  name: z.string().min(1).max(255),
-  region: z.string().max(100).optional(),
-  address: z.string().max(255).optional(),
-  contactPerson: z.string().max(100).optional(),
-  phone: z.string().max(50).optional(),
-  email: z.string().max(100).optional(),
-  status: z.string().min(1),
-  notes: z.string().optional(),
+const getDealerFormSchema = (
+  t: (key: string, options?: any) => string,
+  initialStartDate?: string | null,
+  initialExpiryDate?: string | null,
+  isEdit?: boolean
+) =>
+  z
+    .object({
+      code: z.string().max(50).optional(),
+      name: z.string().min(1, t('modal.validationNameRequired', { defaultValue: 'Tên đại lý không được để trống' })).max(255),
+      region: z.string().max(100).optional(),
+      address: z.string().max(255).optional(),
+      contactPerson: z.string().max(100).optional(),
+      phone: z.string().max(50).optional(),
+      email: z.string().max(100).optional(),
+      status: z.string().min(1, t('modal.validationStatusRequired', { defaultValue: 'Trạng thái đại lý không được để trống' })),
+      notes: z.string().optional(),
 
-  // Thông tin tài khoản AGENT
-  agentUsername: z.string().max(255).optional().or(z.literal('')),
-  agentEmail: z.string().email().max(255).optional().or(z.literal('')),
-  agentPassword: z.string().optional().or(z.literal('')),
-  agentFullName: z.string().max(255).optional().or(z.literal('')),
-  agentPhone: z.string().max(50).optional().or(z.literal('')),
+      // Thông tin tài khoản AGENT
+      agentUsername: createUsernameZodSchema(t, Boolean(isEdit)),
+      agentEmail: z.string().email().max(255).optional().or(z.literal('')),
+      agentPassword: z.string().transform(trimOptionalPassword).optional(),
+      agentFullName: z.string().max(255).optional().or(z.literal('')),
+      agentPhone: z.string().max(50).optional().or(z.literal('')),
 
-  // Gói account đại lý
-  maxAccounts: z.number().int().min(1),
-  totalAllocatedDays: z.number().int().min(1),
-  packageStartDate: z.string().optional().nullable(),
-  packageExpiryDate: z.string().optional().nullable(),
-  packageStatus: z.string().min(1),
-})
+      // Gói account đại lý
+      maxAccounts: z.number().int().min(1, t('modal.validationMinAccounts', { defaultValue: 'Số tài khoản tối đa phải lớn hơn 0' })),
+      totalAllocatedDays: z.number().int().min(1, t('modal.validationMinDays', { defaultValue: 'Tổng quỹ ngày phải lớn hơn 0' })),
+      packageStartDate: z
+        .string()
+        .optional()
+        .nullable()
+        .refine(
+          (val) => isNotPastDate(val, initialStartDate),
+          {
+            message: t('modal.validationPastDateNotAllowed', { defaultValue: 'Không được chọn ngày trong quá khứ.' }),
+          }
+        ),
+      packageExpiryDate: z
+        .string()
+        .optional()
+        .nullable()
+        .refine(
+          (val) => isNotPastDate(val, initialExpiryDate),
+          {
+            message: t('modal.validationPastDateNotAllowed', { defaultValue: 'Không được chọn ngày trong quá khứ.' }),
+          }
+        ),
+      packageStatus: z.string().min(1, t('modal.validationPackageStatusRequired', { defaultValue: 'Trạng thái gói không được để trống' })),
+    })
+    .refine(
+      (data) => isDateRangeValid(data.packageStartDate, data.packageExpiryDate),
+      {
+        message: t('modal.validationExpiryBeforeStart', { defaultValue: 'Ngày kết thúc phải sau hoặc bằng ngày bắt đầu.' }),
+        path: ['packageExpiryDate'],
+      }
+    )
 
-type DealerFormValues = z.infer<typeof dealerFormSchema>
+const defaultDealerFormSchema = getDealerFormSchema((_k, opts) => opts?.defaultValue || '')
+type DealerFormValues = z.infer<typeof defaultDealerFormSchema>
 
 interface DealerModalProps {
   open: boolean
@@ -81,7 +116,7 @@ export const DealerModal: React.FC<DealerModalProps> = ({
   onClose,
   onSuccess,
 }) => {
-  const { t } = useTranslation('dealers')
+  const { t } = useTranslation(['dealers', 'common'])
   const isEdit = Boolean(dealer)
   const [submitting, setSubmitting] = useState(false)
   const [generatingCode, setGeneratingCode] = useState(false)
@@ -99,15 +134,20 @@ export const DealerModal: React.FC<DealerModalProps> = ({
     { value: 'SUSPENDED', label: t('modal.packageSuspended') },
   ], [t])
 
+  const schema = useMemo(() => {
+    return getDealerFormSchema(t, dealer?.packageStartDate, dealer?.packageExpiryDate, isEdit)
+  }, [t, dealer?.packageStartDate, dealer?.packageExpiryDate, isEdit])
+
   const {
     control,
     handleSubmit,
     reset,
     setValue,
+    setError,
     watch,
     formState: { errors },
   } = useForm<DealerFormValues>({
-    resolver: zodResolver(dealerFormSchema),
+    resolver: zodResolver(schema),
     defaultValues: {
       code: '',
       name: '',
@@ -137,6 +177,7 @@ export const DealerModal: React.FC<DealerModalProps> = ({
   const watchedDealerPhone = watch('phone')
   const watchedMaxAccounts = watch('maxAccounts')
   const watchedTotalDays = watch('totalAllocatedDays')
+  const watchedStartDate = watch('packageStartDate')
 
   const refreshGeneratedCode = useCallback(async () => {
     setGeneratingCode(true)
@@ -231,22 +272,23 @@ export const DealerModal: React.FC<DealerModalProps> = ({
       return
     }
 
+    const agentPass = trimOptionalPassword(values.agentPassword)
     if (!isEdit) {
       const effEmail = values.agentEmail?.trim() || values.email?.trim()
       if (!effEmail) {
         setServerError(t('modal.emailRequired'))
         return
       }
-      if (!values.agentPassword?.trim()) {
+      if (!agentPass) {
         setServerError(t('modal.passwordRequiredNew'))
         return
       }
-      if (!passwordRegex.test(values.agentPassword)) {
+      if (!PASSWORD_REGEX.test(agentPass)) {
         setServerError(t('modal.passwordComplexity'))
         return
       }
     } else {
-      if (values.agentPassword?.trim() && !passwordRegex.test(values.agentPassword)) {
+      if (agentPass && !PASSWORD_REGEX.test(agentPass)) {
         setServerError(t('modal.passwordComplexityEdit'))
         return
       }
@@ -269,7 +311,7 @@ export const DealerModal: React.FC<DealerModalProps> = ({
           notes: values.notes?.trim(),
           agentUsername: values.agentUsername?.trim() || undefined,
           agentEmail: values.agentEmail?.trim() || undefined,
-          agentPassword: values.agentPassword?.trim() || undefined,
+          agentPassword: agentPass,
           agentFullName: values.agentFullName?.trim() || undefined,
           agentPhone: values.agentPhone?.trim() || undefined,
           maxAccounts: values.maxAccounts,
@@ -293,7 +335,7 @@ export const DealerModal: React.FC<DealerModalProps> = ({
           notes: values.notes?.trim(),
           agentUsername: values.agentUsername?.trim() || undefined,
           agentEmail: values.agentEmail?.trim() || values.email?.trim(),
-          agentPassword: values.agentPassword?.trim(),
+          agentPassword: agentPass,
           agentFullName: values.agentFullName?.trim() || values.contactPerson?.trim() || values.name.trim(),
           agentPhone: values.agentPhone?.trim() || values.phone?.trim(),
           maxAccounts: values.maxAccounts,
@@ -309,9 +351,26 @@ export const DealerModal: React.FC<DealerModalProps> = ({
       onSuccess()
       onClose()
     } catch (err: unknown) {
-      const msg = extractErrorMessage(err)
+      const apiError = extractApiError(err, isEdit ? t('modal.updateFailed') : t('modal.createFailed'))
+      const msg = apiError.message
       setServerError(msg)
-      message.error(msg)
+      if (apiError.field) {
+        let formField: keyof DealerFormValues | undefined
+        if (apiError.field === 'username' || apiError.field === 'agentUsername') {
+          formField = 'agentUsername'
+        } else if (apiError.field === 'email' || apiError.field === 'agentEmail') {
+          formField = 'agentEmail'
+        } else if (apiError.field === 'password' || apiError.field === 'agentPassword') {
+          formField = 'agentPassword'
+        } else if (apiError.field === 'code') {
+          formField = 'code'
+        } else if (apiError.field === 'name') {
+          formField = 'name'
+        }
+        if (formField) {
+          setError(formField, { type: 'server', message: msg })
+        }
+      }
     } finally {
       setSubmitting(false)
     }
@@ -321,15 +380,20 @@ export const DealerModal: React.FC<DealerModalProps> = ({
     <Modal
       open={open}
       title={
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 16, fontWeight: 600 }}>
-            {isEdit ? t('modal.editTitle') + ': ' + (dealer?.name || '') : t('modal.addTitle')}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', paddingRight: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 16, fontWeight: 600 }}>
+              {isEdit ? t('modal.editTitle') + ': ' + (dealer?.name || '') : t('modal.addTitle')}
+            </span>
+            {isEdit && dealer && (
+              <Tag color={dealer.status === 'ACTIVE' ? 'green' : dealer.status === 'LOCKED' ? 'red' : 'gold'}>
+                {dealer.status}
+              </Tag>
+            )}
+          </div>
+          <span style={{ fontSize: 12, color: '#8A8983', fontWeight: 400 }}>
+            {t('labels.requiredLegend', { ns: 'common', defaultValue: '* Trường bắt buộc' })}
           </span>
-          {isEdit && dealer && (
-            <Tag color={dealer.status === 'ACTIVE' ? 'green' : dealer.status === 'LOCKED' ? 'red' : 'gold'}>
-              {dealer.status}
-            </Tag>
-          )}
         </div>
       }
       onCancel={onClose}
@@ -606,6 +670,7 @@ export const DealerModal: React.FC<DealerModalProps> = ({
             <Col span={12}>
               <Form.Item
                 label={t('modal.username')}
+                required={!isEdit}
                 help={errors.agentUsername?.message}
                 validateStatus={errors.agentUsername ? 'error' : ''}
                 extra={<span style={{ fontSize: 11, color: '#8A8983' }}>{isEdit ? t('modal.agentUsernameExtraEdit') : t('modal.agentUsernameExtraNew')}</span>}
@@ -847,6 +912,7 @@ export const DealerModal: React.FC<DealerModalProps> = ({
                         placeholder="dd/MM/yyyy"
                         style={{ width: '100%' }}
                         allowClear
+                        disabledDate={disablePastDates}
                       />
                     )
                   }}
@@ -873,6 +939,7 @@ export const DealerModal: React.FC<DealerModalProps> = ({
                         placeholder="dd/MM/yyyy"
                         style={{ width: '100%' }}
                         allowClear
+                        disabledDate={(current) => disableDatesBefore(current, watchedStartDate)}
                       />
                     )
                   }}
@@ -907,6 +974,7 @@ export const DealerModal: React.FC<DealerModalProps> = ({
           <Col span={24}>
             <Form.Item
               label={t('modal.dealerStatus')}
+              required
               help={errors.status?.message}
               validateStatus={errors.status ? 'error' : ''}
             >
